@@ -54,6 +54,7 @@ void IIgsMemory::reset() {
     lcRamRead_ = false; lcRamWrite_ = false; lcBank2_ = true; lcPreWrite_ = false;
     kbdLatch_ = 0;
     videoCycles_ = 0; lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0;
+    adbDataReady_ = false; adbResponse_ = 0; clkData_ = 0; clkCtl_ = 0;
 }
 
 // Fast RAM cell, mirroring the top of the address space down if the machine
@@ -62,6 +63,16 @@ uint8_t& IIgsMemory::fastCell(uint32_t bank, uint16_t off) {
     size_t idx = (size_t(bank) << 16) | off;
     if (idx >= fastRam_.size()) idx %= fastRam_.size();
     return fastRam_[idx];
+}
+
+// //e main/aux redirection (Mega II) for a bank $00/$01 CPU access.
+// Cited: Apple //e Technical Reference (MMU soft switches).
+int IIgsMemory::physBank01(uint16_t off, bool writing) const {
+    if (off < 0x0200) return altzp_ ? 1 : 0;                       // zero page + stack
+    if (store80_ && off >= 0x0400 && off <= 0x07FF) return page2_ ? 1 : 0;            // text page 1
+    if (store80_ && hires_ && off >= 0x2000 && off <= 0x3FFF) return page2_ ? 1 : 0;  // hi-res page 1
+    if (off >= 0x0200 && off <= 0xBFFF) return (writing ? ramwrt_ : ramrd_) ? 1 : 0;  // main/aux RAM
+    return 0;
 }
 
 // ── Language card ($D000-$FFFF in banks $00/$01/$E0/$E1) ─────────────────
@@ -73,36 +84,36 @@ uint8_t IIgsMemory::lcRead(uint8_t bank, uint16_t off) {
         uint32_t romTop = uint32_t(rom_.size()) - 0x10000;   // bank $FF
         return rom_.empty() ? 0 : rom_[romTop + off];
     }
+    (void)bank;
+    const int pb = altzp_ ? 1 : 0;                  // LC RAM main/aux per ALTZP
     if (off < 0xE000 && !lcBank2_)                  // $D000-$DFFF bank 1
-        return fastCell(bank, off);
+        return fastCell(pb, off);
     if (off < 0xE000 && lcBank2_)                   // $D000-$DFFF bank 2 (aliased to $Cxxx window)
-        return fastCell(bank, uint16_t(off - 0x1000));
-    return fastCell(bank, off);                     // $E000-$FFFF (single bank)
+        return fastCell(pb, uint16_t(off - 0x1000));
+    return fastCell(pb, off);                       // $E000-$FFFF (single bank)
 }
 
 void IIgsMemory::lcWrite(uint8_t bank, uint16_t off, uint8_t v) {
+    (void)bank;
     if (!lcRamWrite_) return;                       // writes ignored unless LC write enabled
-    if (off < 0xE000 && lcBank2_) { fastCell(bank, uint16_t(off - 0x1000)) = v; return; }
-    fastCell(bank, off) = v;
+    const int pb = altzp_ ? 1 : 0;
+    if (off < 0xE000 && lcBank2_) { fastCell(pb, uint16_t(off - 0x1000)) = v; return; }
+    fastCell(pb, off) = v;
 }
 
-// Language-card bank switching ($C080-$C08F). Standard //e decode.
+// Language-card bank switching ($C080-$C08F). Canonical //e decode:
+//   read RAM  when bit0 == bit1   ($C080/$C083/$C088/$C08B)
+//   read ROM  otherwise           ($C081/$C082/$C089/$C08A)
+//   write RAM enabled by two consecutive ODD (bit0=1) accesses
+//   bank 2 when bit3 == 0
 void IIgsMemory::lcSwitch(uint16_t off, bool writing) {
     const uint8_t n = off & 0x0F;
-    lcBank2_ = !(n & 0x08);                         // A3=0 → bank2, A3=1 → bank1
-    const bool ramInSel = (n & 0x03) == 0x03;       // 11 → read RAM
-    const bool romInSel = (n & 0x03) == 0x00;       // 00 → read ROM (write RAM)
-    lcRamRead_  = ramInSel;
-    if (romInSel) lcRamRead_ = false;
-    // Write-enable requires two consecutive odd reads (pre-write latch).
-    if (n & 0x01) {                                 // odd access
+    lcBank2_ = !(n & 0x08);
+    lcRamRead_ = ((n & 0x01) == ((n >> 1) & 0x01));
+    if (n & 0x01) {                                 // odd → arm/enable write
         if (!writing) { if (lcPreWrite_) lcRamWrite_ = true; lcPreWrite_ = true; }
-    } else {
+    } else {                                        // even → disable write
         lcPreWrite_ = false; lcRamWrite_ = false;
-    }
-    if ((n & 0x03) == 0x01 || (n & 0x03) == 0x02) {
-        // 01/10 combos: RAM read off, but write handling per parity above
-        lcRamRead_ = (n & 0x03) == 0x03;
     }
 }
 
@@ -121,6 +132,13 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x16: return altzp_ ? 0x80 : 0x00;
         case 0x17: return slotc3rom_ ? 0x80 : 0x00;
         case 0x18: return store80_ ? 0x80 : 0x00;
+        // ── ADB GLU ──
+        case 0x24: return 0x00;                             // MOUSEDATA (no mouse yet)
+        case 0x25: return 0x00;                             // KEYMODREG (no modifiers)
+        case 0x26: { uint8_t v = adbResponse_; adbDataReady_ = false; return v; } // DATAREG
+        case 0x27: return adbDataReady_ ? 0x20 : 0x00;      // KMSTATUS: bit5 data-ready, bit0 CMDFULL=0
+        case 0x33: return clkData_;                          // CLOCKDATA
+        case 0x34: return clkCtl_;                           // CLOCKCTL
         case 0x19: return inVbl() ? 0x80 : 0x00;            // RDVBL (MAME 1425)
         case 0x1A: return 0x00;                             // TEXT
         case 0x1B: return 0x00;                             // MIXED
@@ -137,7 +155,11 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x41: return inten_;                           // INTEN
         case 0x46: return intflag_;                         // INTFLAG (VBL bit etc.)
         case 0x47: intflag_ &= ~0x08; return 0;             // CLRVBLINT
-        case 0x68: return state_;                           // STATEREG
+        case 0x68:                                          // STATEREG — synthesize (MAME 1926)
+            return uint8_t((altzp_ ? 0x80 : 0) | (page2_ ? 0x40 : 0) |
+                           (ramrd_ ? 0x20 : 0) | (ramwrt_ ? 0x10 : 0) |
+                           (lcRamRead_ ? 0x00 : 0x08) | (lcBank2_ ? 0x04 : 0) |
+                           (intcxrom_ ? 0x01 : 0));
         default: break;
     }
     // display / paging soft switches with read side-effects
@@ -167,6 +189,10 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x0D: eightyCol_ = true;  return;
         case 0x0E: altchar_ = false; return;
         case 0x0F: altchar_ = true;  return;
+        case 0x26: adbResponse_ = 0x00; adbDataReady_ = true; return; // DATAREG: accept cmd, queue response
+        case 0x27: return;                                  // KMSTATUS write (ignored)
+        case 0x33: clkData_ = v; return;                    // CLOCKDATA
+        case 0x34: clkCtl_ = v & 0x6F; return;              // CLOCKCTL
         case 0x23: vgcint_ = v; return;                     // VGCINT enable
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
         case 0x32: vgcint_ &= v; return;                    // VGCINTCLEAR
@@ -227,7 +253,8 @@ uint8_t IIgsMemory::read8(uint32_t a) {
             if (off >= 0xC000 && off <= 0xCFFF) return ioRead(bank, off);
             if (off >= 0xD000)                  return lcRead(bank, off);
         }
-        return fastCell(bank, off);
+        int pb = (bank == 0) ? physBank01(off, false) : 1;
+        return fastCell(pb, off);
     }
 
     if (bank <= 0x7F) return fastCell(bank, off);
@@ -253,8 +280,9 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
             if (off >= 0xC000 && off <= 0xCFFF) { ioWrite(bank, off, v); return; }
             if (off >= 0xD000)                  { lcWrite(bank, off, v); return; }
         }
-        fastCell(bank, off) = v;
-        maybeShadow(bank, off, v);
+        int pb = (bank == 0) ? physBank01(off, true) : 1;
+        fastCell(pb, off) = v;
+        maybeShadow(uint8_t(pb), off, v);
         return;
     }
 

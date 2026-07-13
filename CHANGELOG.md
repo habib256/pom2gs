@@ -4,6 +4,24 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Milestone 4 (ADB + MMU fixes — ROM boots to the banner)
+- **ROM 03 now boots through every self-test to the authentic "Apple IIgs /
+  Copyright Apple Computer, Inc. 1977-1989 / ROM Version 3" banner**, then
+  proceeds to disk-boot ($C0Ex IWM reads — the M5 boundary). Distinct PCs
+  executed jumped 832 → 3451.
+- **ADB GLU HLE** ($C024-$C027 in IIgsMemory): accept commands immediately,
+  queue a trivial data-ready response — clears the ROM's ADB self-test **fatal
+  error $0911** ($FF:81B6). Diagnosed by disassembling the ADB poll loop.
+- **STATEREG ($C068) read now synthesizes** from the live switches instead of
+  returning the last-written byte (MAME apple2gs.cpp:1926). This was the key
+  bug: the ROM saves/restores the MMU state via STATEREG, and a stale read
+  corrupted the language-card state, sending it into empty LC RAM ($00:F8B0).
+- **//e main/aux redirection** (`physBank01`): bank $00 accesses route to aux
+  ($01) under ALTZP (ZP/stack), RAMRD/RAMWRT, and 80STORE/PAGE2 — the ROM runs
+  its stack in aux. Language card selects main/aux by ALTZP.
+- Corrected the language-card $C08x decode (read RAM when bit0==bit1).
+- Battery-RAM/clock ($C033/$C034) stubbed (full serial protocol = follow-up).
+
 ### Added — Milestone 3 (VGC video — Super Hi-Res renders)
 - `src/VGC.{h,cpp}` — the Video Graphics Controller: renders `IIgsMemory`'s
   slow-side video RAM to a 640×400 RGBA framebuffer. **Super Hi-Res** 320 and

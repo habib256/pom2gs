@@ -195,14 +195,30 @@ bus, cycle-stamped like every other POM2 audio source. **MAME reference**:
 
 ## ADB
 
-*(planned — Milestone 4)*
+*(Milestone 4 — HLE. The ROM boots to the "Apple IIgs / ROM Version 3" banner.)*
 
-The **Apple Desktop Bus** microcontroller manages keyboard + mouse over a
-low-speed serial bus. The CPU talks to it via a GLU command/data register
-interface (`$C024` mouse data, `$C025` modifiers, `$C026` command/data,
-`$C027` status). Model the command protocol + register semantics (HLE), not
-the µC firmware — the KEGS/MAME approach. **MAME reference**: ADB GLU in
-`apple2gs.cpp`.
+The **Apple Desktop Bus** GLU (`$C024` mouse, `$C025` modifiers, `$C026`
+command/data, `$C027` status) is modelled at the register level (HLE), not the
+µC firmware — the KEGS approach. The ROM's ADB self-test writes command bytes
+to `$C026`, waits for CMDFULL (`$C027` bit 0) to clear, then waits for
+data-ready (`$C027` bit 5) and reads the response; with no ADB it times out and
+raises **fatal error `$0911`** (`PEA $0911 / JSR $A6E4` at `$FF:81B6`). We
+accept commands immediately (CMDFULL always clear) and queue a trivial response
+(data-ready set), so the handshake completes and `$0911` clears. Real
+keyboard/mouse routing lands later.
+
+**Two other fixes were load-bearing for the banner boot** (both surfaced by the
+boot trace):
+- **STATEREG (`$C068`) read must synthesize** from the live switches
+  (ALTZP/PAGE2/RAMRD/RAMWRT/`!lcRamRead`/LCBNK2/INTCXROM), not return the last
+  written byte — the ROM saves/restores the MMU state through it, so a stale
+  read corrupts the language-card state on restore and the ROM jumps into empty
+  LC RAM. Cited: MAME apple2gs.cpp:1926.
+- **//e main/aux redirection** (`physBank01`): bank `$00` accesses redirect to
+  the aux bank (`$01`) per ALTZP (ZP/stack), RAMRD/RAMWRT ($0200-$BFFF), and
+  80STORE/PAGE2 (display pages) — the ROM runs its stack in aux under ALTZP.
+
+**MAME reference**: ADB GLU + STATEREG in `apple2gs.cpp`.
 
 ---
 

@@ -96,6 +96,16 @@ private:
     bool lcRamRead_ = false, lcRamWrite_ = false, lcBank2_ = true, lcPreWrite_ = false;
     // Keyboard latch.
     uint8_t kbdLatch_ = 0;
+    // ADB GLU (HLE — $C024-$C027). The ROM's ADB self-test sends command bytes
+    // to DATAREG ($C026), waits for CMDFULL ($C027 bit0) to clear, then waits
+    // for data-ready ($C027 bit5) and reads the response. We accept commands
+    // immediately and queue a trivial response so the handshake completes
+    // (real keyboard/mouse routing lands later). See DEV § ADB.
+    bool    adbDataReady_ = false;
+    uint8_t adbResponse_ = 0;
+    // Battery RAM ($C033/$C034 serial clock/BRAM interface).
+    uint8_t clkData_ = 0, clkCtl_ = 0;
+    uint8_t bram_[256] = {0};
     // Video / interrupt timing.
     static constexpr int kLineCycles = 65;
     static constexpr int kLines      = 262;
@@ -110,6 +120,9 @@ private:
     uint8_t ioRead(uint8_t bank, uint16_t off);
     void    ioWrite(uint8_t bank, uint16_t off, uint8_t v);
     uint8_t& fastCell(uint32_t bank, uint16_t off);   // fast RAM cell (with mirroring for out-of-range)
+    // //e main/aux redirection for a bank $00/$01 access: returns physical
+    // bank 0 (main) or 1 (aux) per ALTZP / RAMRD / RAMWRT / 80STORE / PAGE2.
+    int physBank01(uint16_t off, bool writing) const;
     uint8_t  lcRead(uint8_t bank, uint16_t off);
     void     lcWrite(uint8_t bank, uint16_t off, uint8_t v);
     void     lcSwitch(uint16_t off, bool writing);

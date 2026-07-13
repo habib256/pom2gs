@@ -15,8 +15,8 @@ self-test, then the visible/audible subsystems.
 | **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on 64 opcode families × 2 modes (384k vectors, regs+RAM+**cycles**). MVN/MVP excluded (cycle-cap granularity, see DEV). Extending corpus to full 256 = ongoing |
 | **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟡 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → speed-calibration loop ($FF:FCDC). Needs VBL/timer to progress. Verify: `boot_trace` |
 | **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text needs `roms/iigs-char.rom`; scanline IRQ + 80col/HGR/NTSC next |
-| **M4** | ADB + BRAM/RTC | `Adb`, `IIgsClock` — keyboard/mouse, Control Panel persistence | 🔴 boots to Finder desktop; CP settings survive |
-| **M5** | Disk (IWM/SWIM) | Reuse POM2 `IWMDevice`+`DiskImage`; add `Swim` for ROM 03 | 🔴 boots a GS/OS 3.5" image |
+| **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing + BRAM persistence + ROM 01 banner = follow-ups |
+| **M5** | Disk (IWM/SWIM) + **//e legacy** | Reuse POM2 `IWMDevice`+`DiskImage`; add `Swim` for ROM 03. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. | 🔴 boots a GS/OS 3.5" image; a //e disk runs in 8-bit mode |
 | **M6** | Ensoniq 5503 DOC | `Es5503` — 32 osc, 64 KB sound RAM, Sound GLU → POM2 audio bus | 🔴 a `.stg`/System 6 boot chime plays |
 | **M7** | Serial + slots | `Scc8530`; reuse POM2 slot bus / SmartPort / Mockingboard | 🔴 SmartPort HDD boots; SCC loopback |
 | **M8** | Polish | Snapshot/rewind reuse, CLI, WASM, kiosk, packaging | 🔴 WASM build plays in browser |
