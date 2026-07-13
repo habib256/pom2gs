@@ -160,8 +160,8 @@ indices/byte; 640 mode = 4 × 2-bit with the column-offset palette groups
 **Text.** 40-column from `$E0:0400` (//e interleaved) using the **authentic
 Apple IIgs Mega II character ROM** (`roms/iigs-char.rom` = `344s0047.bin`,
 16 KB — user-provided like the main ROM; **no public font is bundled**). Text
-is skipped until the char ROM is present. 80-col, LORES/HGR/DHGR, and the NTSC
-composite / CRT stack (reuse POM2 `Apple2Display`, `NtscPostProcessor`,
+is skipped until the char ROM is present. 80-col text, DHGR, and the NTSC
+composite / CRT stack — legacy **HGR (280×192 mono) and LORES (40×48)** now render, dispatched by the //e mode switches ($C050-$C05F); 80-col + DHGR + NTSC colour reuse POM2 `Apple2Display`, `NtscPostProcessor`,
 `CrtEffectStack`) are staged in next.
 
 *Original plan:* legacy text/LORES/HGR/DHGR + the NTSC composite and CRT effect

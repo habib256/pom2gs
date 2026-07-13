@@ -24,9 +24,66 @@ bool VGC::setCharRom(const std::vector<uint8_t>& rom) {
 }
 
 const uint32_t* VGC::render(const IIgsMemory& mem) {
-    if (mem.shrEnabled()) renderSHR(mem);
-    else                  renderText(mem);
+    if (mem.shrEnabled())      renderSHR(mem);
+    else if (mem.textMode())   renderText(mem);
+    else if (mem.hires())      renderHGR(mem);
+    else                       renderLores(mem);
     return fb_.data();
+}
+
+// //e address of text/lo-res row (interleaved) and hi-res row.
+static inline int textRowBase(int row, int page2base) {
+    return page2base + (row % 8) * 0x80 + (row / 8) * 0x28;
+}
+static inline int hgrRowBase(int y, int base) {
+    return base + (y & 7) * 0x400 + ((y >> 3) & 7) * 0x80 + (y >> 6) * 0x28;
+}
+
+// ── Legacy hi-res 280×192 (monochrome green; NTSC colour = later) ────────
+void VGC::renderHGR(const IIgsMemory& mem) {
+    const uint32_t fg = 0xFF33FF33u, bg = 0xFF000000u;
+    for (auto& px : fb_) px = bg;
+    const uint8_t* e0 = mem.slowRam();
+    const int base = mem.page2() ? 0x4000 : 0x2000;
+    const int ox = (kW - 560) / 2;                 // centre 560-wide (280×2)
+    for (int y = 0; y < 192; ++y) {
+        const uint8_t* row = e0 + hgrRowBase(y, base);
+        for (int b = 0; b < 40; ++b) {
+            uint8_t v = row[b];
+            for (int bit = 0; bit < 7; ++bit) {
+                uint32_t c = (v & (1 << bit)) ? fg : bg;
+                int x = (b * 7 + bit) * 2 + ox, py = y * 2;
+                fb_[size_t(py) * kW + x] = c;      fb_[size_t(py) * kW + x + 1] = c;
+                fb_[size_t(py + 1) * kW + x] = c;  fb_[size_t(py + 1) * kW + x + 1] = c;
+            }
+        }
+    }
+}
+
+// ── Legacy lo-res 40×48 (16 colours) ─────────────────────────────────────
+void VGC::renderLores(const IIgsMemory& mem) {
+    // Apple II 16-colour lo-res palette (approx NTSC), 4-4-4 → 8-8-8.
+    static const uint32_t lut[16] = {
+        0xFF000000,0xFF601490,0xFF7F1040,0xFFE0207F,0xFF006040,0xFF808080,0xFF1090F0,0xFFC0A0F0,
+        0xFF405010,0xFFF06000,0xFF808080,0xFFF090A0,0xFF10D000,0xFFF0F050,0xFF50F090,0xFFFFFFFF };
+    for (auto& px : fb_) px = 0xFF000000u;
+    const uint8_t* e0 = mem.slowRam();
+    const int page = mem.page2() ? 0x0800 : 0x0400;
+    const int cellW = kW / 40, cellH = kH / 48;
+    for (int row = 0; row < 24; ++row) {
+        int rb = textRowBase(row, page);
+        for (int col = 0; col < 40; ++col) {
+            uint8_t v = e0[rb + col];
+            uint32_t top = lut[v & 0x0F], bot = lut[v >> 4];
+            for (int half = 0; half < 2; ++half) {
+                uint32_t c = half ? bot : top;
+                int y0 = (row * 2 + half) * cellH;
+                for (int dy = 0; dy < cellH; ++dy)
+                    for (int dx = 0; dx < cellW; ++dx)
+                        fb_[size_t(y0 + dy) * kW + col * cellW + dx] = c;
+            }
+        }
+    }
 }
 
 // ── Super Hi-Res (320/640 × 200) ─────────────────────────────────────────

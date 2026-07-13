@@ -48,6 +48,8 @@ private:
     std::vector<uint8_t>  charRom_;   // Mega II 344s0047 (16 KB)
     void renderSHR(const IIgsMemory& mem);
     void renderText(const IIgsMemory& mem);
+    void renderHGR(const IIgsMemory& mem);    // legacy 280×192 hi-res
+    void renderLores(const IIgsMemory& mem);  // legacy 40×48 lo-res
 };
 
 #endif // POMIIGS_VGC_H

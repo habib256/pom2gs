@@ -72,6 +72,11 @@ public:
     bool    shrEnabled() const { return (newvideo_ & 0x80) != 0; }
     bool    text80()    const { return eightyCol_; }
     bool    page2()     const { return page2_; }
+    // Legacy //e display mode (for the VGC).
+    bool    textMode()  const { return textMode_; }
+    bool    mixed()     const { return mixed_; }
+    bool    hires()     const { return hires_; }
+    bool    dhires()    const { return dhgr_ && eightyCol_; }
 
 private:
     // Backing stores.
@@ -92,6 +97,7 @@ private:
     bool altzp_ = false, ramrd_ = false, ramwrt_ = false, page2_ = false;
     bool store80_ = false, hires_ = false, intcxrom_ = false, slotc3rom_ = false;
     bool eightyCol_ = false, altchar_ = false;
+    bool textMode_ = true, mixed_ = false, dhgr_ = false;   // $C050-$C053, $C05E/F
     // Language card.
     bool lcRamRead_ = false, lcRamWrite_ = false, lcBank2_ = true, lcPreWrite_ = false;
     // Keyboard latch.
@@ -119,6 +125,7 @@ private:
     bool   iolcShadow() const { return !(shadow_ & SHAD_IOLC); }
     uint8_t ioRead(uint8_t bank, uint16_t off);
     void    ioWrite(uint8_t bank, uint16_t off, uint8_t v);
+    void    applyDisplaySwitch(uint8_t r);   // $C050-$C05F toggles
     uint8_t& fastCell(uint32_t bank, uint16_t off);   // fast RAM cell (with mirroring for out-of-range)
     // //e main/aux redirection for a bank $00/$01 access: returns physical
     // bank 0 (main) or 1 (aux) per ALTZP / RAMRD / RAMWRT / 80STORE / PAGE2.

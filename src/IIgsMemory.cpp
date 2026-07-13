@@ -51,6 +51,7 @@ void IIgsMemory::reset() {
     shadow_ = 0; speed_ = 0; state_ = 0; newvideo_ = 0;
     altzp_ = ramrd_ = ramwrt_ = page2_ = store80_ = hires_ = false;
     intcxrom_ = false; slotc3rom_ = false; eightyCol_ = false; altchar_ = false;
+    textMode_ = true; mixed_ = false; dhgr_ = false;
     lcRamRead_ = false; lcRamWrite_ = false; lcBank2_ = true; lcPreWrite_ = false;
     kbdLatch_ = 0;
     videoCycles_ = 0; lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0;
@@ -117,6 +118,18 @@ void IIgsMemory::lcSwitch(uint16_t off, bool writing) {
     }
 }
 
+// Display soft switches $C050-$C05F (toggle on any access — read or write).
+void IIgsMemory::applyDisplaySwitch(uint8_t r) {
+    switch (r) {
+        case 0x50: textMode_ = false; break;   case 0x51: textMode_ = true;  break;
+        case 0x52: mixed_ = false;    break;   case 0x53: mixed_ = true;     break;
+        case 0x54: page2_ = false;    break;   case 0x55: page2_ = true;     break;
+        case 0x56: hires_ = false;    break;   case 0x57: hires_ = true;     break;
+        case 0x5E: dhgr_ = true;      break;   case 0x5F: dhgr_ = false;     break;
+        default: break;
+    }
+}
+
 // ── $C000-$C0FF I/O ──────────────────────────────────────────────────────
 uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     (void)bank;
@@ -140,8 +153,8 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x33: return clkData_;                          // CLOCKDATA
         case 0x34: return clkCtl_;                           // CLOCKCTL
         case 0x19: return inVbl() ? 0x80 : 0x00;            // RDVBL (MAME 1425)
-        case 0x1A: return 0x00;                             // TEXT
-        case 0x1B: return 0x00;                             // MIXED
+        case 0x1A: return textMode_ ? 0x80 : 0x00;         // RDTEXT
+        case 0x1B: return mixed_ ? 0x80 : 0x00;             // RDMIXED
         case 0x1C: return page2_ ? 0x80 : 0x00;
         case 0x1D: return hires_ ? 0x80 : 0x00;
         case 0x1E: return altchar_ ? 0x80 : 0x00;
@@ -164,7 +177,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     }
     // display / paging soft switches with read side-effects
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, false); return 0; }
-    if (r >= 0x50 && r <= 0x5F) { /* display toggles */ }
+    if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return 0; }
     return 0;   // floating bus (approx)
 }
 
@@ -209,15 +222,7 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
             return;
         default: break;
     }
-    if (r >= 0x50 && r <= 0x5F) {                            // display soft switches
-        switch (r) {
-            case 0x54: page2_ = false; return;
-            case 0x55: page2_ = true;  return;
-            case 0x56: hires_ = false; return;
-            case 0x57: hires_ = true;  return;
-            default: return;
-        }
-    }
+    if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return; }
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, true); return; }
 }
 
