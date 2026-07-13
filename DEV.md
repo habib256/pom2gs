@@ -97,7 +97,25 @@ E-mode and native vectors), reusing POM2's hand-rolled JSON scanner harness
 
 ## Memory — FPI + Mega II
 
-*(planned — Milestone 2)*
+*(Milestone 2 — MMU boots a real ROM. `IIgsMemory` implements the 24-bit banked
+space: ROM at `$FC-$FF` (256 KB) / `$FE-$FF` (128 KB), fast RAM `$00-$7F`,
+Mega II slow RAM `$E0/$E1` (128 KB), the `$C0xx` register file, the language
+card, and shadow write-through. Both a real **ROM 01** and **ROM 03** reset
+from the ROM vector, switch to native mode, and execute ~340-420 distinct ROM
+addresses of self-diagnostic before parking in the CPU speed-calibration loop
+at `$FF:FCDC` (`SBC #1 / BNE`, writing `$C036`) — which needs a VBL/timer
+reference to converge, i.e. M3+ hardware. Verify with `boot_trace <rom>`.)*
+
+**IOLC shadow gates the boot.** `SHAD_IOLC` (`$C035` bit 6) = 0 at reset means
+banks `$00/$01` `$C000-$FFFF` behave as the //e machine — `$C0xx` I/O, and the
+language card at `$D000-$FFFF` with `!lcRamRead` showing the `$FF`-bank ROM
+through. That is why the reset vector at `$00:FFFC` reads the ROM. Cited: MAME
+apple2gs.cpp:556-558, :235-241 (shadow bits).
+
+**Still staged in:** //e main/aux (bank `$00`↔`$01`) redirection under
+RAMRD/RAMWRT/80STORE/PAGE2; the second LC `$D000` bank uses the `$Cxxx` RAM
+window (approximate); `$C100-$CFFF` slot/internal ROM; VBL/timer status. These
+land as the boot trace demands them (next: VBL for the speed loop).
 
 The IIgs is two machines bolted together by two custom chips:
 

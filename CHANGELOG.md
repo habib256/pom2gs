@@ -4,6 +4,24 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Milestone 2 (FPI + Mega II MMU, boots a real ROM)
+- `src/IIgsMemory.{h,cpp}` grown from the flat M1 stub into the real MMU: ROM
+  mapping ($FC-$FF / $FE-$FF), fast RAM $00-$7F, Mega II slow RAM $E0/$E1, the
+  $C0xx register file (keyboard, //e paging switches, NEWVIDEO $C029, SHADOW
+  $C035, SPEED $C036, STATEREG $C068, language card $C08x), the language card
+  ($D000-$FFFF with ROM show-through when !lcRamRead — so reset vectors read
+  ROM), and shadow write-through of the display regions. Register semantics
+  cited to MAME apple2gs.cpp.
+- `tests/boot_trace.cpp` — dev tool that loads a real ROM, resets, and traces
+  CPU execution / loop-detection.
+- **A real ROM 01 and ROM 03 both boot**: reset from the ROM vector at
+  $00:FA62, `REP #$30` into native mode, run 340-420 distinct ROM addresses of
+  self-diagnostic, then reach the CPU speed-calibration loop at $FF:FCDC (needs
+  a VBL/timer reference — M3+ — to converge). Fetched via scrapling from the
+  Apple II Documentation Project / asimov mirrors; git-ignored (Apple
+  copyright). Doc note: ROM 01 = 128 KB, ROM 03 = 256 KB (earlier docs had the
+  sizes swapped).
+
 ### Added — Milestone 1 (65C816 core, in progress)
 - `src/CPU65816.cpp` — the WDC 65C816 core: emulation + native mode, 8/16-bit
   register widths (M/X flags), 24-bit banked addressing, the full addressing-

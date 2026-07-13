@@ -53,8 +53,8 @@ cd .. && ./run_emulator.sh          # cwd = repo root so roms/ probes resolve
 
 The IIgs ROM is copyrighted; drop your own dump in `roms/`:
 
-- `roms/iigs-rom03.rom` — 128 KB (Apple IIgs ROM 03, 1989) — default
-- `roms/iigs-rom01.rom` — 256 KB (Apple IIgs ROM 01, 1986)
+- `roms/iigs-rom03.rom` — 256 KB (Apple IIgs ROM 03, 1989) — default
+- `roms/iigs-rom01.rom` — 128 KB (Apple IIgs ROM 01, 1986) — best compatibility
 
 ## License
 

@@ -207,6 +207,7 @@ int main(int argc, char** argv) {
     if (files.empty()) { std::fprintf(stderr,"[tomharte65816] '%s' holds no .json — soft skip\n",dir.c_str()); return 0; }
 
     IIgsMemory mem;
+    mem.setTestMode(true);   // flat 16 MB bus (Tom Harte models no MMU)
     CPU65816 cpu(&mem);
     std::printf("[tomharte65816] dir=%s files=%zu cycles=%s\n", dir.c_str(), files.size(), checkCycles?"on":"off");
 

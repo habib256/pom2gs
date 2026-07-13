@@ -43,14 +43,15 @@ configure_file(
 # One concern per file. As milestones land, add each subsystem's .cpp here.
 set(SOURCES
     src/main.cpp
-    # src/CPU65816.cpp      # M1
-    # src/IIgsMemory.cpp    # M2
+    src/CPU65816.cpp      # M1
+    src/IIgsMemory.cpp    # M2
     # src/VGC.cpp           # M3
     # src/Es5503.cpp        # M6
     # ...
 )
 set(HEADERS
-    src/CPU65816.h)
+    src/CPU65816.h
+    src/IIgsMemory.h)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMGUI_SOURCES})
 
@@ -95,7 +96,7 @@ endif()
 option(POMIIGS_TESTS "Build the test targets" ON)
 if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     enable_testing()
-    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp)
+    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp src/IIgsMemory.cpp)
     target_include_directories(tomharte_65816 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     set(POMIIGS_TOMHARTE_DIR "" CACHE PATH "Directory of SingleStepTests/65816 .json vectors")
     # MVN/MVP ($54/$44) are excluded: Tom Harte caps block moves at 100 cycles
@@ -103,4 +104,8 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     # DEV.md § CPU. Their per-byte semantics are covered by the emulator loop.
     add_test(NAME tomharte_65816
              COMMAND tomharte_65816 "${POMIIGS_TOMHARTE_DIR}" --skip 44,54)
+
+    # Dev tool (not a gate): load a real ROM and trace how far it boots.
+    add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp)
+    target_include_directories(boot_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()

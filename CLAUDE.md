@@ -135,8 +135,8 @@ Slow-side I/O ($E0/E1 $Cnnn), also visible at $00/$01 $Cnnn via shadow:
 
 | Profile | ROM | CPU boot mode | Notes |
 |---|---|---|---|
-| Apple IIgs ROM 01 (1986) | `iigs-rom01.rom` (256 KB) | 65C816 emul → native | DOC, VGC, ADB, IWM. 256 KB–1 MB RAM. |
-| Apple IIgs ROM 03 (1989) | `iigs-rom03.rom` (128 KB) | 65C816 emul → native | SWIM, shadow-all, up to 8 MB RAM. |
+| Apple IIgs ROM 01 (1986) | `iigs-rom01.rom` (128 KB) | 65C816 emul → native | DOC, VGC, ADB, IWM. 256 KB–1 MB RAM. Best compatibility. |
+| Apple IIgs ROM 03 (1989) | `iigs-rom03.rom` (256 KB) | 65C816 emul → native | SWIM, shadow-all, up to 8 MB RAM. |
 
 ROM probe warns on size/checksum mismatch (POM2 pattern). Default = ROM 03.
 

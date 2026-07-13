@@ -1,22 +1,25 @@
 // POMIIGS — Apple IIgs emulator
 // VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
 //
-// ── IIgs memory bus ──────────────────────────────────────────────────────
-// M1 stub: a flat 16 MB address space so the 65C816 core is testable in
-// isolation against Tom Harte SingleStepTests/65816 (which model a flat bus).
+// ── IIgs memory bus: FPI (fast side) + Mega II (slow side) ────────────────
+// M2: the 24-bit banked address space of the Apple IIgs.
 //
-// M2 replaces the internals with the real FPI (2.8 MHz fast side) + Mega II
-// (1.02 MHz slow side) model — bank shadowing, speed/state registers, the
-// $C0xx I/O + GLU space, language card, and the slow-side access penalty.
-// The public read8/write8(addr24) interface stays stable across that change,
-// exactly like POM2's Memory::memRead/memWrite are the CPU's only bus hook.
+//   $00-$7F   Fast RAM (FPI, 2.8 MHz). Banks $00/$01 are the "//e machine":
+//             $C000-$CFFF I/O, $D000-$FFFF language card — when IOLC shadow
+//             is on (SHAD_IOLC=0). Otherwise plain fast RAM.
+//   $E0/$E1   Mega II slow RAM (1 MHz), 128 KB. Always carries live I/O +
+//             LC + the legacy //e video image + Super Hi-Res buffer.
+//   $FC-$FF   ROM (256 KB ROM 03) or $FE-$FF (128 KB ROM 01).
 //
-// Source of truth (from M2): MAME `apple2gs.cpp`.
+// Writes to the shadowed display regions of banks $00/$01 mirror into
+// $E0/$E1 so the slow-side video generator sees them (SHADOW reg $C035).
+// Source of truth: MAME apple2gs.cpp (shadow/speed/state semantics cited).
+//
+// The CPU's only bus hooks remain read8/write8(addr24) — stable since M1.
 
 #ifndef POMIIGS_IIGSMEMORY_H
 #define POMIIGS_IIGSMEMORY_H
 
-#include <algorithm>
 #include <cstdint>
 #include <vector>
 
@@ -24,21 +27,74 @@ class IIgsMemory
 {
 public:
     static constexpr uint32_t kAddrMask = 0x00FFFFFF;   // 24-bit / 16 MB
-    static constexpr uint32_t kSize     = 0x01000000;
 
-    IIgsMemory() : ram_(kSize, 0) {}
+    // Shadow register ($C035) bits — 1 = inhibit that region's shadowing.
+    // Cited: MAME apple2gs.cpp:235-241.
+    enum Shadow : uint8_t {
+        SHAD_TXTPG1     = 0x01, SHAD_HIRESPG1 = 0x02, SHAD_HIRESPG2 = 0x04,
+        SHAD_SUPERHIRES = 0x08, SHAD_AUXHIRES = 0x10, SHAD_TXTPG2   = 0x20,
+        SHAD_IOLC       = 0x40,   // inhibit I/O + language card in banks $00/$01
+    };
+    // Speed register ($C036) bits — MAME apple2gs.cpp:242-248.
+    enum Speed : uint8_t { SPEED_HIGH = 0x80, SPEED_POWERON = 0x40, SPEED_ALLBANKS = 0x10 };
 
-    // The 65C816's only bus hooks. Non-virtual (POM2 convention): the CPU
-    // holds a concrete IIgsMemory* so the hot path inlines and Tom Harte's
-    // final-RAM check reads the same array the opcode wrote.
-    inline uint8_t read8(uint32_t addr24) const { return ram_[addr24 & kAddrMask]; }
-    inline void    write8(uint32_t addr24, uint8_t v) { ram_[addr24 & kAddrMask] = v; }
+    IIgsMemory();
 
-    // Test/reset helpers.
-    void clear() { std::fill(ram_.begin(), ram_.end(), uint8_t(0)); }
+    // ── configuration / boot ─────────────────────────────────────────────
+    // Load a IIgs ROM (128 KB → banks $FE-$FF; 256 KB → $FC-$FF). Returns
+    // false if the size is not a supported ROM image.
+    bool loadRom(const std::vector<uint8_t>& rom);
+    void setFastRamKB(uint32_t kb);   // total FPI RAM (banks $00+). Default 1 MB.
+    void reset();                     // power-on-ish: clears RAM, resets MMU state
+
+    // Flat 16 MB RAM mode: bypasses all banking/I/O so the CPU can be tested
+    // in isolation against Tom Harte (which models a flat bus). POM2 pattern.
+    void setTestMode(bool on);
+
+    // ── the CPU's bus hooks (non-virtual, stable since M1) ───────────────
+    uint8_t read8(uint32_t addr24);
+    void    write8(uint32_t addr24, uint8_t v);
+
+    // ── introspection (for the boot-trace harness / video / debugger) ────
+    uint8_t shadowReg() const { return shadow_; }
+    uint8_t speedReg()  const { return speed_; }
+    bool    romLoaded() const { return !rom_.empty(); }
+    uint32_t romBankBase() const { return romBankBase_; }
+    const uint8_t* slowRam() const { return slowRam_.data(); }   // $E0/$E1 (video)
 
 private:
-    std::vector<uint8_t> ram_;
+    // Backing stores.
+    bool testMode_ = false;           // flat-16MB bypass (CPU unit tests)
+    std::vector<uint8_t> flat_;       // 16 MB, only allocated in test mode
+    std::vector<uint8_t> fastRam_;    // banks $00.. (size = fastRamKB_)
+    std::vector<uint8_t> slowRam_;    // 128 KB, banks $E0/$E1
+    std::vector<uint8_t> rom_;        // 128 or 256 KB
+    uint32_t fastRamKB_ = 1024;
+    uint32_t romBankBase_ = 0xFC;     // $FC (256 KB) or $FE (128 KB)
+
+    // MMU / soft-switch state.
+    uint8_t  shadow_ = 0;             // $C035 (0 = all shadowing enabled)
+    uint8_t  speed_  = 0;             // $C036
+    uint8_t  state_  = 0;             // $C068 STATEREG composite
+    uint8_t  newvideo_ = 0;           // $C029
+    // //e paging soft switches (Mega II).
+    bool altzp_ = false, ramrd_ = false, ramwrt_ = false, page2_ = false;
+    bool store80_ = false, hires_ = false, intcxrom_ = false, slotc3rom_ = false;
+    bool eightyCol_ = false, altchar_ = false;
+    // Language card.
+    bool lcRamRead_ = false, lcRamWrite_ = false, lcBank2_ = true, lcPreWrite_ = false;
+    // Keyboard latch.
+    uint8_t kbdLatch_ = 0;
+
+    // helpers
+    bool   iolcShadow() const { return !(shadow_ & SHAD_IOLC); }
+    uint8_t ioRead(uint8_t bank, uint16_t off);
+    void    ioWrite(uint8_t bank, uint16_t off, uint8_t v);
+    uint8_t& fastCell(uint32_t bank, uint16_t off);   // fast RAM cell (with mirroring for out-of-range)
+    uint8_t  lcRead(uint8_t bank, uint16_t off);
+    void     lcWrite(uint8_t bank, uint16_t off, uint8_t v);
+    void     lcSwitch(uint16_t off, bool writing);
+    void     maybeShadow(uint8_t bank, uint16_t off, uint8_t v);
 };
 
 #endif // POMIIGS_IIGSMEMORY_H
