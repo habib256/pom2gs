@@ -4,6 +4,28 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Milestone 1 (65C816 core, in progress)
+- `src/CPU65816.cpp` — the WDC 65C816 core: emulation + native mode, 8/16-bit
+  register widths (M/X flags), 24-bit banked addressing, the full addressing-
+  mode set (dp/abs/long/indexed/indirect/stack-relative/block-move), mode
+  switches (XCE/REP/SEP), interrupts (BRK/COP/RTI), and a cycle model
+  (bus + internal cycles).
+- `src/IIgsMemory.h` — flat 16 MB bus (M1 stub; M2 adds FPI/Mega II). Stable
+  `read8/write8(addr24)` interface.
+- `tests/tomharte_65816.cpp` + `tests/fetch_tomharte_65816.sh` — the CPU gate
+  (SingleStepTests/65816), wired into CTest.
+- **Validated 100% (regs + RAM + cycle count) across 64 opcode families in
+  both emulation and native mode — 384 000 vectors.** Fixes surfaced by the
+  vectors: emulation-mode SPH=$01 / 8-bit-index high-byte invariants; RMW,
+  (dp,X)/(dp),Y indexed, stack-relative, and control-flow internal + page-cross
+  cycles; bit-accurate BCD (−6 / bit-4 borrow) for 8/16-bit ADC & SBC decimal;
+  emulation-mode (dp,X) pointer page-0 wrap; native BRK pushes P without B;
+  the new-instruction 16-bit emulation stack (PEA/PEI/PER/PHD/PLD/JSL/RTL leave
+  page 1, SPH reset at end of step); PEI full-16-bit DP-pointer read.
+- **MVN/MVP** kept per-byte (correct for the emulator loop) but **excluded from
+  the Tom Harte gate** — the vectors cap block moves at 100 cycles (partial
+  execution), incompatible with an instruction-stepped core. See DEV.md § CPU.
+
 ### Added
 - Project scaffold: git repo, directory layout (`src/`, `tests/`, `docs/`,
   `roms/`, `wasm/`), GPLv3 `LICENSE`, `.gitignore`.

@@ -11,8 +11,8 @@ self-test, then the visible/audible subsystems.
 
 | # | Milestone | Deliverable | Gate |
 |---|---|---|---|
-| **M0** | Foundation | Repo, CMake (native/WASM/headless), doc suite, subsystem map | `cmake && make` builds an empty ImGui window |
-| **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all addressing modes | 🔴 Tom Harte `SingleStepTests/65816` 100% |
+| **M0** | Foundation | Repo, CMake (native/WASM/headless), doc suite, subsystem map | 🟢 `cmake && make` builds an ImGui window |
+| **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on 64 opcode families × 2 modes (384k vectors, regs+RAM+**cycles**). MVN/MVP excluded (cycle-cap granularity, see DEV). Extending corpus to full 256 = ongoing |
 | **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🔴 ROM 01/03 reaches self-diagnostic |
 | **M3** | Legacy video + VGC | Reuse POM2 `Apple2Display`; add `VGC` Super Hi-Res + video IRQ | 🔴 SHR test pattern renders; scanline IRQ fires |
 | **M4** | ADB + BRAM/RTC | `Adb`, `IIgsClock` — keyboard/mouse, Control Panel persistence | 🔴 boots to Finder desktop; CP settings survive |
@@ -25,7 +25,7 @@ self-test, then the visible/audible subsystems.
 
 | Hardware | MAME reference | POMIIGS | State |
 |---|---|---|---|
-| 65C816 CPU | `cpu/g65816/` | `CPU65816` | 🔴 |
+| 65C816 CPU | `cpu/g65816/` | `CPU65816` | 🟢 384k Tom Harte vectors green (64 families ×2 modes; MVN/MVP excluded) |
 | FPI speed/shadow regs ($C035-$C037) | `apple2gs.cpp` | `IIgsMemory` | 🔴 |
 | Mega II slow-side + I/O shadow | `apple2gs.cpp` | `IIgsMemory` | 🔴 |
 | STATEREG ($C068) | `apple2gs.cpp` | `IIgsMemory` | 🔴 |

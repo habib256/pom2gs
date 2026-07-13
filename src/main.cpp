@@ -1,5 +1,5 @@
 // POMIIGS — Apple IIgs emulator
-// Copyright (C) 2026 — GPLv3 (see LICENSE)
+// VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
 //
 // Milestone 0 shell: opens the Dear ImGui + GLFW/OpenGL window POM2 uses and
 // shows a status panel. The emulation core (CPU65816, IIgsMemory, VGC, …) is

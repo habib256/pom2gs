@@ -87,3 +87,20 @@ endif()
 
 # ─── Headless target (no ImGui/GL — CI, CLI, tests) — POM2 convention ────
 # add_executable(pomiigs_headless src/pomiigs_headless.cpp ...)   # enable in M2
+
+# ─── Tests (CTest) ───────────────────────────────────────────────────────
+# The CPU816 gate. Test data is user-fetched (large): run
+#   tests/fetch_tomharte_65816.sh <dir>
+# and point the test at it via POMIIGS_TOMHARTE_DIR. Absent data → soft skip.
+option(POMIIGS_TESTS "Build the test targets" ON)
+if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
+    enable_testing()
+    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp)
+    target_include_directories(tomharte_65816 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    set(POMIIGS_TOMHARTE_DIR "" CACHE PATH "Directory of SingleStepTests/65816 .json vectors")
+    # MVN/MVP ($54/$44) are excluded: Tom Harte caps block moves at 100 cycles
+    # (partial execution), which an instruction-stepped core can't match — see
+    # DEV.md § CPU. Their per-byte semantics are covered by the emulator loop.
+    add_test(NAME tomharte_65816
+             COMMAND tomharte_65816 "${POMIIGS_TOMHARTE_DIR}" --skip 44,54)
+endif()

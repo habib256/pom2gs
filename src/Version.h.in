@@ -1,4 +1,5 @@
 // POMIIGS — Apple IIgs emulator
+// VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
 // Generated from CMakeLists.txt project(VERSION). Do not edit build/generated/Version.h.
 #ifndef POMIIGS_VERSION_H
 #define POMIIGS_VERSION_H
