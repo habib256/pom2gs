@@ -22,6 +22,18 @@ void IIgsMemory::setFastRamKB(uint32_t kb) {
     fastRam_.assign(size_t(kb) * 1024, 0);
 }
 
+int IIgsMemory::vpos() const {
+    return int((videoCycles_ / kLineCycles) % kLines);
+}
+
+void IIgsMemory::tick(int cpuCycles) {
+    videoCycles_ += (cpuCycles > 0 ? cpuCycles : 1);
+    const int vp = vpos();
+    // Rising edge into VBL (line 192): latch the VBL interrupt flag.
+    if (vp >= 192 && lastVpos_ < 192) intflag_ |= 0x08;   // INTFLAG_VBL
+    lastVpos_ = vp;
+}
+
 void IIgsMemory::setTestMode(bool on) {
     testMode_ = on;
     if (on && flat_.empty()) flat_.assign(size_t(1) << 24, 0);   // 16 MB
@@ -41,6 +53,7 @@ void IIgsMemory::reset() {
     intcxrom_ = false; slotc3rom_ = false; eightyCol_ = false; altchar_ = false;
     lcRamRead_ = false; lcRamWrite_ = false; lcBank2_ = true; lcPreWrite_ = false;
     kbdLatch_ = 0;
+    videoCycles_ = 0; lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0;
 }
 
 // Fast RAM cell, mirroring the top of the address space down if the machine
@@ -108,16 +121,22 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x16: return altzp_ ? 0x80 : 0x00;
         case 0x17: return slotc3rom_ ? 0x80 : 0x00;
         case 0x18: return store80_ ? 0x80 : 0x00;
-        case 0x19: return 0x00;                             // VBL (not modelled yet)
+        case 0x19: return inVbl() ? 0x80 : 0x00;            // RDVBL (MAME 1425)
         case 0x1A: return 0x00;                             // TEXT
         case 0x1B: return 0x00;                             // MIXED
         case 0x1C: return page2_ ? 0x80 : 0x00;
         case 0x1D: return hires_ ? 0x80 : 0x00;
         case 0x1E: return altchar_ ? 0x80 : 0x00;
         case 0x1F: return eightyCol_ ? 0x80 : 0x00;
+        case 0x23: return vgcint_;                          // VGCINT
         case 0x29: return newvideo_;
+        case 0x2E: return uint8_t(vpos() >> 1);             // VERTCNT (MAME 1467)
+        case 0x2F: return uint8_t((vpos() & 1) ? 0x80 : 0x00); // HORIZCNT (vpos parity bit)
         case 0x35: return shadow_;
         case 0x36: return speed_;
+        case 0x41: return inten_;                           // INTEN
+        case 0x46: return intflag_;                         // INTFLAG (VBL bit etc.)
+        case 0x47: intflag_ &= ~0x08; return 0;             // CLRVBLINT
         case 0x68: return state_;                           // STATEREG
         default: break;
     }
@@ -148,7 +167,11 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x0D: eightyCol_ = true;  return;
         case 0x0E: altchar_ = false; return;
         case 0x0F: altchar_ = true;  return;
+        case 0x23: vgcint_ = v; return;                     // VGCINT enable
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
+        case 0x32: vgcint_ &= v; return;                    // VGCINTCLEAR
+        case 0x41: inten_ = v & 0x1F; return;               // INTEN (MAME 1811)
+        case 0x47: intflag_ &= ~0x08; return;               // CLRVBLINT
         case 0x35: shadow_ = v; return;                     // SHADOW (MAME 1751)
         case 0x36: speed_ = v; return;                      // SPEED (MAME 1766)
         case 0x68:                                          // STATEREG (composite)

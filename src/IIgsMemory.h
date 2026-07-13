@@ -47,6 +47,13 @@ public:
     void setFastRamKB(uint32_t kb);   // total FPI RAM (banks $00+). Default 1 MB.
     void reset();                     // power-on-ish: clears RAM, resets MMU state
 
+    // Advance the video/timing clock by `cpuCycles` (call after each CPU step).
+    // Drives VBL / VERTCNT and the VBL interrupt flag. Approximate: 65 cycles
+    // per scanline, 262 lines/frame (NTSC), VBL over lines 192-261.
+    void tick(int cpuCycles);
+    int  vpos() const;                // current scanline 0..261
+    bool inVbl() const { return vpos() >= 192; }
+
     // Flat 16 MB RAM mode: bypasses all banking/I/O so the CPU can be tested
     // in isolation against Tom Harte (which models a flat bus). POM2 pattern.
     void setTestMode(bool on);
@@ -85,6 +92,14 @@ private:
     bool lcRamRead_ = false, lcRamWrite_ = false, lcBank2_ = true, lcPreWrite_ = false;
     // Keyboard latch.
     uint8_t kbdLatch_ = 0;
+    // Video / interrupt timing.
+    static constexpr int kLineCycles = 65;
+    static constexpr int kLines      = 262;
+    uint64_t videoCycles_ = 0;
+    int      lastVpos_ = 0;
+    uint8_t  intflag_ = 0;            // $C046 INTFLAG (VBL=0x08, QUARTER=0x10)
+    uint8_t  inten_ = 0;              // $C041 INTEN
+    uint8_t  vgcint_ = 0;             // $C023 VGCINT
 
     // helpers
     bool   iolcShadow() const { return !(shadow_ & SHAD_IOLC); }

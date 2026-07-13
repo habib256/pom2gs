@@ -54,7 +54,8 @@ int main(int argc, char** argv) {
         if (addr == lastAddr) { if (++sameRun > 1000 && hangAt < 0) { hangAt = i; } }
         else { sameRun = 0; lastAddr = addr; }
         ++seen[addr];
-        cpu.run(1);
+        const int cyc = cpu.run(1);
+        mem.tick(cyc);              // advance video/VBL timing
     }
 
     std::printf("\nran %ld instructions.\n", i);
@@ -72,5 +73,23 @@ int main(int argc, char** argv) {
     for (int k = 0; k < 8 && k < int(hot.size()); ++k)
         std::printf("   $%06X : %ld\n", hot[k].first, hot[k].second);
     std::printf("distinct PCs visited: %zu\n", seen.size());
+
+    // Dump the 40-column text screen ($E0:0400, //e interleaved layout) so we
+    // can see if the ROM drew its boot / "Check startup device" message.
+    const uint8_t* e0 = mem.slowRam();
+    bool anyText = false;
+    std::printf("--- text page 1 ($E0:0400) ---\n");
+    for (int row = 0; row < 24; ++row) {
+        int rbase = 0x0400 + (row % 8) * 0x80 + (row / 8) * 0x28;
+        std::string line;
+        for (int col = 0; col < 40; ++col) {
+            uint8_t c = e0[rbase + col] & 0x7F;
+            if (c < 0x20) c += 0x40;          // control → printable band
+            if (c != 0x20 && c != 0x00) anyText = true;
+            line += char(c);
+        }
+        std::printf("|%s|\n", line.c_str());
+    }
+    if (!anyText) std::printf("(text screen empty)\n");
     return 0;
 }
