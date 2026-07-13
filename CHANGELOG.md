@@ -4,6 +4,21 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Milestone 3 (VGC video — Super Hi-Res renders)
+- `src/VGC.{h,cpp}` — the Video Graphics Controller: renders `IIgsMemory`'s
+  slow-side video RAM to a 640×400 RGBA framebuffer. **Super Hi-Res** 320 and
+  640 modes (SCB + 4-4-4 palettes from $E1:9D00/$9E00), verified by `vgc_test`
+  (M3 gate: 16-colour bars, both modes) and a rendered PNG. **40-column text**
+  from the authentic **Apple IIgs Mega II character ROM** (`roms/iigs-char.rom`
+  = MAME `344s0047.bin`, 16 KB, SHA1 5a5a77c8…) — user-provided like the main
+  ROM; **no public font is bundled** (a placeholder font8x8 was removed).
+- `src/main.cpp` now runs the emulator (ROM + MMU + CPU) and displays the VGC
+  framebuffer live via a GL texture, with a status/Run/Reset panel.
+- `tests/screenshot.cpp` — headless PNG of a booting ROM (dev tool).
+- Note: `344s0047.bin` could not be auto-fetched here (it lives in the Mega II
+  ASIC; only in MAME BIOS packages / archive.org, both unreachable in this
+  environment). Text renders once the file is dropped in `roms/`.
+
 ### Added — Milestone 2 (FPI + Mega II MMU, boots a real ROM)
 - `src/IIgsMemory.{h,cpp}` grown from the flat M1 stub into the real MMU: ROM
   mapping ($FC-$FF / $FE-$FF), fast RAM $00-$7F, Mega II slow RAM $E0/$E1, the

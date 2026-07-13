@@ -68,6 +68,10 @@ public:
     bool    romLoaded() const { return !rom_.empty(); }
     uint32_t romBankBase() const { return romBankBase_; }
     const uint8_t* slowRam() const { return slowRam_.data(); }   // $E0/$E1 (video)
+    uint8_t newVideo()  const { return newvideo_; }              // $C029
+    bool    shrEnabled() const { return (newvideo_ & 0x80) != 0; }
+    bool    text80()    const { return eightyCol_; }
+    bool    page2()     const { return page2_; }
 
 private:
     // Backing stores.

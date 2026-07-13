@@ -45,13 +45,14 @@ set(SOURCES
     src/main.cpp
     src/CPU65816.cpp      # M1
     src/IIgsMemory.cpp    # M2
-    # src/VGC.cpp           # M3
+    src/VGC.cpp           # M3
     # src/Es5503.cpp        # M6
     # ...
 )
 set(HEADERS
     src/CPU65816.h
-    src/IIgsMemory.h)
+    src/IIgsMemory.h
+    src/VGC.h)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMGUI_SOURCES})
 
@@ -108,4 +109,13 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     # Dev tool (not a gate): load a real ROM and trace how far it boots.
     add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp)
     target_include_directories(boot_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+    # VGC Super Hi-Res render smoke test (M3 gate).
+    add_executable(vgc_test tests/vgc_test.cpp src/VGC.cpp src/IIgsMemory.cpp)
+    target_include_directories(vgc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME vgc_test COMMAND vgc_test)
+
+    # Headless PNG screenshot of a booting ROM (dev tool).
+    add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp)
+    target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()

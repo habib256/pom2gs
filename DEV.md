@@ -146,10 +146,26 @@ shadow write-through applied on store.
 
 ## Video — VGC + legacy
 
-*(planned — Milestone 3)*
+*(Milestone 3 — Super Hi-Res renders; 40-col text renders from the authentic
+char ROM. `VGC` renders `IIgsMemory`'s slow-side video RAM to a 640×400 RGBA
+framebuffer, displayed in the app via a GL texture. Verified by `vgc_test`
+(the M3 gate: a 320/640 SHR colour-bar pattern) and the `screenshot` tool.)*
 
-Legacy text/LORES/HGR/DHGR + the NTSC composite and CRT effect stack are
-**reused verbatim from POM2** (`Apple2Display`, `NtscPostProcessor`,
+**Super Hi-Res** (`renderSHR`). Reads `$E1:2000-9CFF` (200 × 160 bytes), the
+per-line **SCB** at `$E1:9D00` (bit 7 = 640 mode, bits 0-3 = palette), and the
+16 × 16 × 2-byte palettes at `$E1:9E00` (4-4-4 `$0RGB`). 320 mode = 2 × 4-bit
+indices/byte; 640 mode = 4 × 2-bit with the column-offset palette groups
+`{8,12,0,4}`. Lines doubled vertically to 400.
+
+**Text.** 40-column from `$E0:0400` (//e interleaved) using the **authentic
+Apple IIgs Mega II character ROM** (`roms/iigs-char.rom` = `344s0047.bin`,
+16 KB — user-provided like the main ROM; **no public font is bundled**). Text
+is skipped until the char ROM is present. 80-col, LORES/HGR/DHGR, and the NTSC
+composite / CRT stack (reuse POM2 `Apple2Display`, `NtscPostProcessor`,
+`CrtEffectStack`) are staged in next.
+
+*Original plan:* legacy text/LORES/HGR/DHGR + the NTSC composite and CRT effect
+stack are **reused verbatim from POM2** (`Apple2Display`, `NtscPostProcessor`,
 `CrtEffectStack`), driven from the slow-side bank `$E0`/`$E1` image.
 
 New: the **VGC (Video Graphics Controller)** Super Hi-Res —

@@ -55,6 +55,9 @@ The IIgs ROM is copyrighted; drop your own dump in `roms/`:
 
 - `roms/iigs-rom03.rom` — 256 KB (Apple IIgs ROM 03, 1989) — default
 - `roms/iigs-rom01.rom` — 128 KB (Apple IIgs ROM 01, 1986) — best compatibility
+- `roms/iigs-char.rom` — 16 KB (Mega II character generator, MAME `344s0047.bin`,
+  SHA1 `5a5a77c8ec45632aea1a57cd9c9257f7f6e44668`) — required for text rendering.
+  Super Hi-Res needs no font.
 
 ## License
 
