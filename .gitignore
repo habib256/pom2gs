@@ -1,0 +1,39 @@
+build/
+build-*/
+build_wasm/
+DIST/
+dist/
+imgui/
+*.o
+*.obj
+.cache/
+.claude/
+compile_commands.json
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Reference emulator checkouts (grounding only — never vendored)
+reference/
+
+# Debug captures / screenshots
+*.xwd
+screenshot_*.ppm
+
+# CMake droppings if someone runs `cmake .` instead of `cmake -B build`
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/CTestTestfile.cmake
+/Makefile
+/Testing/
+tests/CMakeFiles/
+tests/CMakeCache.txt
+tests/cmake_install.cmake
+tests/CTestTestfile.cmake
+tests/Makefile
+
+# User-provided ROMs (IIgs ROM 01 / ROM 03 are copyrighted — never commit)
+roms/*.rom
+roms/*.bin

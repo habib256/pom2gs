@@ -1,0 +1,14 @@
+// POMIIGS — Apple IIgs emulator
+// Generated from CMakeLists.txt project(VERSION). Do not edit build/generated/Version.h.
+#ifndef POMIIGS_VERSION_H
+#define POMIIGS_VERSION_H
+
+#define POMIIGS_VERSION_STRING "@PROJECT_VERSION@"
+#define POMIIGS_VERSION_MAJOR  @PROJECT_VERSION_MAJOR@
+#define POMIIGS_VERSION_MINOR  @PROJECT_VERSION_MINOR@
+
+namespace pomiigs {
+inline constexpr const char* kVersionString = POMIIGS_VERSION_STRING;
+}
+
+#endif // POMIIGS_VERSION_H
