@@ -95,13 +95,16 @@ needs the following, in rough priority order.
   applies to 40- and 80-col). Interlaced/VOC mode still TODO.
 
 **P4 — Timing + interrupts**
-- 🟡 Real **2.8 / 1.02 MHz** fast/slow clock. Per-frame CPU cycle budget now
+- 🟡 Real **2.8 / 1.02 MHz** fast/slow clock. Per-frame CPU cycle budget
   follows the SPEED register ($C036 bit7): 47684 cyc/frame fast, 17030 slow —
   //e slow-mode software runs at the correct 1.02 MHz (measured 1.022 MHz in
-  Total Replay gameplay) instead of a fixed 2.8 MHz. Gate: `speed_test`.
-  Remaining: mid-frame speed changes (budget picks the frame-start value) +
-  per-access **slow-side penalty** (Mega II/$E0-$E1/I/O always 1 MHz) — demos
-  and music timing depend on it.
+  Total Replay gameplay). Gate: `speed_test`. **Per-access slow-side penalty**
+  done: in fast mode, accesses to the Mega II side (banks $E0/$E1, $Cxxx I/O +
+  LC, shadowed video writes) are stretched +9 master ticks (5→14), so
+  video/DOC/speaker-heavy code throttles toward 1 MHz. Gate: `slowside_test`.
+  Remaining: mid-frame speed changes (budget picks the frame-start value);
+  Mega II fast/slow *phase sync* stretch (we model the 1 MHz cost, not the
+  sub-cycle alignment).
 - 🔴 Full IRQ set: **scanline, DOC, 1-sec/¼-sec, ADB, SCC, Mega II mouse**
   (only VBL is wired).
 

@@ -72,6 +72,22 @@ public:
         const int slow = kLineCycles * kLines;                   // 17030 @ 1.02 MHz
         return (speed_ & SPEED_HIGH) ? (slow * 14 / 5) : slow;   // 47684 : 17030
     }
+
+    // Per-access slow-side penalty. In FAST mode (2.8 MHz) any access that
+    // lands on the Mega II slow side — banks $E0/$E1, the $Cxxx I/O + slot ROM
+    // + language card of banks $00/$01, and shadowed video writes — is stretched
+    // to the 1.02 MHz clock: 14 master ticks instead of the fast side's 5, i.e.
+    // 9 extra master ticks per slow access. The CPU already charged the access
+    // as 1 fast cycle (5 master); read8/write8 accrue the +9 here. The main loop
+    // drains this each step (in fast-cycle units, 5 master each) and adds it to
+    // the frame budget, so slow-side-heavy code correctly throttles toward
+    // 1 MHz even in fast mode. In slow mode the whole CPU is already 1 MHz, so
+    // nothing is charged. Cited: MAME apple2gs.cpp (fast/slow clock sync).
+    int takeSlowPenalty() {
+        const int fast = int(slowPenMaster_ / 5);       // 5 master ticks per fast cycle
+        slowPenMaster_ -= long(fast) * 5;               // carry the remainder
+        return fast;
+    }
     // Wire the CPU so the MMU can raise the VBL (and later DOC/scanline) IRQ.
     void setCpu(CPU65816* c) { cpu_ = c; }
 
@@ -164,6 +180,11 @@ private:
     uint64_t paddleReset_ = 0;      // videoCycles_ at the last $C070 strobe
     // Speaker ($C030): absolute cycle-stamps of level toggles this frame.
     std::vector<uint64_t> spkEvents_;
+    // Slow-side access penalty accumulator, in master-clock ticks (14.318 MHz).
+    long slowPenMaster_ = 0;
+    static constexpr int kSlowExtraMaster = 9;   // 14 (slow cycle) − 5 (fast cycle)
+    // Charge one slow-side access (no-op unless in 2.8 MHz fast mode).
+    void chargeSlow() { if (speed_ & SPEED_HIGH) slowPenMaster_ += kSlowExtraMaster; }
     // ADB GLU (HLE — $C024-$C027). The ROM's ADB self-test sends command bytes
     // to DATAREG ($C026), waits for CMDFULL ($C027 bit0) to clear, then waits
     // for data-ready ($C027 bit5) and reads the response. We accept commands
@@ -201,7 +222,7 @@ private:
     uint8_t  lcRead(uint8_t bank, uint16_t off);
     void     lcWrite(uint8_t bank, uint16_t off, uint8_t v);
     void     lcSwitch(uint16_t off, bool writing);
-    void     maybeShadow(uint8_t bank, uint16_t off, uint8_t v);
+    bool     maybeShadow(uint8_t bank, uint16_t off, uint8_t v);   // true = wrote slow side
 };
 
 #endif // POMIIGS_IIGSMEMORY_H

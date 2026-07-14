@@ -158,6 +158,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(speed_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME speed_test COMMAND speed_test)
 
+    # Per-access slow-side penalty (Mega II stretched to 1 MHz in fast mode).
+    add_executable(slowside_test tests/slowside_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(slowside_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME slowside_test COMMAND slowside_test)
+
     # Headless PNG screenshot of a booting ROM (dev tool).
     add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

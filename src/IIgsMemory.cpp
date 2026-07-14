@@ -61,6 +61,7 @@ void IIgsMemory::reset() {
     kbdLatch_ = 0;
     videoCycles_ = 0; lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0;
     adbDataReady_ = false; adbResponse_ = 0; clkData_ = 0; clkCtl_ = 0;
+    slowPenMaster_ = 0;
 }
 
 // Fast RAM cell, mirroring the top of the address space down if the machine
@@ -269,14 +270,15 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
 
 // Writes to shadowed display regions of banks $00/$01 mirror into $E0/$E1 so
 // the slow-side video generator sees them (SHADOW reg gates each region).
-void IIgsMemory::maybeShadow(uint8_t bank, uint16_t off, uint8_t v) {
-    if (bank > 1) return;
+bool IIgsMemory::maybeShadow(uint8_t bank, uint16_t off, uint8_t v) {
+    if (bank > 1) return false;
     bool doit = false;
     if (off >= 0x0400 && off <= 0x07FF) doit = !(shadow_ & SHAD_TXTPG1);       // text/lores page 1
     else if (off >= 0x2000 && off <= 0x3FFF) doit = !(shadow_ & SHAD_HIRESPG1);// hires page 1
     else if (off >= 0x4000 && off <= 0x5FFF) doit = !(shadow_ & SHAD_HIRESPG2);// hires page 2
     else if (bank == 1 && off >= 0x2000 && off <= 0x9FFF) doit = !(shadow_ & SHAD_SUPERHIRES); // SHR
     if (doit) slowRam_[(size_t(bank) * 0x10000) + off] = v;
+    return doit;
 }
 
 // ── the CPU's bus hooks ──────────────────────────────────────────────────
@@ -290,6 +292,7 @@ uint8_t IIgsMemory::read8(uint32_t a) {
         return rom_[a - (uint32_t(romBankBase_) << 16)];
 
     if (bank == 0xE0 || bank == 0xE1) {
+        chargeSlow();                                 // slow side (Mega II)
         if (off >= 0xC000 && off <= 0xC0FF) return ioRead(bank, off);
         if (off >= 0xC100 && off <= 0xCFFF) return slotRomRead(off);
         return slowRam_[(size_t(bank - 0xE0) * 0x10000) + off];
@@ -297,9 +300,9 @@ uint8_t IIgsMemory::read8(uint32_t a) {
 
     if (bank <= 0x01) {
         if (iolcShadow()) {
-            if (off >= 0xC000 && off <= 0xC0FF) return ioRead(bank, off);
-            if (off >= 0xC100 && off <= 0xCFFF) return slotRomRead(off);
-            if (off >= 0xD000)                  return lcRead(bank, off);
+            if (off >= 0xC000 && off <= 0xC0FF) { chargeSlow(); return ioRead(bank, off); }
+            if (off >= 0xC100 && off <= 0xCFFF) { chargeSlow(); return slotRomRead(off); }
+            if (off >= 0xD000)                  { chargeSlow(); return lcRead(bank, off); }
         }
         int pb = (bank == 0) ? physBank01(off, false) : 1;
         return fastCell(pb, off);
@@ -318,6 +321,7 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
     if (bank >= romBankBase_ && !rom_.empty()) return;   // ROM write ignored
 
     if (bank == 0xE0 || bank == 0xE1) {
+        chargeSlow();                                 // slow side (Mega II)
         if (off >= 0xC000 && off <= 0xC0FF) { ioWrite(bank, off, v); return; }
         if (off >= 0xC100 && off <= 0xCFFF) return;   // slot ROM: read-only
         slowRam_[(size_t(bank - 0xE0) * 0x10000) + off] = v;
@@ -326,13 +330,13 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
 
     if (bank <= 0x01) {
         if (iolcShadow()) {
-            if (off >= 0xC000 && off <= 0xC0FF) { ioWrite(bank, off, v); return; }
+            if (off >= 0xC000 && off <= 0xC0FF) { chargeSlow(); ioWrite(bank, off, v); return; }
             if (off >= 0xC100 && off <= 0xCFFF) return;   // slot ROM: read-only
-            if (off >= 0xD000)                  { lcWrite(bank, off, v); return; }
+            if (off >= 0xD000)                  { chargeSlow(); lcWrite(bank, off, v); return; }
         }
         int pb = (bank == 0) ? physBank01(off, true) : 1;
         fastCell(pb, off) = v;
-        maybeShadow(uint8_t(pb), off, v);
+        if (maybeShadow(uint8_t(pb), off, v)) chargeSlow();   // shadowed write hits slow side too
         return;
     }
 

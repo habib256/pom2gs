@@ -4,6 +4,19 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — per-access slow-side timing penalty
+- In fast mode (2.8 MHz) every access that lands on the Mega II slow side —
+  banks $E0/$E1, the $Cxxx I/O + slot ROM + language card of banks $00/$01, and
+  shadowed video writes — is now stretched to the 1.02 MHz clock: 14 master
+  ticks instead of the fast side's 5. `read8`/`write8` accrue the +9 master
+  extra per slow access (`chargeSlow`), and the main loop drains it via
+  `takeSlowPenalty()` (fast-cycle units) into the frame budget, so video/DOC/
+  speaker-heavy code correctly throttles toward 1 MHz even in fast mode. In slow
+  mode the whole CPU is already 1 MHz, so nothing is charged. `maybeShadow` now
+  returns whether it shadowed (a shadowed write hits the slow side). Gate:
+  `slowside_test` (exact +9-master accounting; zero in slow mode). Total Replay
+  still boots; ~2.6% of the fast-mode boot/menu budget is slow-side stretch.
+
 ### Fixed — //e speed: honour the SPEED register ($C036)
 - Legacy //e software ran ~2.7× too fast because the main loop burned a fixed
   46000 CPU cycles/frame (≈2.8 MHz) regardless of the SPEED register, which was

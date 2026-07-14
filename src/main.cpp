@@ -181,7 +181,10 @@ int main(int argc, char** argv) {
         if (c.ui.running) {                    // one video frame; budget follows $C036
             const long budget = c.mem.frameCycleBudget();   // 47684 fast / 17030 slow
             long spent = 0;
-            while (spent < budget) { int cy = c.cpu.run(1); c.mem.tick(cy); spent += (cy > 0 ? cy : 1); }
+            while (spent < budget) {            // + slow-side stretch when in fast mode
+                int cy = c.cpu.run(1); c.mem.tick(cy);
+                spent += (cy > 0 ? cy : 1) + c.mem.takeSlowPenalty();
+            }
         }
         c.audio.mixFrame(c.mem);               // speaker ($C030) + DOC → miniaudio
         const uint32_t* fb = c.vgc.render(c.mem);
