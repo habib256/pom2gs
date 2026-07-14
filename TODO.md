@@ -29,16 +29,16 @@ self-test, then the visible/audible subsystems.
 | FPI speed/shadow regs ($C035-$C037) | `apple2gs.cpp` | `IIgsMemory` | 🟡 shadow/speed stored; write-through partial |
 | Mega II slow-side + I/O shadow | `apple2gs.cpp` | `IIgsMemory` | 🟡 $E0/$E1 RAM + I/O; display shadow partial |
 | STATEREG ($C068) | `apple2gs.cpp` | `IIgsMemory` | 🟢 compose/decompose |
-| VGC Super Hi-Res + SCB/palette | `apple2gs.cpp` | `VGC` | 🔴 |
-| VGC scanline / VBL interrupt | `apple2gs.cpp` | `VGC` | 🔴 |
+| VGC Super Hi-Res + SCB/palette | `apple2gs.cpp` | `VGC` | 🟢 320/640 render (vgc_test) |
+| VGC scanline / VBL interrupt | `apple2gs.cpp` | `IIgsMemory` | 🟡 VBL status + flag; scanline IRQ TODO |
 | ES5503 DOC (32 osc) | `sound/es5503.cpp` | `Es5503` | 🟢 renders tone (doc_test) |
 | Sound GLU ($C03C-$C03F) | `apple2gs.cpp` | `Es5503` | 🟢 |
-| ADB GLU (keyboard/mouse) | `apple2gs.cpp` | `Adb` | 🔴 |
-| Battery RAM + RTC | `apple2gs.cpp` | `IIgsClock` | 🔴 |
-| IWM (5.25/3.5) | `machine/iwm.cpp` | reuse POM2 `IWMDevice` | 🔴 |
+| ADB GLU (keyboard/mouse) | `apple2gs.cpp` | `IIgsMemory` | 🟡 HLE handshake (boots); real kbd/mouse TODO |
+| Battery RAM + RTC | `apple2gs.cpp` | `IIgsMemory` | 🟡 $C033/$C034 stub |
+| IWM (5.25/3.5) | `machine/iwm.cpp` | `Iwm` | 🟢 5.25" read path (boots to Check startup device) |
 | SWIM (ROM 03) | `machine/swim.cpp` | `Swim` | 🔴 |
 | SCC 8530 serial | `machine/scc8530.cpp` | `Scc8530` | 🟢 loopback (scc_test) |
-| Mega II interrupt regs ($C041-$C047) | `apple2gs.cpp` | `IIgsMemory` | 🔴 |
+| Mega II interrupt regs ($C041-$C047) | `apple2gs.cpp` | `IIgsMemory` | 🟡 INTEN/INTFLAG/VBL |
 
 ## Reuse-from-POM2 checklist
 
