@@ -59,6 +59,25 @@ The IIgs ROM is copyrighted; drop your own dump in `roms/`:
   SHA1 `5a5a77c8ec45632aea1a57cd9c9257f7f6e44668`) — required for text rendering.
   Super Hi-Res needs no font.
 
+## Controls
+
+A Dear ImGui **menu bar** drives the machine: **File** (Load ROM… / Load Hard
+Disk… / Quit), **Machine** (Run·Pause / Reset), **Video** (HGR·DHGR colour:
+Composite NTSC ↔ Clean RGB, and window scale), **Audio** (mute + volume), and
+**Help** (About). A bottom **status bar** shows run state, the CPU PC/mode,
+the shadow/speed registers, audio level, and the loaded ROM. Shortcuts (chosen
+to avoid the Apple II keyboard):
+
+| Key | Action |
+|-----|--------|
+| `F6` | Run / Pause |
+| `F5` | Reset |
+| `F2` | Toggle HGR/DHGR colour mode (Composite NTSC ↔ Clean RGB) |
+| `Ctrl+Q` | Quit |
+
+The host keyboard feeds the Apple II `$C000` latch (printables, arrows,
+Return/Esc/Backspace); a game controller drives the paddles + buttons.
+
 ## WebAssembly
 
 ```bash

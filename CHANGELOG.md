@@ -4,6 +4,18 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — quality menu UI (inspired by POM1)
+- **`src/Ui.{h,cpp}`** — the desktop chrome extracted from `main.cpp` into one
+  module (mirrors POM1's `MainWindow_Menu` separation): a top main-menu bar
+  (**File** Load ROM·Disk / Quit · **Machine** Run·Pause / Reset · **Video**
+  HGR·DHGR colour + scale · **Audio** mute + volume · **Help** About), the
+  screen window, a bottom **status bar** (run state, CPU PC/mode, shadow/speed
+  regs, audio level, ROM name), and modal Load/About dialogs. Shortcuts F6
+  (run/pause), F5 (reset), F2 (colour), Ctrl+Q — F-keys chosen so they never
+  collide with the Apple II `$C000` keyboard. Runtime ROM/disk loading via
+  injected callbacks (file I/O stays in `main`). Apple II key input is gated on
+  `io.WantTextInput`/`WantCaptureKeyboard` so UI typing never leaks to `$C000`.
+
 ### Added — sound + Double Hi-Res (audio out, DHGR titles)
 - **Audio → miniaudio** (`src/Audio.{h,cpp}`, `AudioOut`): mono float32
   playback device fed by a lock-free SPSC ring. Once per emulated frame

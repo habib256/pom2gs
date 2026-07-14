@@ -13,6 +13,7 @@
 #include "IIgsMemory.h"
 #include "VGC.h"
 #include "Audio.h"
+#include "Ui.h"
 
 #include <GLFW/glfw3.h>
 #include <cstdio>
@@ -98,8 +99,28 @@ int main(int argc, char** argv) {
     bool chrOk = !chr.empty() && vgc.setCharRom(chr);
     // Optional ProDOS hard disk on slot 7: argv[2], else auto-find hdv/*.hdv.
     std::string hddPath = (argc > 2) ? argv[2] : findPath("hdv/Total Replay v6.0.hdv");
-    if (!hddPath.empty() && mem.loadHdd(hddPath))
-        std::printf("HDD (slot 7): %s\n", hddPath.c_str());
+    bool hddOk = !hddPath.empty() && mem.loadHdd(hddPath);
+    if (hddOk) std::printf("HDD (slot 7): %s\n", hddPath.c_str());
+
+    // ── UI (menu bar / status bar / dialogs) ─────────────────────────────
+    // File I/O stays here; the UI drives loads through these callbacks.
+    static Ui ui(mem, cpu, vgc, audio);
+    ui.onLoadRom = [&](const std::string& p) -> bool {
+        std::string m; std::vector<uint8_t> data = findResource(p, m);
+        if (data.empty() || !mem.loadRom(data)) return false;
+        mem.reset(); cpu.hardReset();
+        ui.romOk = true; ui.romPath = m;
+        return true;
+    };
+    ui.onLoadHdd = [&](const std::string& p) -> bool {
+        std::string rp = findPath(p); if (rp.empty()) rp = p;
+        if (!mem.loadHdd(rp)) return false;
+        ui.hddPath = rp;
+        return true;
+    };
+    ui.romOk = romOk; ui.romPath = romPathStr; ui.chrOk = chrOk;
+    ui.hddPath = hddOk ? hddPath : std::string();
+    ui.running = romOk;
 
     // ── Window / ImGui ───────────────────────────────────────────────────
     glfwSetErrorCallback(glfwErrorCallback);
@@ -125,10 +146,9 @@ int main(int argc, char** argv) {
     // Heap-allocated so the state outlives main() under Emscripten's callback
     // main loop (main returns immediately there).
     struct Ctx {
-        GLFWwindow* window; IIgsMemory& mem; CPU65816& cpu; VGC& vgc; AudioOut& audio; GLuint tex;
-        bool romOk, chrOk, running; const char* romPath;
+        GLFWwindow* window; IIgsMemory& mem; CPU65816& cpu; VGC& vgc; AudioOut& audio; Ui& ui; GLuint tex;
     };
-    static Ctx ctx{window, mem, cpu, vgc, audio, screenTex, romOk, chrOk, romOk, romPath};
+    static Ctx ctx{window, mem, cpu, vgc, audio, ui, screenTex};
 
     auto frame = [](void* p) {
         Ctx& c = *static_cast<Ctx*>(p);
@@ -136,14 +156,18 @@ int main(int argc, char** argv) {
         ImGui_ImplOpenGL3_NewFrame(); ImGui_ImplGlfw_NewFrame(); ImGui::NewFrame();
 
         // ── Host input → emulator (before this frame's emulation runs) ──
+        // Suppressed while an ImGui widget wants the keyboard (menu open, Load
+        // dialog text field) so UI typing doesn't leak into the $C000 latch.
         ImGuiIO& io = ImGui::GetIO();
-        for (ImWchar ch : io.InputQueueCharacters)          // typed chars → $C000
-            if (ch >= 0x20 && ch < 0x7F) { uint8_t a = uint8_t(ch); if (a >= 'a' && a <= 'z') a -= 0x20; c.mem.keyDown(a); }
+        if (!io.WantTextInput)
+            for (ImWchar ch : io.InputQueueCharacters)      // typed chars → $C000
+                if (ch >= 0x20 && ch < 0x7F) { uint8_t a = uint8_t(ch); if (a >= 'a' && a <= 'z') a -= 0x20; c.mem.keyDown(a); }
         static const struct { ImGuiKey k; uint8_t code; } kSpecial[] = {  // Apple II key codes
             {ImGuiKey_Enter,0x0D},{ImGuiKey_KeypadEnter,0x0D},{ImGuiKey_Escape,0x1B},
             {ImGuiKey_LeftArrow,0x08},{ImGuiKey_RightArrow,0x15},
             {ImGuiKey_DownArrow,0x0A},{ImGuiKey_UpArrow,0x0B},{ImGuiKey_Backspace,0x7F} };
-        for (auto& s : kSpecial) if (ImGui::IsKeyPressed(s.k, false)) c.mem.keyDown(s.code);
+        if (!io.WantCaptureKeyboard)
+            for (auto& s : kSpecial) if (ImGui::IsKeyPressed(s.k, false)) c.mem.keyDown(s.code);
         // Joystick 1 → paddles ($C064/5) + buttons ($C061/2, also open/solid-apple).
         int na = 0; const float* ax = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &na);
         if (ax && na >= 2) {
@@ -154,7 +178,7 @@ int main(int argc, char** argv) {
         c.mem.setButton(0, (nb > 0 && bt[0]) || ImGui::IsKeyDown(ImGuiKey_LeftAlt));
         c.mem.setButton(1, (nb > 1 && bt[1]) || ImGui::IsKeyDown(ImGuiKey_RightAlt));
 
-        if (c.running) {                       // one video frame (~46 k cycles @ 2.8 MHz)
+        if (c.ui.running) {                    // one video frame (~46 k cycles @ 2.8 MHz)
             long spent = 0;
             while (spent < 46000) { int cy = c.cpu.run(1); c.mem.tick(cy); spent += (cy > 0 ? cy : 1); }
         }
@@ -163,42 +187,8 @@ int main(int argc, char** argv) {
         glBindTexture(GL_TEXTURE_2D, c.tex);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, c.vgc.width(), c.vgc.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, fb);
 
-        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Apple IIgs");
-        ImGui::Image((ImTextureID)(intptr_t)c.tex, ImVec2(c.vgc.width() * 1.25f, c.vgc.height() * 1.25f));
-        ImGui::End();
-        ImGui::SetNextWindowPos(ImVec2(840, 10), ImGuiCond_FirstUseEver);
-        ImGui::Begin("POMIIGS");
-        ImGui::Text("v%s", pomiigs::kVersionString);
-        ImGui::Separator();
-        ImGui::Text("ROM: %s", c.romOk ? c.romPath : "MISSING");
-        ImGui::Text("char ROM: %s", c.chrOk ? "loaded" : "absent (text off)");
-        ImGui::Text("mode: %s", c.mem.shrEnabled() ? "Super Hi-Res" : "text/legacy");
-        ImGui::Text("CPU $%02X:%04X %s", c.cpu.getPBR(), c.cpu.getPC(), c.cpu.getEmulationMode() ? "e" : "n");
-        ImGui::Text("shadow $%02X speed $%02X", c.mem.shadowReg(), c.mem.speedReg());
-        // HGR colour: composite NTSC (fuzzy artifacts) vs clean RGB (sharp).
-        bool ntsc = c.vgc.hgrMode() == VGC::HgrMode::CompositeNtsc;
-        ImGui::Text("HGR colour:");
-        if (ImGui::RadioButton("Composite NTSC", ntsc)) c.vgc.setHgrMode(VGC::HgrMode::CompositeNtsc);
-        if (ImGui::RadioButton("Clean RGB", !ntsc))     c.vgc.setHgrMode(VGC::HgrMode::RgbClean);
-        if (ImGui::IsKeyPressed(ImGuiKey_F2, false))    c.vgc.toggleHgrMode();   // F2 toggles
-        ImGui::Separator();
-        // Audio: 1-bit speaker ($C030) + Ensoniq 5503 DOC → miniaudio.
-        if (c.audio.available()) {
-            bool mute = c.audio.muted();
-            if (ImGui::Checkbox("Mute", &mute)) c.audio.setMuted(mute);
-            float vol = c.audio.volume();
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(120);
-            if (ImGui::SliderFloat("vol", &vol, 0.0f, 1.0f, "%.2f")) c.audio.setVolume(vol);
-        } else {
-            ImGui::TextDisabled("audio: unavailable");
-        }
-        ImGui::Separator();
-        if (ImGui::Button(c.running ? "Pause" : "Run")) c.running = !c.running && c.romOk;
-        ImGui::SameLine();
-        if (ImGui::Button("Reset") && c.romOk) { c.mem.reset(); c.cpu.hardReset(); }
-        ImGui::End();
+        c.ui.render(c.tex);                    // menu bar + screen + status bar + dialogs
+        if (c.ui.quitRequested) glfwSetWindowShouldClose(c.window, 1);
 
         ImGui::Render();
         int w, h; glfwGetFramebufferSize(c.window, &w, &h);
