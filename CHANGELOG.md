@@ -4,6 +4,26 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — input + colour HGR (navigate Total Replay)
+- **Host keyboard → $C000** (Mega II latch, bit7 strobe; $C010 clears it) and
+  **joystick → paddles $C064-$C067 (RC-timed via $C070) + buttons $C061-$C063**.
+  The app (main.cpp) feeds ImGui typed chars + special keys (arrows/Return/Esc,
+  Apple II codes) and GLFW joystick axes/buttons each frame, before the frame's
+  emulation runs. **Total Replay is now navigable** — typing "K" jumps to
+  Kaboom!, etc.
+- **Colour HGR** with two selectable modes (radio buttons + F2 toggle):
+  * **Composite NTSC** — artifact-colour decode ported from POM2's
+    Apple2VideoDecode.h (MAME apple2video.cpp / OpenEmulator lineage):
+    bit-doubled 14-bit words, a 7-bit sliding window into the artifact LUT with
+    4-phase rotation, 16-colour palette, 560→280 pair-average downsample.
+  * **Clean RGB** — sharp 6-colour pair decode (the IIgs VGC's native RGB
+    output; Le Chat Mauve did the same on //c/e, which lacked built-in RGB).
+  `src/VGCNtsc.h` holds the NTSC primitives.
+- **40-column text is now white** (colour/RGB-monitor default), not green
+  phosphor.
+
+## [Unreleased] — Milestone 0: foundation
+
 ### Added — ProDOS hard disk: boots Total Replay
 - `src/ProDosHdd.{h,cpp}` — a synthetic ProDOS block device (slot 7) for
   .hdv/.po/.2mg images. Slot ROM at $C700 advertises the ProDOS signature

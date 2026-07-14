@@ -26,7 +26,15 @@ public:
     static constexpr int kW = 640;
     static constexpr int kH = 400;
 
+    // HGR colour rendering: composite NTSC artifact (fuzzy, OpenEmulator-style)
+    // or clean RGB (sharp 6-colour, like the IIgs VGC's native RGB output).
+    enum class HgrMode { CompositeNtsc, RgbClean };
+
     VGC() : fb_(size_t(kW) * kH, 0xFF000000u) {}
+
+    void setHgrMode(HgrMode m) { hgrMode_ = m; }
+    HgrMode hgrMode() const { return hgrMode_; }
+    void toggleHgrMode() { hgrMode_ = (hgrMode_ == HgrMode::CompositeNtsc) ? HgrMode::RgbClean : HgrMode::CompositeNtsc; }
 
     // Load the authentic Apple IIgs character generator (Mega II ROM
     // 344s0047, 16 KB — user-provided as roms/iigs-char.rom, like the main
@@ -46,6 +54,7 @@ public:
 private:
     std::vector<uint32_t> fb_;
     std::vector<uint8_t>  charRom_;   // Mega II 344s0047 (16 KB)
+    HgrMode hgrMode_ = HgrMode::CompositeNtsc;
     void renderSHR(const IIgsMemory& mem);
     void renderText(const IIgsMemory& mem);
     void renderHGR(const IIgsMemory& mem);    // legacy 280×192 hi-res

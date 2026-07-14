@@ -131,6 +131,27 @@ int main(int argc, char** argv) {
     auto frame = [](void* p) {
         Ctx& c = *static_cast<Ctx*>(p);
         glfwPollEvents();
+        ImGui_ImplOpenGL3_NewFrame(); ImGui_ImplGlfw_NewFrame(); ImGui::NewFrame();
+
+        // ── Host input → emulator (before this frame's emulation runs) ──
+        ImGuiIO& io = ImGui::GetIO();
+        for (ImWchar ch : io.InputQueueCharacters)          // typed chars → $C000
+            if (ch >= 0x20 && ch < 0x7F) { uint8_t a = uint8_t(ch); if (a >= 'a' && a <= 'z') a -= 0x20; c.mem.keyDown(a); }
+        static const struct { ImGuiKey k; uint8_t code; } kSpecial[] = {  // Apple II key codes
+            {ImGuiKey_Enter,0x0D},{ImGuiKey_KeypadEnter,0x0D},{ImGuiKey_Escape,0x1B},
+            {ImGuiKey_LeftArrow,0x08},{ImGuiKey_RightArrow,0x15},
+            {ImGuiKey_DownArrow,0x0A},{ImGuiKey_UpArrow,0x0B},{ImGuiKey_Backspace,0x7F} };
+        for (auto& s : kSpecial) if (ImGui::IsKeyPressed(s.k, false)) c.mem.keyDown(s.code);
+        // Joystick 1 → paddles ($C064/5) + buttons ($C061/2, also open/solid-apple).
+        int na = 0; const float* ax = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &na);
+        if (ax && na >= 2) {
+            c.mem.setPaddle(0, uint8_t((ax[0] * 0.5f + 0.5f) * 255.f));
+            c.mem.setPaddle(1, uint8_t((ax[1] * 0.5f + 0.5f) * 255.f));
+        }
+        int nb = 0; const unsigned char* bt = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &nb);
+        c.mem.setButton(0, (nb > 0 && bt[0]) || ImGui::IsKeyDown(ImGuiKey_LeftAlt));
+        c.mem.setButton(1, (nb > 1 && bt[1]) || ImGui::IsKeyDown(ImGuiKey_RightAlt));
+
         if (c.running) {                       // one video frame (~46 k cycles @ 2.8 MHz)
             long spent = 0;
             while (spent < 46000) { int cy = c.cpu.run(1); c.mem.tick(cy); spent += (cy > 0 ? cy : 1); }
@@ -139,7 +160,6 @@ int main(int argc, char** argv) {
         glBindTexture(GL_TEXTURE_2D, c.tex);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, c.vgc.width(), c.vgc.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, fb);
 
-        ImGui_ImplOpenGL3_NewFrame(); ImGui_ImplGlfw_NewFrame(); ImGui::NewFrame();
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
         ImGui::Begin("Apple IIgs");
         ImGui::Image((ImTextureID)(intptr_t)c.tex, ImVec2(c.vgc.width() * 1.25f, c.vgc.height() * 1.25f));
@@ -153,6 +173,13 @@ int main(int argc, char** argv) {
         ImGui::Text("mode: %s", c.mem.shrEnabled() ? "Super Hi-Res" : "text/legacy");
         ImGui::Text("CPU $%02X:%04X %s", c.cpu.getPBR(), c.cpu.getPC(), c.cpu.getEmulationMode() ? "e" : "n");
         ImGui::Text("shadow $%02X speed $%02X", c.mem.shadowReg(), c.mem.speedReg());
+        // HGR colour: composite NTSC (fuzzy artifacts) vs clean RGB (sharp).
+        bool ntsc = c.vgc.hgrMode() == VGC::HgrMode::CompositeNtsc;
+        ImGui::Text("HGR colour:");
+        if (ImGui::RadioButton("Composite NTSC", ntsc)) c.vgc.setHgrMode(VGC::HgrMode::CompositeNtsc);
+        if (ImGui::RadioButton("Clean RGB", !ntsc))     c.vgc.setHgrMode(VGC::HgrMode::RgbClean);
+        if (ImGui::IsKeyPressed(ImGuiKey_F2, false))    c.vgc.toggleHgrMode();   // F2 toggles
+        ImGui::Separator();
         if (ImGui::Button(c.running ? "Pause" : "Run")) c.running = !c.running && c.romOk;
         ImGui::SameLine();
         if (ImGui::Button("Reset") && c.romOk) { c.mem.reset(); c.cpu.hardReset(); }

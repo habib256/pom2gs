@@ -60,7 +60,8 @@ set(HEADERS
     src/Es5503.h
     src/Scc8530.h
     src/ProDosHdd.h
-    src/VGC.h)
+    src/VGC.h
+    src/VGCNtsc.h)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMGUI_SOURCES})
 

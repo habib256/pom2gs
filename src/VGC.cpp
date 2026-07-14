@@ -7,6 +7,7 @@
 
 #include "VGC.h"
 #include "IIgsMemory.h"
+#include "VGCNtsc.h"
 
 namespace {
 // IIgs palette entry: 2 bytes = $0RGB (4-4-4). low = $GB, high = $0R.
@@ -39,23 +40,42 @@ static inline int hgrRowBase(int y, int base) {
     return base + (y & 7) * 0x400 + ((y >> 3) & 7) * 0x80 + (y >> 6) * 0x28;
 }
 
-// ── Legacy hi-res 280×192 (monochrome green; NTSC colour = later) ────────
+// Clean RGB HGR decode (6 colours, sharp) — pairs of consecutive bits, the
+// byte's MSB selecting the palette bank. This is what the IIgs VGC's native
+// RGB output (and Le Chat Mauve on //c/e) produces: no NTSC fringing.
+// Palette: POM2 kChatMauveHGR (AppleWin "Feline" capture), 0xAABBGGRR.
+static void decodeHgrRgbLine(const uint8_t* row, uint32_t* out /*[280]*/) {
+    static const uint32_t pal[2][4] = {
+        { 0xFF000000, 0xFFD11AAA, 0xFF2CE66F, 0xFFFFFFFF },   // MSB=0: black/magenta/green/white
+        { 0xFF000000, 0xFFB58A00, 0xFF4772FF, 0xFFFFFFFF },   // MSB=1: black/blue/orange/white
+    };
+    uint8_t px[280]; uint8_t msb[40];
+    for (int col = 0; col < 40; ++col) {
+        uint8_t b = row[col]; msb[col] = (b >> 7) & 1;
+        for (int bit = 0; bit < 7; ++bit) px[col * 7 + bit] = (b >> bit) & 1;
+    }
+    for (int p = 0; p < 280; p += 2) {
+        unsigned code = px[p] | (px[p + 1] << 1);
+        uint32_t c = pal[msb[p / 7]][code];
+        out[p] = c; out[p + 1] = c;
+    }
+}
+
+// ── Legacy hi-res 280×192 — composite NTSC or clean RGB (selectable) ────────
 void VGC::renderHGR(const IIgsMemory& mem) {
-    const uint32_t fg = 0xFF33FF33u, bg = 0xFF000000u;
-    for (auto& px : fb_) px = bg;
+    for (auto& px : fb_) px = 0xFF000000u;
     const uint8_t* e0 = mem.slowRam();
     const int base = mem.page2() ? 0x4000 : 0x2000;
     const int ox = (kW - 560) / 2;                 // centre 560-wide (280×2)
     for (int y = 0; y < 192; ++y) {
-        const uint8_t* row = e0 + hgrRowBase(y, base);
-        for (int b = 0; b < 40; ++b) {
-            uint8_t v = row[b];
-            for (int bit = 0; bit < 7; ++bit) {
-                uint32_t c = (v & (1 << bit)) ? fg : bg;
-                int x = (b * 7 + bit) * 2 + ox, py = y * 2;
-                fb_[size_t(py) * kW + x] = c;      fb_[size_t(py) * kW + x + 1] = c;
-                fb_[size_t(py + 1) * kW + x] = c;  fb_[size_t(py + 1) * kW + x + 1] = c;
-            }
+        uint32_t line[280];
+        if (hgrMode_ == HgrMode::RgbClean) decodeHgrRgbLine(e0 + hgrRowBase(y, base), line);
+        else                               pomiigs::ntsc::decodeHgrLine(e0 + hgrRowBase(y, base), line);
+        for (int x = 0; x < 280; ++x) {            // ×2 horizontally, ×2 vertically
+            uint32_t c = line[x];
+            int px = x * 2 + ox, py = y * 2;
+            fb_[size_t(py) * kW + px] = c;      fb_[size_t(py) * kW + px + 1] = c;
+            fb_[size_t(py + 1) * kW + px] = c;  fb_[size_t(py + 1) * kW + px + 1] = c;
         }
     }
 }
@@ -128,7 +148,7 @@ void VGC::renderSHR(const IIgsMemory& mem) {
 
 // ── 40-column text ($E0:0400, //e interleaved) via the IIgs char ROM ─────
 void VGC::renderText(const IIgsMemory& mem) {
-    const uint32_t fg = 0xFF33FF33u;   // green phosphor
+    const uint32_t fg = 0xFFFFFFFFu;   // white text (colour/RGB monitor; real IIgs default)
     const uint32_t bg = 0xFF000000u;
     for (auto& px : fb_) px = bg;
 

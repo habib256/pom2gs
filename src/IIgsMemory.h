@@ -63,6 +63,15 @@ public:
     // Wire the CPU so the MMU can raise the VBL (and later DOC/scanline) IRQ.
     void setCpu(CPU65816* c) { cpu_ = c; }
 
+    // Host keyboard → the classic $C000 latch (bit7 = strobe). The Mega II
+    // presents ADB keys here for 8-bit software; $C010 clears the strobe.
+    void keyDown(uint8_t ascii) { kbdLatch_ = uint8_t(ascii | 0x80); }
+
+    // Host joystick → paddles ($C064-$C067, RC-timed via $C070) + push buttons
+    // ($C061-$C063, bit7 = pressed). Axes are 0..255 (128 = centre).
+    void setPaddle(int n, uint8_t v) { if (n >= 0 && n < 4) paddle_[n] = v; }
+    void setButton(int n, bool down) { if (n >= 0 && n < 3) button_[n] = down; }
+
     // Disk: mount a 5.25" image into the on-board IWM (slot 6).
     bool loadDisk525(const std::vector<uint8_t>& img, bool prodosOrder) {
         return iwm_.loadDisk525(img, prodosOrder);
@@ -121,6 +130,10 @@ private:
     bool lcRamRead_ = false, lcRamWrite_ = false, lcBank2_ = true, lcPreWrite_ = false;
     // Keyboard latch.
     uint8_t kbdLatch_ = 0;
+    // Joystick / paddles.
+    uint8_t  paddle_[4] = {128, 128, 128, 128};
+    bool     button_[3] = {false, false, false};
+    uint64_t paddleReset_ = 0;      // videoCycles_ at the last $C070 strobe
     // ADB GLU (HLE — $C024-$C027). The ROM's ADB self-test sends command bytes
     // to DATAREG ($C026), waits for CMDFULL ($C027 bit0) to clear, then waits
     // for data-ready ($C027 bit5) and reads the response. We accept commands

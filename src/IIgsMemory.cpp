@@ -182,6 +182,15 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x2F: return uint8_t((vpos() & 1) ? 0x80 : 0x00); // HORIZCNT (vpos parity bit)
         case 0x35: return shadow_;
         case 0x36: return speed_;
+        // ── Joystick: buttons + paddles ──
+        case 0x61: return button_[0] ? 0x80 : 0x00;         // PB0 / open-apple
+        case 0x62: return button_[1] ? 0x80 : 0x00;         // PB1 / solid-apple
+        case 0x63: return button_[2] ? 0x80 : 0x00;         // PB2
+        case 0x64: case 0x65: case 0x66: case 0x67: {       // PADDL0-3: RC timing
+            uint64_t elapsed = videoCycles_ - paddleReset_;
+            return (elapsed < uint64_t(paddle_[r - 0x64]) * 11) ? 0x80 : 0x00;
+        }
+        case 0x70: paddleReset_ = videoCycles_; return 0;   // PTRIG: start the RC timers
         case 0x41: return inten_;                           // INTEN
         case 0x46: return intflag_;                         // INTFLAG (VBL bit etc.)
         case 0x47: intflag_ &= ~0x08; if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, false); return 0; // CLRVBLINT
@@ -230,6 +239,7 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x23: vgcint_ = v; return;                     // VGCINT enable
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
         case 0x32: vgcint_ &= v; return;                    // VGCINTCLEAR
+        case 0x70: paddleReset_ = videoCycles_; return;     // PTRIG (write also strobes)
         case 0x41: inten_ = v & 0x1F; return;               // INTEN (MAME 1811)
         case 0x47: intflag_ &= ~0x08; if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, false); return; // CLRVBLINT
         case 0x35: shadow_ = v; return;                     // SHADOW (MAME 1751)
