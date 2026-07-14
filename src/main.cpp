@@ -178,9 +178,10 @@ int main(int argc, char** argv) {
         c.mem.setButton(0, (nb > 0 && bt[0]) || ImGui::IsKeyDown(ImGuiKey_LeftAlt));
         c.mem.setButton(1, (nb > 1 && bt[1]) || ImGui::IsKeyDown(ImGuiKey_RightAlt));
 
-        if (c.ui.running) {                    // one video frame (~46 k cycles @ 2.8 MHz)
+        if (c.ui.running) {                    // one video frame; budget follows $C036
+            const long budget = c.mem.frameCycleBudget();   // 47684 fast / 17030 slow
             long spent = 0;
-            while (spent < 46000) { int cy = c.cpu.run(1); c.mem.tick(cy); spent += (cy > 0 ? cy : 1); }
+            while (spent < budget) { int cy = c.cpu.run(1); c.mem.tick(cy); spent += (cy > 0 ? cy : 1); }
         }
         c.audio.mixFrame(c.mem);               // speaker ($C030) + DOC → miniaudio
         const uint32_t* fb = c.vgc.render(c.mem);

@@ -153,6 +153,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(text80_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME text80_test COMMAND text80_test)
 
+    # SPEED register ($C036) → per-frame CPU cycle budget (//e slow-mode fix).
+    add_executable(speed_test tests/speed_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(speed_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME speed_test COMMAND speed_test)
+
     # Headless PNG screenshot of a booting ROM (dev tool).
     add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

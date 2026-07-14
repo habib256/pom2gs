@@ -95,8 +95,13 @@ needs the following, in rough priority order.
   applies to 40- and 80-col). Interlaced/VOC mode still TODO.
 
 **P4 — Timing + interrupts**
-- 🔴 Real **2.8 / 1.02 MHz** fast/slow clock (speed reg $C036 stored but inert)
-  + slow-side access penalty — demos/music depend on it.
+- 🟡 Real **2.8 / 1.02 MHz** fast/slow clock. Per-frame CPU cycle budget now
+  follows the SPEED register ($C036 bit7): 47684 cyc/frame fast, 17030 slow —
+  //e slow-mode software runs at the correct 1.02 MHz (measured 1.022 MHz in
+  Total Replay gameplay) instead of a fixed 2.8 MHz. Gate: `speed_test`.
+  Remaining: mid-frame speed changes (budget picks the frame-start value) +
+  per-access **slow-side penalty** (Mega II/$E0-$E1/I/O always 1 MHz) — demos
+  and music timing depend on it.
 - 🔴 Full IRQ set: **scanline, DOC, 1-sec/¼-sec, ADB, SCC, Mega II mouse**
   (only VBL is wired).
 

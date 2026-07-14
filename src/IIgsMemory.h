@@ -60,6 +60,18 @@ public:
     void tick(int cpuCycles);
     int  vpos() const;                // current scanline 0..261
     bool inVbl() const { return vpos() >= 192; }
+
+    // CPU cycles to execute per 60 Hz video frame, selected by the SPEED
+    // register ($C036 bit7). The slow side (Mega II, 1.02 MHz) runs exactly one
+    // video frame per host frame = kLines × kLineCycles = 17030 cycles; the
+    // fast side (FPI, 2.8 MHz) is 14/5× faster → 47684. Legacy //e software
+    // that selects slow mode therefore runs at the correct 1 MHz, instead of
+    // the fixed 2.8 MHz budget that made it ~2.7× too fast.
+    // Cited: MAME apple2gs.cpp SPEED ($C036 bit7 = 2.8 MHz).
+    int frameCycleBudget() const {
+        const int slow = kLineCycles * kLines;                   // 17030 @ 1.02 MHz
+        return (speed_ & SPEED_HIGH) ? (slow * 14 / 5) : slow;   // 47684 : 17030
+    }
     // Wire the CPU so the MMU can raise the VBL (and later DOC/scanline) IRQ.
     void setCpu(CPU65816* c) { cpu_ = c; }
 

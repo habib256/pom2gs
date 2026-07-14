@@ -4,6 +4,17 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — //e speed: honour the SPEED register ($C036)
+- Legacy //e software ran ~2.7× too fast because the main loop burned a fixed
+  46000 CPU cycles/frame (≈2.8 MHz) regardless of the SPEED register, which was
+  stored but never consulted. `IIgsMemory::frameCycleBudget()` now derives the
+  per-frame budget from $C036 bit7: **47684 cyc/frame fast (2.8 MHz)** vs
+  **17030 slow (1.02 MHz = 262 lines × 65 cycles)**, an exact 14/5 ratio. main's
+  loop uses it. Measured on Total Replay: the register is actively toggled
+  (fast for the GS menu, slow for //e games); steady-state gameplay now runs at
+  **1.022 MHz** instead of 2.76 MHz. Gate: `speed_test`. (Mid-frame speed
+  changes + the per-access slow-side penalty remain TODO — see P4.)
+
 ### Added — 80-column text + $C022 text colour
 - **80-column text** (`VGC::renderText80`) — each 40-byte row is split across
   the banks: aux ($E1) byte at offset k is the even screen column 2k, main
