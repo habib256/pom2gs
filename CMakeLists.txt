@@ -50,8 +50,7 @@ set(SOURCES
     src/Scc8530.cpp       # M7
     src/ProDosHdd.cpp     # HDD ProDOS
     src/VGC.cpp           # M3
-    # src/Es5503.cpp        # M6
-    # ...
+    src/Audio.cpp         # M6 audio host (miniaudio)
 )
 set(HEADERS
     src/CPU65816.h
@@ -61,7 +60,8 @@ set(HEADERS
     src/Scc8530.h
     src/ProDosHdd.h
     src/VGC.h
-    src/VGCNtsc.h)
+    src/VGCNtsc.h
+    src/Audio.h)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMGUI_SOURCES})
 

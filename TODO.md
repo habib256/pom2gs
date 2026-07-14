@@ -17,7 +17,7 @@ self-test, then the visible/audible subsystems.
 | **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); scanline IRQ + 80col/DHGR/NTSC-colour next |
 | **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing + BRAM persistence + ROM 01 banner = follow-ups |
 | **M5** | Disk (IWM/SWIM) + **//e legacy** | Reuse POM2 `IWMDevice`+`DiskImage`; add `Swim` for ROM 03. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. | 🟡 IWM 5.25" read path + //e HGR/LORES video done; ROM boots to **"Check startup device!"** (no disk). Real disk boot + SWIM/3.5" + NTSC-colour + full //e mem = follow-ups |
-| **M6** | Ensoniq 5503 DOC | `Es5503` — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$C03F) | 🟡 chip renders a tone (doc_test gate); miniaudio output wiring + DOC IRQ = follow-up |
+| **M6** | Ensoniq 5503 DOC | `Es5503` — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$C03F) | 🟢 chip renders a tone (doc_test gate); DOC + 1-bit speaker ($C030) wired to miniaudio (`AudioOut`, cycle-exact speaker). DOC IRQ + native-rate pitch = follow-up |
 | **M7** | Serial + slots | `Scc8530` serial | 🟡 SCC loopback (scc_test gate); slot bus / SmartPort / Mockingboard reuse from POM2 = follow-up |
 | **M8** | Polish | WASM build (Emscripten) | 🟡 `./build_wasm.sh` → POMIIGS.html/.js/.wasm (emscripten main loop); snapshot/rewind, CLI, packaging = follow-ups |
 
@@ -31,8 +31,10 @@ self-test, then the visible/audible subsystems.
 | STATEREG ($C068) | `apple2gs.cpp` | `IIgsMemory` | 🟢 compose/decompose |
 | VGC Super Hi-Res + SCB/palette | `apple2gs.cpp` | `VGC` | 🟢 320/640 render (vgc_test) |
 | VGC scanline / VBL interrupt | `apple2gs.cpp` | `IIgsMemory` | 🟡 VBL status + flag; scanline IRQ TODO |
-| ES5503 DOC (32 osc) | `sound/es5503.cpp` | `Es5503` | 🟢 renders tone (doc_test) |
+| ES5503 DOC (32 osc) | `sound/es5503.cpp` | `Es5503` | 🟢 renders tone (doc_test); mixed to miniaudio |
 | Sound GLU ($C03C-$C03F) | `apple2gs.cpp` | `Es5503` | 🟢 |
+| 1-bit speaker ($C030) | `apple2gs.cpp` | `IIgsMemory`+`AudioOut` | 🟢 cycle-exact square wave → miniaudio |
+| Audio host (miniaudio) | — | `AudioOut` | 🟢 mono f32 ring, speaker+DOC mix (native; WASM stub) |
 | ADB GLU (keyboard/mouse) | `apple2gs.cpp` | `IIgsMemory` | 🟡 HLE handshake (boots); real kbd/mouse TODO |
 | Battery RAM + RTC | `apple2gs.cpp` | `IIgsMemory` | 🟡 $C033/$C034 stub |
 | IWM (5.25/3.5) | `machine/iwm.cpp` | `Iwm` | 🟢 5.25" read path (boots to Check startup device) |
@@ -50,7 +52,8 @@ ticking:
   **decision: drop; the 816 in E-mode is the fallback.**
 - 🔴 `Memory` IIe paging / language card → fold into `IIgsMemory` slow side
 - 🔴 `Apple2Display` (text/LORES/HGR/DHGR) + `NtscPostProcessor` + `CrtEffectStack`
-- 🔴 `AudioDevice` / `SpeakerDevice` / `Mockingboard` / `Ssi263`
+- 🟡 `AudioDevice` / `SpeakerDevice` — folded into `AudioOut` (miniaudio host +
+  cycle-exact speaker + DOC mix). `Mockingboard` / `Ssi263` = follow-up.
 - 🔴 `IWMDevice` / `DiskImage` / `Block512Backing` / WOZ / 2mg
 - 🔴 `SmartPortCard` / `Sony35Drive` / `Disk35Image` / SmartPort hub
 - 🔴 `SlotBus` / `SlotPeripheral` (wire-OR IRQ)
@@ -64,10 +67,15 @@ HGR, keyboard/joystick). The 16-bit IIgs experience (GS/OS, the desktop, sound)
 needs the following, in rough priority order.
 
 **P1 — Sound (the machine's identity)**
-- 🟡 Wire the Ensoniq 5503 DOC to real audio output (miniaudio). *(in progress)*
-- 🔴 1-bit **speaker** ($C030 toggle) → audio.
+- 🟢 Wire the Ensoniq 5503 DOC to real audio output (miniaudio) — `AudioOut`
+  mixes `Es5503::render` into the output ring each frame.
+- 🟢 1-bit **speaker** ($C030 toggle) → audio — cycle-exact square-wave
+  reconstruction from the MMU toggle stamps (Total Replay games audible).
 - 🔴 DOC **oscillator IRQ** (sampled-sound / music players).
-- 🔴 DOC accuracy: swap-interrupt pops, "never plays the same twice" timing.
+- 🔴 DOC accuracy: swap-interrupt pops, "never plays the same twice" timing,
+  native-rate pitch (currently rendered at the output rate → pitch approximate).
+- 🔴 WASM audio: Web Audio backend needs the Emscripten audio-worklet link
+  flags; the WASM build ships a silent `AudioOut` stub for now.
 
 **P2 — GS/OS boot (3.5" + desktop)**
 - 🔴 **3.5" Sony disk** (IWM 3.5" mode) + **SmartPort** (slot 5) — boot 800K/GS-OS.

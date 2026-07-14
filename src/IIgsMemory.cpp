@@ -174,6 +174,9 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x1D: return hires_ ? 0x80 : 0x00;
         case 0x1E: return altchar_ ? 0x80 : 0x00;
         case 0x1F: return eightyCol_ ? 0x80 : 0x00;
+        case 0x30: case 0x31:                               // SPKR: toggle 1-bit speaker
+            if (spkEvents_.size() < 65536) spkEvents_.push_back(videoCycles_);
+            return 0;
         case 0x38: case 0x39: case 0x3A: case 0x3B: return scc_.read(r);    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: return doc_.gluRead(r); // Sound GLU
         case 0x23: return vgcint_;                          // VGCINT
@@ -234,6 +237,9 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x27: return;                                  // KMSTATUS write (ignored)
         case 0x33: clkData_ = v; return;                    // CLOCKDATA
         case 0x34: clkCtl_ = v & 0x6F; return;              // CLOCKCTL
+        case 0x30: case 0x31:                               // SPKR: toggle 1-bit speaker
+            if (spkEvents_.size() < 65536) spkEvents_.push_back(videoCycles_);
+            return;
         case 0x38: case 0x39: case 0x3A: case 0x3B: scc_.write(r, v); return;    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: doc_.gluWrite(r, v); return; // Sound GLU
         case 0x23: vgcint_ = v; return;                     // VGCINT enable

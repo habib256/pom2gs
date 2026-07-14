@@ -12,6 +12,7 @@
 #include "CPU65816.h"
 #include "IIgsMemory.h"
 #include "VGC.h"
+#include "Audio.h"
 
 #include <GLFW/glfw3.h>
 #include <cstdio>
@@ -78,6 +79,7 @@ int main(int argc, char** argv) {
     static IIgsMemory mem;
     static CPU65816 cpu(&mem);
     static VGC vgc;
+    static AudioOut audio;
     std::string matched;
     std::vector<uint8_t> rom;
     if (argc > 1) { rom = readFile(argv[1]); matched = argv[1]; }
@@ -123,10 +125,10 @@ int main(int argc, char** argv) {
     // Heap-allocated so the state outlives main() under Emscripten's callback
     // main loop (main returns immediately there).
     struct Ctx {
-        GLFWwindow* window; IIgsMemory& mem; CPU65816& cpu; VGC& vgc; GLuint tex;
+        GLFWwindow* window; IIgsMemory& mem; CPU65816& cpu; VGC& vgc; AudioOut& audio; GLuint tex;
         bool romOk, chrOk, running; const char* romPath;
     };
-    static Ctx ctx{window, mem, cpu, vgc, screenTex, romOk, chrOk, romOk, romPath};
+    static Ctx ctx{window, mem, cpu, vgc, audio, screenTex, romOk, chrOk, romOk, romPath};
 
     auto frame = [](void* p) {
         Ctx& c = *static_cast<Ctx*>(p);
@@ -156,6 +158,7 @@ int main(int argc, char** argv) {
             long spent = 0;
             while (spent < 46000) { int cy = c.cpu.run(1); c.mem.tick(cy); spent += (cy > 0 ? cy : 1); }
         }
+        c.audio.mixFrame(c.mem);               // speaker ($C030) + DOC → miniaudio
         const uint32_t* fb = c.vgc.render(c.mem);
         glBindTexture(GL_TEXTURE_2D, c.tex);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, c.vgc.width(), c.vgc.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, fb);
@@ -179,6 +182,18 @@ int main(int argc, char** argv) {
         if (ImGui::RadioButton("Composite NTSC", ntsc)) c.vgc.setHgrMode(VGC::HgrMode::CompositeNtsc);
         if (ImGui::RadioButton("Clean RGB", !ntsc))     c.vgc.setHgrMode(VGC::HgrMode::RgbClean);
         if (ImGui::IsKeyPressed(ImGuiKey_F2, false))    c.vgc.toggleHgrMode();   // F2 toggles
+        ImGui::Separator();
+        // Audio: 1-bit speaker ($C030) + Ensoniq 5503 DOC → miniaudio.
+        if (c.audio.available()) {
+            bool mute = c.audio.muted();
+            if (ImGui::Checkbox("Mute", &mute)) c.audio.setMuted(mute);
+            float vol = c.audio.volume();
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(120);
+            if (ImGui::SliderFloat("vol", &vol, 0.0f, 1.0f, "%.2f")) c.audio.setVolume(vol);
+        } else {
+            ImGui::TextDisabled("audio: unavailable");
+        }
         ImGui::Separator();
         if (ImGui::Button(c.running ? "Pause" : "Run")) c.running = !c.running && c.romOk;
         ImGui::SameLine();
