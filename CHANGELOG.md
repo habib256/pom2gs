@@ -4,6 +4,14 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Milestone 8 (WebAssembly build)
+- The whole emulator builds to WebAssembly via Emscripten: `./build_wasm.sh`
+  produces `build_wasm/POMIIGS.{html,js,wasm}` (~510 KB wasm). `main.cpp`'s
+  render loop is refactored into a `frame()` callback driven by
+  `emscripten_set_main_loop_arg` in the browser (blocking `while` on native).
+  Single-threaded, static-host-friendly (POM2 model). CMake emits the HTML
+  shell under Emscripten. Snapshot/rewind, CLI, and desktop packaging remain.
+
 ### Added — Milestone 7 (SCC 8530 serial)
 - `src/Scc8530.{h,cpp}` — the two-port Zilog 8530 SCC at $C038-$C03B: the
   register-pointer protocol (WR0 low nibble selects the next register, then

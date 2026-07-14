@@ -59,6 +59,17 @@ The IIgs ROM is copyrighted; drop your own dump in `roms/`:
   SHA1 `5a5a77c8ec45632aea1a57cd9c9257f7f6e44668`) — required for text rendering.
   Super Hi-Res needs no font.
 
+## WebAssembly
+
+```bash
+source /path/to/emsdk/emsdk_env.sh   # activate Emscripten
+./build_wasm.sh                     # → build_wasm/POMIIGS.html
+cd build_wasm && python3 -m http.server 8000   # open /POMIIGS.html
+```
+
+Single-threaded; serves on any static host. ROMs are uploaded at runtime
+(not bundled — copyright).
+
 ## License
 
 GPLv3. See [LICENSE](LICENSE). POMIIGS shares POM2's lineage and reuses code

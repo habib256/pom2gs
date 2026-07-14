@@ -75,7 +75,9 @@ if(EMSCRIPTEN)
     set(EM_LINK "-sUSE_GLFW=3 -sUSE_WEBGL2=1 -sFULL_ES3=1 \
 -sINITIAL_MEMORY=134217728 -sALLOW_MEMORY_GROWTH=1 \
 -lidbfs.js -sFORCE_FILESYSTEM=1")
-    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "${EM_LINK}")
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        LINK_FLAGS "${EM_LINK}"
+        SUFFIX ".html")            # emit POMIIGS.html + .js + .wasm (default shell)
 else()
     find_package(OpenGL REQUIRED)
     find_package(glfw3 3.3 QUIET CONFIG)
