@@ -41,5 +41,19 @@ roms/*.bin
 # MAME apple2gs BIOS set (copyrighted — user-provided, e.g. 344s0047.bin char ROM)
 bios_apple2gs/
 
-# Disk images (.hdv/.2mg — bundled games are copyrighted)
+# Disk images (bundled games / GS-OS are copyrighted — never commit).
+# Extension patterns catch them wherever they live (disks35/, docs/, …).
 hdv/
+disks35/
+disks54/
+*.hdv
+*.2mg
+*.po
+*.woz
+*.dsk
+*.zip
+docs/System*/
+docs/Arkanoid*/
+
+# ImGui saved window layout (generated)
+imgui.ini

@@ -78,7 +78,20 @@ needs the following, in rough priority order.
   flags; the WASM build ships a silent `AudioOut` stub for now.
 
 **P2 — GS/OS boot (3.5" + desktop)**
-- 🔴 **3.5" Sony disk** (IWM 3.5" mode) + **SmartPort** (slot 5) — boot 800K/GS-OS.
+- 🟡 **Milestone reached: GS/OS 6.0.1 boots to the "Welcome to the IIgs" Super
+  Hi-Res splash** (icon + QuickDraw text + progress bar render correctly).
+  Diagnosis (July 2026): 800K 3.5" `.po`/`.2mg` images are standard ProDOS
+  volumes; the slot-7 ProDOS block device loads + runs their boot code; our SHR
+  path renders their splash faithfully. GS/OS then clears $C029 (SHR off) and
+  stalls — it needs the rest of the boot chain to continue. Arkanoid II behaves
+  the same (SHR dialog → stall; reacts to keys). Test disks in `disks35/` and
+  `docs/System 6.0.1/`.
+- 🔴 **3.5" Sony disk** (IWM 3.5" mode) + **SmartPort** (slot 5) — the game/GS-OS
+  disk routines want the authentic drive, not just the slot-7 block device.
+  Reuse POM2 `Sony35Drive` / `Disk35Image` / `SmartPort*`.
+- 🔴 **GS toolbox** — Memory Mgr, Miscellaneous Tools, QuickDraw II, Event/
+  Window/Menu/Control Mgrs, Desk Mgr, the Loader: what GS/OS + the Finder need
+  after the welcome screen. The bulk of the remaining IIgs work (many steps).
 - 🔴 **SWIM** (ROM 03 disk chip, MFM superset).
 - 🔴 **ADB mouse** (the GS Finder is mouse-driven; only $C000 keyboard exists).
 
