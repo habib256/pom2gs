@@ -135,10 +135,19 @@ void Ui::screenWindow(unsigned int tex) {
     const float menuH = ImGui::GetFrameHeight();
     ImGui::SetNextWindowPos(ImVec2(0, menuH), ImGuiCond_FirstUseEver);
     ImGui::Begin("Apple IIgs", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    if (romOk)
-        ImGui::Image((ImTextureID)(intptr_t)tex,
-                     ImVec2(vgc_.width() * scale, vgc_.height() * scale));
-    else
+    if (romOk) {
+        // Draw the active display inside the $C034 border colour (the VGC
+        // palette entry doubles as an ImU32 — both are 0xAABBGGRR).
+        const float W = vgc_.width() * scale, H = vgc_.height() * scale;
+        const float b = 16.0f;
+        const ImU32 border = VGC::loresColor(mem_.borderColor());
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        dl->AddRectFilled(p, ImVec2(p.x + W + 2 * b, p.y + H + 2 * b), border);
+        dl->AddImage((ImTextureID)(intptr_t)tex, ImVec2(p.x + b, p.y + b),
+                     ImVec2(p.x + b + W, p.y + b + H));
+        ImGui::Dummy(ImVec2(W + 2 * b, H + 2 * b));   // reserve the layout space
+    } else
         ImGui::TextDisabled("No ROM loaded — File ▸ Load ROM...");
     ImGui::End();
 }

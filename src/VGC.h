@@ -51,6 +51,10 @@ public:
     int height() const { return kH; }
     const uint32_t* framebuffer() const { return fb_.data(); }
 
+    // The 16-colour lo-res / border / text palette entry (0xAABBGGRR). Shared
+    // with the UI so it can draw the $C034 border in the authentic colour.
+    static uint32_t loresColor(uint8_t idx);
+
 private:
     std::vector<uint32_t> fb_;
     std::vector<uint8_t>  charRom_;   // Mega II 344s0047 (16 KB)

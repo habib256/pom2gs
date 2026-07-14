@@ -25,6 +25,8 @@ const uint32_t kLoresPalette[16] = {
     0xFF405010,0xFFF06000,0xFF808080,0xFFF090A0,0xFF10D000,0xFFF0F050,0xFF50F090,0xFFFFFFFF };
 }
 
+uint32_t VGC::loresColor(uint8_t idx) { return kLoresPalette[idx & 0x0F]; }
+
 bool VGC::setCharRom(const std::vector<uint8_t>& rom) {
     if (rom.size() == 0x4000 || rom.size() == 0x1000 || rom.size() == 0x800) { charRom_ = rom; return true; }
     return false;
@@ -145,6 +147,7 @@ void VGC::renderSHR(const IIgsMemory& mem) {
     for (int line = 0; line < 200; ++line) {
         const uint8_t s = scb[line];
         const bool mode640 = (s & 0x80) != 0;      // SCB bit 7 = 640 mode
+        const bool fill    = (s & 0x20) != 0;      // SCB bit 5 = color-fill (320 only)
         const int palNum = s & 0x0F;
         const uint8_t* p = pal + palNum * 32;
         auto color = [&](int idx) { return rgb12(p[idx * 2], p[idx * 2 + 1]); };
@@ -152,11 +155,18 @@ void VGC::renderSHR(const IIgsMemory& mem) {
 
         uint32_t row[640];
         if (!mode640) {                            // 320: byte = 2 × 4-bit index, each dot doubled to 640
+            // Color-fill: a pixel index of 0 repeats the previous pixel's colour
+            // instead of palette[0] (fast horizontal runs). Seeds from palette[0].
+            uint32_t last = color(0);
             for (int b = 0; b < 160; ++b) {
                 uint8_t v = src[b];
-                uint32_t cl = color(v >> 4), cr = color(v & 0x0F);
-                row[b * 4 + 0] = cl; row[b * 4 + 1] = cl;
-                row[b * 4 + 2] = cr; row[b * 4 + 3] = cr;
+                for (int half = 0; half < 2; ++half) {
+                    int idx = half ? (v & 0x0F) : (v >> 4);
+                    uint32_t c = (fill && idx == 0) ? last : color(idx);
+                    if (!(fill && idx == 0)) last = c;
+                    row[b * 4 + half * 2 + 0] = c;
+                    row[b * 4 + half * 2 + 1] = c;
+                }
             }
         } else {                                   // 640: byte = 4 × 2-bit, column-offset palette
             static const int off[4] = { 8, 12, 0, 4 };

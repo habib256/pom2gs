@@ -4,6 +4,16 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Super Hi-Res completeness: color-fill + border colour
+- **SHR color-fill** (SCB bit5, 320 mode): a pixel index of 0 now repeats the
+  previous pixel's colour instead of palette[0] (the hardware "fill" trick for
+  cheap horizontal runs), seeded from palette[0] at each line start.
+- **Border colour** ($C034 bits 0-3): `IIgsMemory::borderColor()` +
+  `VGC::loresColor()` (the 16-colour palette hoisted to a shared static); the UI
+  draws the active display inside an authentic border frame in that colour
+  (both the palette entry and ImU32 are 0xAABBGGRR, so no conversion).
+- Gate: `shr_test` (fill run repeats red vs palette[0] blue; border index/colour).
+
 ### Added — P4: master-clock timing + interrupt set
 - **Mid-frame speed changes.** The host loop now accounts each frame in
   master-clock ticks (`masterPerFrame()` = 238420 = one Mega II frame); each CPU

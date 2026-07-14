@@ -142,6 +142,7 @@ public:
     bool    shrEnabled() const { return (newvideo_ & 0x80) != 0; }
     bool    text80()    const { return eightyCol_; }
     uint8_t textColor() const { return txtColor_; }              // $C022: fg = hi nibble, bg = lo
+    uint8_t borderColor() const { return clkCtl_ & 0x0F; }       // $C034 bits0-3 (16-colour index)
     bool    page2()     const { return page2_; }
     // Legacy //e display mode (for the VGC).
     bool    textMode()  const { return textMode_; }

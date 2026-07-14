@@ -84,7 +84,9 @@ needs the following, in rough priority order.
 
 **P3 — VGC completeness (games / demos / apps)**
 - 🔴 **Scanline interrupts** (SCB bit6) — split modes (640 menu + 320 gfx).
-- 🔴 SHR **colour-fill** mode (SCB bit5); **border colour** ($C034).
+- 🟢 SHR **colour-fill** mode (SCB bit5 — index-0 repeats the previous pixel)
+  and **border colour** ($C034, drawn as an authentic frame around the display).
+  Gate: `shr_test`.
 - 🟢 **Double Hi-Res** (DHGR 140×192, 16 colour) — aux/main interleave,
   Composite NTSC + Clean RGB (same toggle as HGR). Gate: `dhgr_test`.
   80STORE display-page quirk honoured (PAGE2 = aux-bank select, not page
