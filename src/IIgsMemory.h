@@ -72,6 +72,12 @@ public:
     void setPaddle(int n, uint8_t v) { if (n >= 0 && n < 4) paddle_[n] = v; }
     void setButton(int n, bool down) { if (n >= 0 && n < 3) button_[n] = down; }
 
+    // Speaker ($C030): the audio mixer drains the toggle cycle-stamps each
+    // frame to reconstruct the 1-bit square wave. `cur` is the current level.
+    void takeSpeakerEvents(std::vector<uint64_t>& out) { out.swap(spkEvents_); spkEvents_.clear(); }
+    uint64_t audioCycles() const { return videoCycles_; }
+    Es5503& docChip() { return doc_; }
+
     // Disk: mount a 5.25" image into the on-board IWM (slot 6).
     bool loadDisk525(const std::vector<uint8_t>& img, bool prodosOrder) {
         return iwm_.loadDisk525(img, prodosOrder);
@@ -134,6 +140,8 @@ private:
     uint8_t  paddle_[4] = {128, 128, 128, 128};
     bool     button_[3] = {false, false, false};
     uint64_t paddleReset_ = 0;      // videoCycles_ at the last $C070 strobe
+    // Speaker ($C030): absolute cycle-stamps of level toggles this frame.
+    std::vector<uint64_t> spkEvents_;
     // ADB GLU (HLE — $C024-$C027). The ROM's ADB self-test sends command bytes
     // to DATAREG ($C026), waits for CMDFULL ($C027 bit0) to clear, then waits
     // for data-ready ($C027 bit5) and reads the response. We accept commands

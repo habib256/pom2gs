@@ -57,6 +57,41 @@ ticking:
 - 🔴 `MachineSnapshot` / `RewindBuffer`
 - 🔴 `CliDispatcher` / `EmulationController` (fork, retune clock to 2.8/1.02)
 
+## Post-M8 backlog — specialist gap analysis (what makes it a *real* IIgs)
+
+POMIIGS runs the 8-bit / Apple II world well (ROM, ProDOS, Total Replay, colour
+HGR, keyboard/joystick). The 16-bit IIgs experience (GS/OS, the desktop, sound)
+needs the following, in rough priority order.
+
+**P1 — Sound (the machine's identity)**
+- 🟡 Wire the Ensoniq 5503 DOC to real audio output (miniaudio). *(in progress)*
+- 🔴 1-bit **speaker** ($C030 toggle) → audio.
+- 🔴 DOC **oscillator IRQ** (sampled-sound / music players).
+- 🔴 DOC accuracy: swap-interrupt pops, "never plays the same twice" timing.
+
+**P2 — GS/OS boot (3.5" + desktop)**
+- 🔴 **3.5" Sony disk** (IWM 3.5" mode) + **SmartPort** (slot 5) — boot 800K/GS-OS.
+- 🔴 **SWIM** (ROM 03 disk chip, MFM superset).
+- 🔴 **ADB mouse** (the GS Finder is mouse-driven; only $C000 keyboard exists).
+
+**P3 — VGC completeness (games / demos / apps)**
+- 🔴 **Scanline interrupts** (SCB bit6) — split modes (640 menu + 320 gfx).
+- 🔴 SHR **colour-fill** mode (SCB bit5); **border colour** ($C034).
+- 🔴 **Double Hi-Res** (DHGR 560 + colour); **80-column text**.
+- 🔴 **Text colour** from $C022 (currently hard-white); interlaced/VOC mode.
+
+**P4 — Timing + interrupts**
+- 🔴 Real **2.8 / 1.02 MHz** fast/slow clock (speed reg $C036 stored but inert)
+  + slow-side access penalty — demos/music depend on it.
+- 🔴 Full IRQ set: **scanline, DOC, 1-sec/¼-sec, ADB, SCC, Mega II mouse**
+  (only VBL is wired).
+
+**P5 — Peripherals / infra**
+- 🔴 **Battery RAM + RTC** (Control Panel persistence; currently $C033/$C034 stub).
+- 🔴 Slot **internal firmware** $C100-$CFFF (returns 0 today).
+- 🔴 Real **SCC** serial (modem/printer/AppleTalk) — loopback only.
+- 🔴 **Mockingboard**, save-states/debugger, configurable RAM/slots/Control Panel.
+
 ## Open questions
 
 - ROM 03 up to 8 MB RAM: model as flat fast-side array or paged expansion card?
