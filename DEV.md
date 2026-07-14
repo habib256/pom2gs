@@ -251,6 +251,16 @@ reference**: `machine/iwm.cpp`, `machine/swim.cpp`.
 
 ---
 
+## Serial — SCC 8530
+
+*(Milestone 7 — `src/Scc8530`, gate `scc_test`.)* The two-port Zilog 8530 at
+`$C038-$C03B` (B/A command + data). The register-pointer protocol (write WR0
+low nibble → next access hits that register, auto-resets to 0), TX/RX FIFOs,
+RR0 status (Rx-available / Tx-empty), and WR14-bit4 local loopback are
+modelled. Host hooks `hostRx`/`hostTx` bridge to a real port later. Slot
+bus / SmartPort / Mockingboard reuse from POM2 is the remaining M7 work.
+Source of truth: MAME `machine/z80scc.cpp`.
+
 ## Clock & threading
 
 *(planned — fork POM2 `EmulationController`)*

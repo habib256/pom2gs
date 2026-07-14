@@ -4,6 +4,14 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Milestone 7 (SCC 8530 serial)
+- `src/Scc8530.{h,cpp}` — the two-port Zilog 8530 SCC at $C038-$C03B: the
+  register-pointer protocol (WR0 low nibble selects the next register, then
+  auto-resets), TX/RX FIFOs, RR0 status (Rx-available / Tx-empty), and WR14
+  local loopback. Wired into the MMU; host hooks for a real port bridge later.
+  Gate `scc_test`: enable loopback, transmit "IIgs", receive it back + host Tx
+  drains 4 bytes. Slot bus / SmartPort / Mockingboard (POM2 reuse) = follow-up.
+
 ### Added — Milestone 6 (Ensoniq 5503 DOC sound)
 - `src/Es5503.{h,cpp}` — the 32-oscillator DOC: 64 KB sound RAM, the full
   oscillator register set (freq/vol/wavetable-pointer/control/size), the Sound

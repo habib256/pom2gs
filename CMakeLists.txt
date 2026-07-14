@@ -47,6 +47,7 @@ set(SOURCES
     src/IIgsMemory.cpp    # M2
     src/Iwm.cpp           # M5
     src/Es5503.cpp        # M6
+    src/Scc8530.cpp       # M7
     src/VGC.cpp           # M3
     # src/Es5503.cpp        # M6
     # ...
@@ -56,6 +57,7 @@ set(HEADERS
     src/IIgsMemory.h
     src/Iwm.h
     src/Es5503.h
+    src/Scc8530.h
     src/VGC.h)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMGUI_SOURCES})
@@ -101,7 +103,7 @@ endif()
 option(POMIIGS_TESTS "Build the test targets" ON)
 if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     enable_testing()
-    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp)
+    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp)
     target_include_directories(tomharte_65816 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     set(POMIIGS_TOMHARTE_DIR "" CACHE PATH "Directory of SingleStepTests/65816 .json vectors")
     # MVN/MVP ($54/$44) are excluded: Tom Harte caps block moves at 100 cycles
@@ -111,11 +113,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
              COMMAND tomharte_65816 "${POMIIGS_TOMHARTE_DIR}" --skip 44,54)
 
     # Dev tool (not a gate): load a real ROM and trace how far it boots.
-    add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp)
+    add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp)
     target_include_directories(boot_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
     # VGC Super Hi-Res render smoke test (M3 gate).
-    add_executable(vgc_test tests/vgc_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp)
+    add_executable(vgc_test tests/vgc_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp)
     target_include_directories(vgc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME vgc_test COMMAND vgc_test)
 
@@ -124,7 +126,12 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(doc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME doc_test COMMAND doc_test)
 
+    # SCC 8530 serial loopback test (M7 gate).
+    add_executable(scc_test tests/scc_test.cpp src/Scc8530.cpp)
+    target_include_directories(scc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME scc_test COMMAND scc_test)
+
     # Headless PNG screenshot of a booting ROM (dev tool).
-    add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp)
+    add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()
