@@ -37,3 +37,6 @@ tests/Makefile
 # User-provided ROMs (IIgs ROM 01 / ROM 03 are copyrighted — never commit)
 roms/*.rom
 roms/*.bin
+
+# MAME apple2gs BIOS set (copyrighted — user-provided, e.g. 344s0047.bin char ROM)
+bios_apple2gs/

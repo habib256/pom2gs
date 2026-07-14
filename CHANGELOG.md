@@ -73,9 +73,10 @@ Resolved items + the **why** behind non-obvious decisions.
 - `src/main.cpp` now runs the emulator (ROM + MMU + CPU) and displays the VGC
   framebuffer live via a GL texture, with a status/Run/Reset panel.
 - `tests/screenshot.cpp` — headless PNG of a booting ROM (dev tool).
-- Note: `344s0047.bin` could not be auto-fetched here (it lives in the Mega II
-  ASIC; only in MAME BIOS packages / archive.org, both unreachable in this
-  environment). Text renders once the file is dropped in `roms/`.
+- The authentic char ROM (`344s0047.bin`, SHA1 5a5a77c8…) drops into
+  `roms/iigs-char.rom` — the ROM's **"Check startup device!" text renders
+  crisply in the genuine IIgs font** (verified). Sourced from a MAME apple2gs
+  BIOS set (`bios_apple2gs/`, git-ignored).
 
 ### Added — Milestone 2 (FPI + Mega II MMU, boots a real ROM)
 - `src/IIgsMemory.{h,cpp}` grown from the flat M1 stub into the real MMU: ROM
