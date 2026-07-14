@@ -4,6 +4,28 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — sound + Double Hi-Res (audio out, DHGR titles)
+- **Audio → miniaudio** (`src/Audio.{h,cpp}`, `AudioOut`): mono float32
+  playback device fed by a lock-free SPSC ring. Once per emulated frame
+  `mixFrame()` reconstructs the **1-bit speaker** ($C030) square wave from the
+  MMU's toggle cycle-stamps (cycle-exact — 8-bit games play at correct pitch)
+  and mixes the **Ensoniq 5503 DOC**. WASM ships a silent stub (Web Audio
+  backend needs audio-worklet link flags). Gate: speaker reconstruction
+  verified headlessly (20 toggles → 19 zero-crossings).
+- **Double Hi-Res** (DHGR, 140×192, 16 colour) — reuses the HGR artifact
+  decoder: 80-column mode lays aux (leftmost 7 dots) then main (next 7) per
+  column → the same 14-bit-word windowed LUT. Both HgrMode paths: Composite
+  NTSC (`decodeDhgrLine`) and Clean RGB (`decodeDhgrRgbLine`, 140 fat pixels →
+  lo-res palette). Gate: `dhgr_test`.
+- **Fix — Total Replay DHGR title fades.** The video scanner now honours the
+  **80STORE quirk** (Sather *Understanding the Apple IIe* §5-25 table 5.10 /
+  POM2 `videoHgrPage2`): when 80STORE+HIRES are on, PAGE2 is the aux-bank
+  select, **not** a display page flip — the scanner stays on page 1. Total
+  Replay's DHGR fades toggle PAGE2 to interleave aux/main writes; treating that
+  as a page-2 flip showed page-2 garbage mid-fade. `IIgsMemory::hgrPage2()` /
+  `textPage2()` encapsulate the rule; all four VGC renderers use them. Gate:
+  `dhgr_page_test`.
+
 ### Added — input + colour HGR (navigate Total Replay)
 - **Host keyboard → $C000** (Mega II latch, bit7 strobe; $C010 clears it) and
   **joystick → paddles $C064-$C067 (RC-timed via $C070) + buttons $C061-$C063**.

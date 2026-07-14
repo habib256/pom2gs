@@ -141,6 +141,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(dhgr_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME dhgr_test COMMAND dhgr_test)
 
+    # 80STORE display-page quirk regression (Total Replay DHGR fade fix).
+    add_executable(dhgr_page_test tests/dhgr_page_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(dhgr_page_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME dhgr_page_test COMMAND dhgr_page_test)
+
     # Headless PNG screenshot of a booting ROM (dev tool).
     add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

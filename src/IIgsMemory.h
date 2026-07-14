@@ -111,6 +111,14 @@ public:
     bool    mixed()     const { return mixed_; }
     bool    hires()     const { return hires_; }
     bool    dhires()    const { return dhgr_ && eightyCol_; }
+    // Display page for the video scanner, honouring the 80STORE quirk (Sather
+    // "Understanding the Apple IIe" §5-25 table 5.10 / MAME use_page_2): PAGE2
+    // only steers the scanner to page 2 when it is NOT repurposed as the
+    // aux-bank select. With 80STORE on, PAGE2 routes writes to main/aux and the
+    // display is forced to page 1 — this is how DHGR (and 80STORE HGR page-flip
+    // fades, e.g. Total Replay) address aux memory without moving the display.
+    bool    textPage2() const { return page2_ && !store80_; }
+    bool    hgrPage2()  const { return page2_ && !(store80_ && hires_); }
 
 private:
     // Backing stores.

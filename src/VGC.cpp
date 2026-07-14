@@ -66,7 +66,7 @@ static void decodeHgrRgbLine(const uint8_t* row, uint32_t* out /*[280]*/) {
 void VGC::renderHGR(const IIgsMemory& mem) {
     for (auto& px : fb_) px = 0xFF000000u;
     const uint8_t* e0 = mem.slowRam();
-    const int base = mem.page2() ? 0x4000 : 0x2000;
+    const int base = mem.hgrPage2() ? 0x4000 : 0x2000;
     const int ox = (kW - 560) / 2;                 // centre 560-wide (280×2)
     for (int y = 0; y < 192; ++y) {
         uint32_t line[280];
@@ -89,7 +89,7 @@ void VGC::renderDHGR(const IIgsMemory& mem) {
     for (auto& px : fb_) px = 0xFF000000u;
     const uint8_t* main = mem.slowRam();               // bank $E0
     const uint8_t* aux  = mem.slowRam() + 0x10000;     // bank $E1
-    const int base = mem.page2() ? 0x4000 : 0x2000;
+    const int base = mem.hgrPage2() ? 0x4000 : 0x2000;
     const int ox = (kW - 560) / 2;                     // centre 560-wide (280×2)
     for (int y = 0; y < 192; ++y) {
         const int rb = hgrRowBase(y, base);
@@ -115,7 +115,7 @@ void VGC::renderLores(const IIgsMemory& mem) {
         0xFF405010,0xFFF06000,0xFF808080,0xFFF090A0,0xFF10D000,0xFFF0F050,0xFF50F090,0xFFFFFFFF };
     for (auto& px : fb_) px = 0xFF000000u;
     const uint8_t* e0 = mem.slowRam();
-    const int page = mem.page2() ? 0x0800 : 0x0400;
+    const int page = mem.textPage2() ? 0x0800 : 0x0400;
     const int cellW = kW / 40, cellH = kH / 48;
     for (int row = 0; row < 24; ++row) {
         int rb = textRowBase(row, page);
@@ -182,7 +182,7 @@ void VGC::renderText(const IIgsMemory& mem) {
     if (charRom_.empty()) return;      // authentic font required (roms/iigs-char.rom)
 
     const uint8_t* e0 = mem.slowRam();
-    const int page = mem.page2() ? 0x0800 : 0x0400;
+    const int page = mem.textPage2() ? 0x0800 : 0x0400;
     for (int rowc = 0; rowc < 24; ++rowc) {
         int rbase = page + (rowc % 8) * 0x80 + (rowc / 8) * 0x28;
         for (int colc = 0; colc < 40; ++colc) {

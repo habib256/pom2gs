@@ -87,6 +87,9 @@ needs the following, in rough priority order.
 - 🔴 SHR **colour-fill** mode (SCB bit5); **border colour** ($C034).
 - 🟢 **Double Hi-Res** (DHGR 140×192, 16 colour) — aux/main interleave,
   Composite NTSC + Clean RGB (same toggle as HGR). Gate: `dhgr_test`.
+  80STORE display-page quirk honoured (PAGE2 = aux-bank select, not page
+  flip, when 80STORE+HIRES) → Total Replay DHGR title fades correct. Gate:
+  `dhgr_page_test`.
 - 🔴 **80-column text** (aux/main interleaved 80×24).
 - 🔴 **Text colour** from $C022 (currently hard-white); interlaced/VOC mode.
 
