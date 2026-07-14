@@ -17,7 +17,7 @@ self-test, then the visible/audible subsystems.
 | **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text needs `roms/iigs-char.rom`; scanline IRQ + 80col/HGR/NTSC next |
 | **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing + BRAM persistence + ROM 01 banner = follow-ups |
 | **M5** | Disk (IWM/SWIM) + **//e legacy** | Reuse POM2 `IWMDevice`+`DiskImage`; add `Swim` for ROM 03. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. | 🟡 IWM 5.25" read path + //e HGR/LORES video done; ROM boots to **"Check startup device!"** (no disk). Real disk boot + SWIM/3.5" + NTSC-colour + full //e mem = follow-ups |
-| **M6** | Ensoniq 5503 DOC | `Es5503` — 32 osc, 64 KB sound RAM, Sound GLU → POM2 audio bus | 🔴 a `.stg`/System 6 boot chime plays |
+| **M6** | Ensoniq 5503 DOC | `Es5503` — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$C03F) | 🟡 chip renders a tone (doc_test gate); miniaudio output wiring + DOC IRQ = follow-up |
 | **M7** | Serial + slots | `Scc8530`; reuse POM2 slot bus / SmartPort / Mockingboard | 🔴 SmartPort HDD boots; SCC loopback |
 | **M8** | Polish | Snapshot/rewind reuse, CLI, WASM, kiosk, packaging | 🔴 WASM build plays in browser |
 
@@ -31,8 +31,8 @@ self-test, then the visible/audible subsystems.
 | STATEREG ($C068) | `apple2gs.cpp` | `IIgsMemory` | 🟢 compose/decompose |
 | VGC Super Hi-Res + SCB/palette | `apple2gs.cpp` | `VGC` | 🔴 |
 | VGC scanline / VBL interrupt | `apple2gs.cpp` | `VGC` | 🔴 |
-| ES5503 DOC (32 osc) | `sound/es5503.cpp` | `Es5503` | 🔴 |
-| Sound GLU ($C03C-$C03F) | `apple2gs.cpp` | `Es5503` | 🔴 |
+| ES5503 DOC (32 osc) | `sound/es5503.cpp` | `Es5503` | 🟢 renders tone (doc_test) |
+| Sound GLU ($C03C-$C03F) | `apple2gs.cpp` | `Es5503` | 🟢 |
 | ADB GLU (keyboard/mouse) | `apple2gs.cpp` | `Adb` | 🔴 |
 | Battery RAM + RTC | `apple2gs.cpp` | `IIgsClock` | 🔴 |
 | IWM (5.25/3.5) | `machine/iwm.cpp` | reuse POM2 `IWMDevice` | 🔴 |

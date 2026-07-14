@@ -4,6 +4,15 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Milestone 6 (Ensoniq 5503 DOC sound)
+- `src/Es5503.{h,cpp}` — the 32-oscillator DOC: 64 KB sound RAM, the full
+  oscillator register set (freq/vol/wavetable-pointer/control/size), the Sound
+  GLU at $C03C-$C03F (ctl/data/addr with auto-increment, RAM vs DOC-register
+  select), free-run wavetable playback with the zero-byte end-of-wave marker,
+  and a mixing render(). Wired into the MMU. Gate `doc_test`: a sine wavetable
+  on one oscillator produces a clean tone (rms 1429, 31 zero-crossings).
+  miniaudio output + DOC oscillator IRQ = follow-up.
+
 ### Added — Milestone 5 (IWM disk + //e video — ROM boots to "Check startup device")
 - **The ROM 03 now completes the full boot sequence to the authentic "Check
   startup device!" screen** (banner -> self-tests -> disk search -> no-disk

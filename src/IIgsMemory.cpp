@@ -159,6 +159,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x1D: return hires_ ? 0x80 : 0x00;
         case 0x1E: return altchar_ ? 0x80 : 0x00;
         case 0x1F: return eightyCol_ ? 0x80 : 0x00;
+        case 0x3C: case 0x3D: case 0x3E: case 0x3F: return doc_.gluRead(r); // Sound GLU
         case 0x23: return vgcint_;                          // VGCINT
         case 0x29: return newvideo_;
         case 0x2E: return uint8_t(vpos() >> 1);             // VERTCNT (MAME 1467)
@@ -207,6 +208,7 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x27: return;                                  // KMSTATUS write (ignored)
         case 0x33: clkData_ = v; return;                    // CLOCKDATA
         case 0x34: clkCtl_ = v & 0x6F; return;              // CLOCKCTL
+        case 0x3C: case 0x3D: case 0x3E: case 0x3F: doc_.gluWrite(r, v); return; // Sound GLU
         case 0x23: vgcint_ = v; return;                     // VGCINT enable
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
         case 0x32: vgcint_ &= v; return;                    // VGCINTCLEAR

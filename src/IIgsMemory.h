@@ -21,6 +21,7 @@
 #define POMIIGS_IIGSMEMORY_H
 
 #include "Iwm.h"
+#include "Es5503.h"
 
 #include <cstdint>
 #include <vector>
@@ -61,6 +62,7 @@ public:
         return iwm_.loadDisk525(img, prodosOrder);
     }
     Iwm& iwm() { return iwm_; }
+    Es5503& doc() { return doc_; }
 
     // Flat 16 MB RAM mode: bypasses all banking/I/O so the CPU can be tested
     // in isolation against Tom Harte (which models a flat bus). POM2 pattern.
@@ -129,6 +131,7 @@ private:
     uint8_t  inten_ = 0;              // $C041 INTEN
     uint8_t  vgcint_ = 0;             // $C023 VGCINT
     Iwm      iwm_;                    // on-board 5.25" IWM ($C0E0-$C0EF)
+    Es5503   doc_;                    // Ensoniq 5503 DOC (Sound GLU $C03C-$C03F)
 
     // helpers
     bool   iolcShadow() const { return !(shadow_ & SHAD_IOLC); }

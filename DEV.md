@@ -181,7 +181,7 @@ softswitch event log so mid-frame SCB/palette writes land on the right line.
 
 ## Sound — Ensoniq 5503 DOC
 
-*(planned — Milestone 6)*
+*(Milestone 6 — core done. `src/Es5503` renders a tone; gate `doc_test`.)*
 
 The **Ensoniq 5503 DOC** is a 32-oscillator wavetable chip with its own
 dedicated **64 KB sound RAM** (not CPU-mapped — reached through the **Sound
