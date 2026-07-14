@@ -131,7 +131,11 @@ uint8_t Iwm::access(uint8_t offset, bool isWrite, uint8_t writeVal, uint64_t cyc
             return uint8_t(0x80 | (cycle >> 5));
         const auto& tk = track_[curTrack()];
         if (tk.empty()) return 0x00;
-        return tk[bitPos_ % tk.size()];
+        // Deliver one nibble per data-latch read so a tight read loop always
+        // sees a fresh nibble (advance() alone under-steps for fast pollers).
+        uint8_t nib = tk[bitPos_ % tk.size()];
+        bitPos_ = (bitPos_ + 1) % tk.size();
+        return nib;
     }
     if (!q7_ && q6_) {                        // read status: low 5 = mode, hi = sense
         uint8_t st = mode_ & 0x1F;

@@ -4,6 +4,32 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — audit / bug-fix pass
+- **CPU: emulation-mode direct-page indexed wrap.** `ea_dpx`/`ea_dpy` now wrap
+  within page 0 when E=1 and DL=0 (the 6502 quirk), matching `ea_indx`. Was a
+  latent state bug on untested `dp,X`/`dp,Y` opcodes.
+- **CPU: missing internal index cycle on `dp,X`/`dp,Y` (and RMW `dp,X`).** These
+  opcodes were a cycle short (never covered by the original Harte set). Added
+  the index-add cycle; the cycle table is now additive so RMW `dp,X` correctly
+  gets modify+index. Verified 116800/116800 across 146 opcode files (73×2).
+- **CPU: no interrupt servicing.** Added IRQ/NMI polling + vectoring (native
+  $FFEE/$FFEA, emulation $FFFE/$FFFA; B clear to distinguish from BRK), and
+  wired the **VBL interrupt** ($C041 INTEN bit3 → $C046/$C047) from the MMU to
+  the CPU IRQ line. Boot to "Check startup device" is unaffected.
+- **DOC: oscillator-count mask.** `oscEnabled()` now masks `$E1` bits 1-5
+  (`& 0x1F`); previously a large $E1 over-counted (loop-guarded, no OOB).
+- **IWM: data-latch read now advances the nibble cursor.** A tight CPU read
+  loop (<32 cycles/read) was returning the same nibble forever, which would
+  hang a real disk read. One nibble per data read now guarantees progress.
+- **App: Emscripten object lifetime.** `mem`/`cpu`/`vgc` are `static` so the
+  `Ctx` references stay valid under `emscripten_set_main_loop_arg` (avoids a
+  potential use-after-return on the web build).
+- Verified NOT bugs (audit false positives, left unchanged): the 640-mode
+  palette groups `{8,12,0,4}` (the documented Apple mapping), the IWM half-track
+  stepper, `maybeShadow` using the physical bank, and the DOC end-of-wave test.
+
+## [Unreleased] — Milestone 0: foundation
+
 ### Added — Milestone 8 (WebAssembly build)
 - The whole emulator builds to WebAssembly via Emscripten: `./build_wasm.sh`
   produces `build_wasm/POMIIGS.{html,js,wasm}` (~510 KB wasm). `main.cpp`'s

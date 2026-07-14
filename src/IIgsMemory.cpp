@@ -10,6 +10,7 @@
 // boot trace demands them.
 
 #include "IIgsMemory.h"
+#include "CPU65816.h"
 #include <algorithm>
 
 IIgsMemory::IIgsMemory() {
@@ -29,8 +30,12 @@ int IIgsMemory::vpos() const {
 void IIgsMemory::tick(int cpuCycles) {
     videoCycles_ += (cpuCycles > 0 ? cpuCycles : 1);
     const int vp = vpos();
-    // Rising edge into VBL (line 192): latch the VBL interrupt flag.
-    if (vp >= 192 && lastVpos_ < 192) intflag_ |= 0x08;   // INTFLAG_VBL
+    // Rising edge into VBL (line 192): latch the VBL flag and, if the VBL
+    // interrupt is enabled ($C041 INTEN bit3), assert the CPU IRQ line.
+    if (vp >= 192 && lastVpos_ < 192) {
+        intflag_ |= 0x08;                                 // INTFLAG_VBL
+        if (cpu_ && (inten_ & 0x08)) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, true);
+    }
     lastVpos_ = vp;
 }
 
@@ -169,7 +174,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x36: return speed_;
         case 0x41: return inten_;                           // INTEN
         case 0x46: return intflag_;                         // INTFLAG (VBL bit etc.)
-        case 0x47: intflag_ &= ~0x08; return 0;             // CLRVBLINT
+        case 0x47: intflag_ &= ~0x08; if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, false); return 0; // CLRVBLINT
         case 0x68:                                          // STATEREG — synthesize (MAME 1926)
             return uint8_t((altzp_ ? 0x80 : 0) | (page2_ ? 0x40 : 0) |
                            (ramrd_ ? 0x20 : 0) | (ramwrt_ ? 0x10 : 0) |
@@ -215,7 +220,7 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
         case 0x32: vgcint_ &= v; return;                    // VGCINTCLEAR
         case 0x41: inten_ = v & 0x1F; return;               // INTEN (MAME 1811)
-        case 0x47: intflag_ &= ~0x08; return;               // CLRVBLINT
+        case 0x47: intflag_ &= ~0x08; if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, false); return; // CLRVBLINT
         case 0x35: shadow_ = v; return;                     // SHADOW (MAME 1751)
         case 0x36: speed_ = v; return;                      // SPEED (MAME 1766)
         case 0x68:                                          // STATEREG (composite)

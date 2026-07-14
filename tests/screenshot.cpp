@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     std::vector<uint8_t> rom = readFile(romPath);
     IIgsMemory mem; CPU65816 cpu(&mem); VGC vgc;
     if (rom.empty() || !mem.loadRom(rom)) { std::fprintf(stderr, "bad ROM %s\n", romPath); return 2; }
-    mem.reset(); cpu.hardReset();
+    mem.setCpu(&cpu); mem.reset(); cpu.hardReset();
     std::vector<uint8_t> chr = readFile(charPath);
     bool chrOk = !chr.empty() && vgc.setCharRom(chr);
 

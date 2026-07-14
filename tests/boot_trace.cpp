@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
     if (!mem.loadRom(rom)) { std::fprintf(stderr, "unsupported ROM size %zu (want 128K/256K)\n", rom.size()); return 2; }
     mem.reset();
     CPU65816 cpu(&mem);
+    mem.setCpu(&cpu);
     cpu.hardReset();
 
     std::printf("ROM %s: %zu KB, banks $%02X-$FF; reset PBR:PC = $%02X:%04X (E=%d)\n",

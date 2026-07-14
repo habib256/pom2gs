@@ -145,8 +145,12 @@ void CPU65816::step() {
     // ── addressing modes → 24-bit effective address ─────────────────────
     // (DBR-relative for absolute data; bank-0 for direct page.)
     auto ea_dp    = [&]() -> uint32_t { uint8_t o = fetch(); if ((d_ & 0xFF) != 0) ++cycles_; return uint16_t(d_ + o); };
-    auto ea_dpx   = [&]() -> uint32_t { uint8_t o = fetch(); if ((d_ & 0xFF) != 0) ++cycles_; return uint16_t(d_ + o + (eX ? (x_ & 0xFF) : x_)); };
-    auto ea_dpy   = [&]() -> uint32_t { uint8_t o = fetch(); if ((d_ & 0xFF) != 0) ++cycles_; return uint16_t(d_ + o + (eX ? (y_ & 0xFF) : y_)); };
+    // Direct-page indexed: in emulation mode with DL=0, the index add wraps
+    // within page 0 (the 6502 quirk), same as ea_indx below.
+    auto ea_dpx   = [&]() -> uint32_t { uint8_t o = fetch(); if ((d_ & 0xFF) != 0) ++cycles_; uint16_t xx = eX ? (x_ & 0xFF) : x_;
+        return (emulation_ && (d_ & 0xFF) == 0) ? uint16_t((d_ & 0xFF00) | uint8_t(o + xx)) : uint16_t(d_ + o + xx); };
+    auto ea_dpy   = [&]() -> uint32_t { uint8_t o = fetch(); if ((d_ & 0xFF) != 0) ++cycles_; uint16_t yy = eX ? (y_ & 0xFF) : y_;
+        return (emulation_ && (d_ & 0xFF) == 0) ? uint16_t((d_ & 0xFF00) | uint8_t(o + yy)) : uint16_t(d_ + o + yy); };
     // Indexed-read page-cross penalty: the real chip spends one extra cycle
     // when the index is 16-bit (x=0) OR the low-byte add carries into a new
     // page. Reads add it conditionally; writes always pay it (compensated at
@@ -281,6 +285,27 @@ void CPU65816::step() {
         }
     };
 
+    // ── Hardware interrupts (sampled before the opcode fetch) ────────────
+    // NMI is edge-triggered; IRQ is level, gated by the I flag. Both push
+    // PBR(native)/PC/P (with the B flag CLEAR — distinguishing them from BRK)
+    // and vector through the appropriate bank-0 vector. Nothing asserts these
+    // lines yet (the MMU doesn't wire VBL/DOC IRQ to the CPU), so this is inert
+    // until wired — but the mechanism must be correct.
+    auto serviceInt = [&](uint16_t vecNative, uint16_t vecEmu) {
+        if (!emulation_) pushB(pbr_);
+        pushW(pc_);
+        pushB(uint8_t(emulation_ ? ((p_ & ~0x10) | 0x20) : p_));        // bit4(B)=0 → hardware int
+        p_ |= Status::I; p_ &= ~Status::D;
+        pbr_ = 0;
+        uint16_t vec = emulation_ ? vecEmu : vecNative;
+        pc_ = uint16_t(m.read8(vec) | (m.read8(uint16_t(vec + 1)) << 8));
+        cycles_ += 7;
+    };
+    if (NMI_) { NMI_ = 0; serviceInt(0xFFEA, 0xFFFA); return; }
+    if (IRQ_.load(std::memory_order_relaxed) && !bit(p_, Status::I)) {
+        serviceInt(0xFFEE, 0xFFFE); return;
+    }
+
     const uint8_t opc = fetch();
 
     // Internal (non-bus) cycles the real 65816 spends that our rd/wr counting
@@ -291,7 +316,7 @@ void CPU65816::step() {
     static bool internInit = false;
     if (!internInit) {
         internInit = true;
-        auto S = [&](std::initializer_list<int> ops, int n) { for (int o : ops) extraIntern[o] = n; };
+        auto S = [&](std::initializer_list<int> ops, int n) { for (int o : ops) extraIntern[o] += n; };  // additive: an opcode in two groups (e.g. RMW dp,X) sums
         S({0xAA,0xA8,0x8A,0x98,0x9A,0xBA,0x9B,0xBB,0x5B,0x7B,0x1B,0x3B,   // transfers
            0xE8,0xC8,0xCA,0x88, 0x1A,0x3A, 0x0A,0x4A,0x2A,0x6A,           // inc/dec/shift-A
            0x18,0x38,0x58,0x78,0xB8,0xD8,0xF8, 0xEA, 0xFB,                // flags/NOP/XCE
@@ -310,6 +335,8 @@ void CPU65816::step() {
            0x66,0x76,0x6E,0x7E, 0xE6,0xF6,0xEE,0xFE, 0xC6,0xD6,0xCE,0xDE,
            0x04,0x0C,0x14,0x1C}, 1);                                     // INC/DEC/ASL/LSR/ROL/ROR/TSB/TRB mem
         S({0x01,0x21,0x41,0x61,0x81,0xA1,0xC1,0xE1}, 1);                 // (dp,X): internal index-build cycle
+        S({0x15,0x35,0x55,0x75,0xB5,0xD5,0xF5,0x95, 0xB4,0x94,0x74,0x34, 0xB6,0x96, // dp,X / dp,Y: internal index-add cycle
+           0x16,0x36,0x56,0x76,0xD6,0xF6}, 1);                           // RMW dp,X: index-add (on top of the RMW modify cycle)
         S({0x03,0x23,0x43,0x63,0x83,0xA3,0xC3,0xE3}, 1);                 // stack,S: internal cycle
         S({0x13,0x33,0x53,0x73,0x93,0xB3,0xD3,0xF3}, 2);                 // (stack,S),Y: two internal cycles
     }

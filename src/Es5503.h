@@ -44,7 +44,7 @@ private:
     uint8_t  ctl_ = 0;                         // $C03C
     uint16_t addr_ = 0;                        // $C03E/F pointer
 
-    int oscEnabled() const { return (reg_[0xE1] >> 1) + 1; }
+    int oscEnabled() const { return ((reg_[0xE1] >> 1) & 0x1F) + 1; }   // reg $E1 bits 1-5
     // Per-oscillator register accessors (base + osc index).
     uint32_t freq(int o) const { return reg_[0x00 + o] | (reg_[0x20 + o] << 8); }
     uint8_t  vol(int o)  const { return reg_[0x40 + o]; }

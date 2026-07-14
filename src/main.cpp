@@ -63,9 +63,11 @@ int main(int argc, char** argv) {
     std::printf("POMIIGS %s — Apple IIgs emulator\n", pomiigs::kVersionString);
 
     // ── Emulator ─────────────────────────────────────────────────────────
-    IIgsMemory mem;
-    CPU65816 cpu(&mem);
-    VGC vgc;
+    // static so they outlive main() under Emscripten's callback main loop
+    // (Ctx below holds references to them).
+    static IIgsMemory mem;
+    static CPU65816 cpu(&mem);
+    static VGC vgc;
     std::string matched;
     std::vector<uint8_t> rom;
     if (argc > 1) { rom = readFile(argv[1]); matched = argv[1]; }
@@ -76,6 +78,7 @@ int main(int argc, char** argv) {
     static std::string romPathStr = matched;
     const char* romPath = romPathStr.c_str();
     bool romOk = !rom.empty() && mem.loadRom(rom);
+    mem.setCpu(&cpu);
     if (romOk) { mem.reset(); cpu.hardReset(); std::printf("Loaded ROM: %s (%zu KB)\n", romPath, rom.size() / 1024); }
     else std::fprintf(stderr, "No ROM found — drop iigs-rom03.rom (256K) or iigs-rom01.rom (128K) in roms/\n");
     std::string chrMatched;

@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <vector>
 
+class CPU65816;   // for VBL/IRQ assertion (non-owning back-pointer)
+
 class IIgsMemory
 {
 public:
@@ -57,6 +59,8 @@ public:
     void tick(int cpuCycles);
     int  vpos() const;                // current scanline 0..261
     bool inVbl() const { return vpos() >= 192; }
+    // Wire the CPU so the MMU can raise the VBL (and later DOC/scanline) IRQ.
+    void setCpu(CPU65816* c) { cpu_ = c; }
 
     // Disk: mount a 5.25" image into the on-board IWM (slot 6).
     bool loadDisk525(const std::vector<uint8_t>& img, bool prodosOrder) {
@@ -135,6 +139,7 @@ private:
     Iwm      iwm_;                    // on-board 5.25" IWM ($C0E0-$C0EF)
     Es5503   doc_;                    // Ensoniq 5503 DOC (Sound GLU $C03C-$C03F)
     Scc8530  scc_;                    // SCC 8530 serial ($C038-$C03B)
+    CPU65816* cpu_ = nullptr;         // non-owning; for IRQ assertion
 
     // helpers
     bool   iolcShadow() const { return !(shadow_ & SHAD_IOLC); }
