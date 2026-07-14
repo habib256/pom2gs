@@ -4,6 +4,27 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — P4: master-clock timing + interrupt set
+- **Mid-frame speed changes.** The host loop now accounts each frame in
+  master-clock ticks (`masterPerFrame()` = 238420 = one Mega II frame); each CPU
+  step costs 5 master (fast) or 14 (slow) read from the *live* $C036 bit7, plus
+  the slow-side penalty (now returned in master ticks). Speed switches within a
+  frame are honoured, not just at frame start.
+- **Interrupt set** wired onto the wire-OR CPU lines through the real registers:
+  - **¼-second** (INTEN $C041 bit4 / INTFLAG $C046 bit4 / clear $C047) and
+    **1-second** (VGCINT $C023 bit2 en / bit6 status / clear $C032) timers,
+    driven at 60 Hz by a new `frameTick()` (once per host frame).
+  - **Scan-line** (VGCINT bit1 en / bit5 status, fired when SHR is on and an SCB
+    line has bit6) — IRQ/status only; the renderer doesn't split a frame yet.
+  - **DOC oscillator IRQ**: `Es5503` flags an IRQ-enabled oscillator that
+    completes during render(); reading the osc-interrupt register ($E0) via the
+    Sound GLU clears it; the MMU mirrors it onto the CPU line.
+  - VBL now routes through the shared `updateMega2Irq()` (level tracks
+    flag&enable), and $C047 clears both VBL and ¼-second.
+  Gate: `irq_test` (assert / mask / clear for all four sources). Total Replay
+  still boots to its menu; no spurious-IRQ storm. Remaining (P4 notes): ADB /
+  SCC / Mega II mouse IRQs await their devices.
+
 ### Added — per-access slow-side timing penalty
 - In fast mode (2.8 MHz) every access that lands on the Mega II slow side —
   banks $E0/$E1, the $Cxxx I/O + slot ROM + language card of banks $00/$01, and

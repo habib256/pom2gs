@@ -36,6 +36,11 @@ public:
     // True while any enabled oscillator is running (for the IRQ line / tests).
     bool anyActive() const;
 
+    // DOC oscillator IRQ: set when an IRQ-enabled oscillator (control bit3)
+    // completes during render(); read of the osc-interrupt register ($E0) via
+    // the Sound GLU clears it. The MMU mirrors this onto the CPU IRQ line.
+    bool irqPending() const { return irqLine_; }
+
 private:
     std::array<uint8_t, 0x10000> sndRam_{};    // 64 KB sound RAM
     std::array<uint8_t, 0x100>   reg_{};       // 256 DOC registers
@@ -43,6 +48,8 @@ private:
 
     uint8_t  ctl_ = 0;                         // $C03C
     uint16_t addr_ = 0;                        // $C03E/F pointer
+    bool     irqLine_ = false;                 // an IRQ-enabled osc has completed
+    uint8_t  irqOsc_ = 0;                      // last oscillator that raised the IRQ
 
     int oscEnabled() const { return ((reg_[0xE1] >> 1) & 0x1F) + 1; }   // reg $E1 bits 1-5
     // Per-oscillator register accessors (base + osc index).

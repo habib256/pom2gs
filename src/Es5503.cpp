@@ -9,7 +9,7 @@ void Es5503::reset() {
     sndRam_.fill(0);
     reg_.fill(0);
     acc_.fill(0);
-    ctl_ = 0; addr_ = 0;
+    ctl_ = 0; addr_ = 0; irqLine_ = false; irqOsc_ = 0;
     reg_[0xE1] = 0;                       // 1 oscillator enabled by default
     for (int o = 0; o < 32; ++o) reg_[0xA0 + o] = 0x01;   // all halted
 }
@@ -18,7 +18,13 @@ uint8_t Es5503::gluRead(uint8_t reg) {
     switch (reg & 0x0F) {
         case 0xC: return ctl_;
         case 0xD: {                                  // SOUNDDATA
-            uint8_t v = (ctl_ & 0x20) ? sndRam_[addr_] : reg_[addr_ & 0xFF];
+            uint8_t v;
+            if (ctl_ & 0x20) v = sndRam_[addr_];     // sound RAM
+            else if ((addr_ & 0xFF) == 0xE0) {       // oscillator interrupt register
+                v = irqLine_ ? uint8_t(irqOsc_ << 1) : 0xC0;   // osc#×2, or 0xC0 = none
+                irqLine_ = false;                    // reading clears the IRQ
+            }
+            else v = reg_[addr_ & 0xFF];
             if (ctl_ & 0x40) ++addr_;                // auto-increment
             return v;
         }
@@ -71,11 +77,11 @@ void Es5503::render(int16_t* out, int n) {
             if (idx > tableMask) {                    // reached end of wave
                 const uint8_t mode = (c >> 1) & 0x03;
                 if (mode == 0) { acc_[o] &= (tableMask << accShift) | ((1u << accShift) - 1); idx &= tableMask; } // free-run: loop
-                else { reg_[0xA0 + o] |= 0x01; continue; }   // one-shot/sync/swap: halt (approx)
+                else { reg_[0xA0 + o] |= 0x01; if (c & 0x08) { irqLine_ = true; irqOsc_ = uint8_t(o); } continue; } // one-shot/sync/swap: halt + IRQ
             }
             uint32_t base = uint32_t(wtp(o)) << 8;
             uint8_t sample = sndRam_[(base + (idx & tableMask)) & 0xFFFF];
-            if (sample == 0) { reg_[0xA0 + o] |= 0x01; continue; }  // zero = end-of-wave marker
+            if (sample == 0) { reg_[0xA0 + o] |= 0x01; if (c & 0x08) { irqLine_ = true; irqOsc_ = uint8_t(o); } continue; }  // zero = end-of-wave marker + IRQ
             mix += int32_t(int(sample) - 0x80) * vol(o);
         }
         // Scale: each osc contributes (±128 * 255); clamp the mix.

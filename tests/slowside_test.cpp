@@ -5,9 +5,9 @@
 // the Mega II slow side (banks $E0/$E1, the $Cxxx I/O + language card of banks
 // $00/$01, shadowed video writes) is stretched to 1.02 MHz: +9 master ticks
 // over the fast side's 5. The MMU accrues that; takeSlowPenalty() returns it in
-// fast-cycle units (5 master each). In SLOW mode nothing is charged (the whole
-// CPU is already 1 MHz). Batches of 5 slow accesses (= 45 master) drain to
-// exactly 9 fast cycles with no remainder.
+// master-clock ticks (the host loop accounts the whole frame in master). In
+// SLOW mode nothing is charged (the whole CPU is already 1 MHz). So N slow
+// accesses drain to exactly 9·N master.
 
 #include "IIgsMemory.h"
 #include <cstdio>
@@ -36,17 +36,17 @@ int main() {
     mem.takeSlowPenalty();                                   // drain the $C036 write itself
 
     for (int i = 0; i < 5; ++i) (void)mem.read8(slowRam);   // 5 slow reads = 45 master
-    expect("5 slow RAM reads", mem.takeSlowPenalty(), 9);
+    expect("5 slow RAM reads", mem.takeSlowPenalty(), 45);
 
     for (int i = 0; i < 5; ++i) (void)mem.read8(fastRam);   // fast side → no penalty
     expect("5 fast RAM reads", mem.takeSlowPenalty(), 0);
 
     for (int i = 0; i < 5; ++i) (void)mem.read8(io000);     // 5 I/O reads = slow
-    expect("5 I/O reads", mem.takeSlowPenalty(), 9);
+    expect("5 I/O reads", mem.takeSlowPenalty(), 45);
 
     mem.write8(io035(), 0x00); mem.takeSlowPenalty();       // shadow all ON, drain
     for (int i = 0; i < 5; ++i) mem.write8(txt1, 0x20);     // shadowed writes → slow
-    expect("5 shadowed writes", mem.takeSlowPenalty(), 9);
+    expect("5 shadowed writes", mem.takeSlowPenalty(), 45);
 
     mem.write8(io035(), IIgsMemory::SHAD_TXTPG1); mem.takeSlowPenalty();  // inhibit text-pg1 shadow
     for (int i = 0; i < 5; ++i) mem.write8(txt1, 0x20);     // no longer shadowed → fast
@@ -55,7 +55,7 @@ int main() {
     // Accumulation is exact over a large batch: 100 slow reads = 900 master.
     mem.write8(io035(), 0x00); mem.takeSlowPenalty();
     for (int i = 0; i < 100; ++i) (void)mem.read8(slowRam);
-    expect("100 slow reads", mem.takeSlowPenalty(), 180);
+    expect("100 slow reads", mem.takeSlowPenalty(), 900);
 
     // ── SLOW mode: no differential penalty ───────────────────────────────
     mem.write8(io036(), 0x00);

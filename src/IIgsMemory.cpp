@@ -34,9 +34,47 @@ void IIgsMemory::tick(int cpuCycles) {
     // interrupt is enabled ($C041 INTEN bit3), assert the CPU IRQ line.
     if (vp >= 192 && lastVpos_ < 192) {
         intflag_ |= 0x08;                                 // INTFLAG_VBL
-        if (cpu_ && (inten_ & 0x08)) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, true);
+        updateMega2Irq();
     }
     lastVpos_ = vp;
+}
+
+// Recompute the two shared IRQ lines from the flag/enable registers. Both the
+// VBL + ¼-second (Mega II) and the scan-line + 1-second (VGC) sources are
+// wire-OR'd onto one CPU line each; assert only while an enabled source has a
+// pending flag, so the level tracks the register state exactly.
+void IIgsMemory::updateMega2Irq() {
+    const bool active = (intflag_ & inten_ & 0x18) != 0;      // VBL 0x08 | ¼-sec 0x10
+    if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, active);
+}
+
+void IIgsMemory::updateVgcIrq() {
+    const bool oneSec = (vgcint_ & 0x04) && (vgcint_ & 0x40);  // enable 0x04 & status 0x40
+    const bool scan   = (vgcint_ & 0x02) && (vgcint_ & 0x20);  // enable 0x02 & status 0x20
+    const bool active = oneSec || scan;
+    if (active) vgcint_ |= 0x80; else vgcint_ &= uint8_t(~0x80);
+    if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_VGC_VBL, active);
+}
+
+// Once per host frame: the periodic Mega II / VGC timers, the (approximate)
+// scan-line interrupt, and the DOC oscillator IRQ poll.
+void IIgsMemory::frameTick() {
+    ++frameCount_;
+    // ¼-second (~0.25 s at 60 Hz) → Mega II INTFLAG bit4.
+    if (frameCount_ % 15 == 0) { intflag_ |= 0x10; updateMega2Irq(); }
+    // 1-second → VGC status bit6.
+    if (frameCount_ % 60 == 0) { vgcint_ |= 0x40; updateVgcIrq(); }
+    // Scan-line (SHR): if enabled ($C023 bit1) and any SCB line requests an
+    // interrupt (SCB bit6), fire once. The renderer draws a whole frame in one
+    // mode, so this is status/IRQ only — no mid-frame split yet.
+    if (shrEnabled() && (vgcint_ & 0x02)) {
+        const uint8_t* scb = slowRam_.data() + 0x10000 + 0x9D00;
+        for (int l = 0; l < 200; ++l)
+            if (scb[l] & 0x40) { vgcint_ |= 0x20; updateVgcIrq(); break; }
+    }
+    // DOC oscillator IRQ (sampled-sound / music): the chip flags a completed
+    // IRQ-enabled oscillator during render(); mirror it onto the CPU line.
+    if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_DOC, doc_.irqPending());
 }
 
 void IIgsMemory::setTestMode(bool on) {
@@ -59,7 +97,12 @@ void IIgsMemory::reset() {
     textMode_ = true; mixed_ = false; dhgr_ = false;
     lcRamRead_ = false; lcRamWrite_ = false; lcBank2_ = true; lcPreWrite_ = false;
     kbdLatch_ = 0;
-    videoCycles_ = 0; lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0;
+    videoCycles_ = 0; lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0; frameCount_ = 0;
+    if (cpu_) {                          // drop any interrupt lines we own
+        cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, false);
+        cpu_->setIrqLine(CPU65816::IRQ_SRC_VGC_VBL, false);
+        cpu_->setIrqLine(CPU65816::IRQ_SRC_DOC, false);
+    }
     adbDataReady_ = false; adbResponse_ = 0; clkData_ = 0; clkCtl_ = 0;
     slowPenMaster_ = 0;
 }
@@ -179,7 +222,11 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             if (spkEvents_.size() < 65536) spkEvents_.push_back(videoCycles_);
             return 0;
         case 0x38: case 0x39: case 0x3A: case 0x3B: return scc_.read(r);    // SCC serial
-        case 0x3C: case 0x3D: case 0x3E: case 0x3F: return doc_.gluRead(r); // Sound GLU
+        case 0x3C: case 0x3D: case 0x3E: case 0x3F: {                       // Sound GLU
+            uint8_t v = doc_.gluRead(r);
+            if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_DOC, doc_.irqPending());
+            return v;
+        }
         case 0x22: return txtColor_;                        // SCREENCOLOR (text fg/bg)
         case 0x23: return vgcint_;                          // VGCINT
         case 0x29: return newvideo_;
@@ -198,7 +245,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x70: paddleReset_ = videoCycles_; return 0;   // PTRIG: start the RC timers
         case 0x41: return inten_;                           // INTEN
         case 0x46: return intflag_;                         // INTFLAG (VBL bit etc.)
-        case 0x47: intflag_ &= ~0x08; if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, false); return 0; // CLRVBLINT
+        case 0x47: intflag_ &= uint8_t(~0x18); updateMega2Irq(); return 0; // CLRVBLINT (VBL + ¼-sec)
         case 0x68:                                          // STATEREG — synthesize (MAME 1926)
             return uint8_t((altzp_ ? 0x80 : 0) | (page2_ ? 0x40 : 0) |
                            (ramrd_ ? 0x20 : 0) | (ramwrt_ ? 0x10 : 0) |
@@ -245,12 +292,12 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x38: case 0x39: case 0x3A: case 0x3B: scc_.write(r, v); return;    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: doc_.gluWrite(r, v); return; // Sound GLU
         case 0x22: txtColor_ = v; return;                   // SCREENCOLOR (text fg/bg)
-        case 0x23: vgcint_ = v; return;                     // VGCINT enable
+        case 0x23: vgcint_ = uint8_t((vgcint_ & 0xE0) | (v & 0x06)); updateVgcIrq(); return; // VGCINT: enables (bits1-2)
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
-        case 0x32: vgcint_ &= v; return;                    // VGCINTCLEAR
+        case 0x32: vgcint_ &= uint8_t(~0x60); updateVgcIrq(); return;   // VGCINTCLEAR (scan + 1-sec status)
         case 0x70: paddleReset_ = videoCycles_; return;     // PTRIG (write also strobes)
-        case 0x41: inten_ = v & 0x1F; return;               // INTEN (MAME 1811)
-        case 0x47: intflag_ &= ~0x08; if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, false); return; // CLRVBLINT
+        case 0x41: inten_ = v & 0x1F; updateMega2Irq(); return;   // INTEN (MAME 1811)
+        case 0x47: intflag_ &= uint8_t(~0x18); updateMega2Irq(); return; // CLRVBLINT (VBL + ¼-sec)
         case 0x35: shadow_ = v; return;                     // SHADOW (MAME 1751)
         case 0x36: speed_ = v; return;                      // SPEED (MAME 1766)
         case 0x68:                                          // STATEREG (composite)

@@ -72,6 +72,16 @@ public:
         const int slow = kLineCycles * kLines;                   // 17030 @ 1.02 MHz
         return (speed_ & SPEED_HIGH) ? (slow * 14 / 5) : slow;   // 47684 : 17030
     }
+    bool speedFast() const { return (speed_ & SPEED_HIGH) != 0; }
+    // Master-clock (14.318 MHz) ticks per 60 Hz video frame = one Mega II frame
+    // (kLines × kLineCycles slow cycles × 14 master). The host loop runs CPU
+    // steps — each costing 5 master (fast) or 14 (slow), plus the slow-side
+    // penalty — until this target, so mid-frame speed switches are honoured.
+    long masterPerFrame() const { return long(kLineCycles) * kLines * 14; }   // 238420
+
+    // Called once per host frame: drives the periodic Mega II / VGC interrupts
+    // (VBL edge stays in tick(); this adds ¼-second, 1-second, scan-line).
+    void frameTick();
 
     // Per-access slow-side penalty. In FAST mode (2.8 MHz) any access that
     // lands on the Mega II slow side — banks $E0/$E1, the $Cxxx I/O + slot ROM
@@ -83,11 +93,9 @@ public:
     // the frame budget, so slow-side-heavy code correctly throttles toward
     // 1 MHz even in fast mode. In slow mode the whole CPU is already 1 MHz, so
     // nothing is charged. Cited: MAME apple2gs.cpp (fast/slow clock sync).
-    int takeSlowPenalty() {
-        const int fast = int(slowPenMaster_ / 5);       // 5 master ticks per fast cycle
-        slowPenMaster_ -= long(fast) * 5;               // carry the remainder
-        return fast;
-    }
+    // Drain the accrued slow-side penalty, in master-clock ticks (the host loop
+    // accounts the whole frame in master ticks).
+    int takeSlowPenalty() { int m = int(slowPenMaster_); slowPenMaster_ = 0; return m; }
     // Wire the CPU so the MMU can raise the VBL (and later DOC/scanline) IRQ.
     void setCpu(CPU65816* c) { cpu_ = c; }
 
@@ -201,8 +209,9 @@ private:
     uint64_t videoCycles_ = 0;
     int      lastVpos_ = 0;
     uint8_t  intflag_ = 0;            // $C046 INTFLAG (VBL=0x08, QUARTER=0x10)
-    uint8_t  inten_ = 0;              // $C041 INTEN
-    uint8_t  vgcint_ = 0;             // $C023 VGCINT
+    uint8_t  inten_ = 0;              // $C041 INTEN  (VBL=0x08, QUARTER=0x10)
+    uint8_t  vgcint_ = 0;             // $C023 VGCINT (IRQ=0x80, 1sec=0x40, scan=0x20, 1sec-en=0x04, scan-en=0x02)
+    uint32_t frameCount_ = 0;         // host frames, for the ¼-sec / 1-sec timers
     Iwm      iwm_;                    // on-board 5.25" IWM ($C0E0-$C0EF)
     Es5503   doc_;                    // Ensoniq 5503 DOC (Sound GLU $C03C-$C03F)
     Scc8530  scc_;                    // SCC 8530 serial ($C038-$C03B)
@@ -223,6 +232,9 @@ private:
     void     lcWrite(uint8_t bank, uint16_t off, uint8_t v);
     void     lcSwitch(uint16_t off, bool writing);
     bool     maybeShadow(uint8_t bank, uint16_t off, uint8_t v);   // true = wrote slow side
+    // Recompute the shared CPU IRQ lines from the flag/enable registers.
+    void updateMega2Irq();   // VBL + ¼-second ($C041 INTEN & $C046 INTFLAG)
+    void updateVgcIrq();     // scan-line + 1-second ($C023 VGCINT)
 };
 
 #endif // POMIIGS_IIGSMEMORY_H

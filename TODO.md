@@ -95,18 +95,22 @@ needs the following, in rough priority order.
   applies to 40- and 80-col). Interlaced/VOC mode still TODO.
 
 **P4 — Timing + interrupts**
-- 🟡 Real **2.8 / 1.02 MHz** fast/slow clock. Per-frame CPU cycle budget
-  follows the SPEED register ($C036 bit7): 47684 cyc/frame fast, 17030 slow —
-  //e slow-mode software runs at the correct 1.02 MHz (measured 1.022 MHz in
-  Total Replay gameplay). Gate: `speed_test`. **Per-access slow-side penalty**
-  done: in fast mode, accesses to the Mega II side (banks $E0/$E1, $Cxxx I/O +
-  LC, shadowed video writes) are stretched +9 master ticks (5→14), so
-  video/DOC/speaker-heavy code throttles toward 1 MHz. Gate: `slowside_test`.
-  Remaining: mid-frame speed changes (budget picks the frame-start value);
-  Mega II fast/slow *phase sync* stretch (we model the 1 MHz cost, not the
-  sub-cycle alignment).
-- 🔴 Full IRQ set: **scanline, DOC, 1-sec/¼-sec, ADB, SCC, Mega II mouse**
-  (only VBL is wired).
+- 🟢 Real **2.8 / 1.02 MHz** fast/slow clock. The host loop now accounts a
+  frame in **master-clock ticks** (238420 = one Mega II frame): each CPU step
+  costs 5 master (fast) or 14 (slow) by the *live* $C036 bit7, so **mid-frame
+  speed switches** are honoured. //e slow-mode runs at 1.022 MHz (measured in
+  Total Replay). Per-access **slow-side penalty**: Mega II accesses (banks
+  $E0/$E1, $Cxxx I/O + LC, shadowed writes) add +9 master (5→14) in fast mode.
+  Gates: `speed_test`, `slowside_test`. Minor remaining nuance: Mega II
+  fast/slow *phase-sync* sub-cycle alignment (we model the 1 MHz cost only).
+- 🟡 IRQ set: **VBL** (tick edge), **¼-second + 1-second** timers (frame-driven,
+  60 Hz), **scan-line** (VGCINT enable + SCB bit6), and **DOC** oscillator IRQ
+  (IRQ-enabled osc completes → CPU line, cleared by the $E0 osc-int reg) are
+  wired through their real registers ($C023/$C032/$C041/$C046/$C047) onto the
+  wire-OR CPU lines. Gate: `irq_test`. Remaining: **ADB**, **SCC**, **Mega II
+  mouse** IRQs have no active source yet (keyboard is the $C000 latch, SCC is
+  loopback, no mouse — see P2); scan-line is IRQ-only (the renderer doesn't
+  split a frame mid-screen yet — see P3).
 
 **P5 — Peripherals / infra**
 - 🔴 **Battery RAM + RTC** (Control Panel persistence; currently $C033/$C034 stub).

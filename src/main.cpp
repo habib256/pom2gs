@@ -178,13 +178,14 @@ int main(int argc, char** argv) {
         c.mem.setButton(0, (nb > 0 && bt[0]) || ImGui::IsKeyDown(ImGuiKey_LeftAlt));
         c.mem.setButton(1, (nb > 1 && bt[1]) || ImGui::IsKeyDown(ImGuiKey_RightAlt));
 
-        if (c.ui.running) {                    // one video frame; budget follows $C036
-            const long budget = c.mem.frameCycleBudget();   // 47684 fast / 17030 slow
-            long spent = 0;
-            while (spent < budget) {            // + slow-side stretch when in fast mode
+        if (c.ui.running) {                    // one video frame, in master-clock ticks
+            const long target = c.mem.masterPerFrame();     // 238420 (@ 60 Hz)
+            long master = 0;                   // per-step cost tracks live $C036 + slow-side stall
+            while (master < target) {
                 int cy = c.cpu.run(1); c.mem.tick(cy);
-                spent += (cy > 0 ? cy : 1) + c.mem.takeSlowPenalty();
+                master += long(cy > 0 ? cy : 1) * (c.mem.speedFast() ? 5 : 14) + c.mem.takeSlowPenalty();
             }
+            c.mem.frameTick();                 // ¼-sec / 1-sec / scan-line / DOC interrupts
         }
         c.audio.mixFrame(c.mem);               // speaker ($C030) + DOC → miniaudio
         const uint32_t* fb = c.vgc.render(c.mem);
