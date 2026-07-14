@@ -148,6 +148,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(dhgr_page_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME dhgr_page_test COMMAND dhgr_page_test)
 
+    # 80-column text: aux/main interleave + $C022 text colour.
+    add_executable(text80_test tests/text80_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(text80_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME text80_test COMMAND text80_test)
+
     # Headless PNG screenshot of a booting ROM (dev tool).
     add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

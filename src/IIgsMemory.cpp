@@ -53,7 +53,7 @@ bool IIgsMemory::loadRom(const std::vector<uint8_t>& rom) {
 void IIgsMemory::reset() {
     std::fill(fastRam_.begin(), fastRam_.end(), 0);
     std::fill(slowRam_.begin(), slowRam_.end(), 0);
-    shadow_ = 0; speed_ = 0; state_ = 0; newvideo_ = 0;
+    shadow_ = 0; speed_ = 0; state_ = 0; newvideo_ = 0; txtColor_ = 0xF0;
     altzp_ = ramrd_ = ramwrt_ = page2_ = store80_ = hires_ = false;
     intcxrom_ = false; slotc3rom_ = false; eightyCol_ = false; altchar_ = false;
     textMode_ = true; mixed_ = false; dhgr_ = false;
@@ -179,6 +179,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             return 0;
         case 0x38: case 0x39: case 0x3A: case 0x3B: return scc_.read(r);    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: return doc_.gluRead(r); // Sound GLU
+        case 0x22: return txtColor_;                        // SCREENCOLOR (text fg/bg)
         case 0x23: return vgcint_;                          // VGCINT
         case 0x29: return newvideo_;
         case 0x2E: return uint8_t(vpos() >> 1);             // VERTCNT (MAME 1467)
@@ -242,6 +243,7 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
             return;
         case 0x38: case 0x39: case 0x3A: case 0x3B: scc_.write(r, v); return;    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: doc_.gluWrite(r, v); return; // Sound GLU
+        case 0x22: txtColor_ = v; return;                   // SCREENCOLOR (text fg/bg)
         case 0x23: vgcint_ = v; return;                     // VGCINT enable
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
         case 0x32: vgcint_ &= v; return;                    // VGCINTCLEAR

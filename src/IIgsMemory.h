@@ -105,6 +105,7 @@ public:
     uint8_t newVideo()  const { return newvideo_; }              // $C029
     bool    shrEnabled() const { return (newvideo_ & 0x80) != 0; }
     bool    text80()    const { return eightyCol_; }
+    uint8_t textColor() const { return txtColor_; }              // $C022: fg = hi nibble, bg = lo
     bool    page2()     const { return page2_; }
     // Legacy //e display mode (for the VGC).
     bool    textMode()  const { return textMode_; }
@@ -135,6 +136,7 @@ private:
     uint8_t  speed_  = 0;             // $C036
     uint8_t  state_  = 0;             // $C068 STATEREG composite
     uint8_t  newvideo_ = 0;           // $C029
+    uint8_t  txtColor_ = 0xF0;        // $C022 SCREENCOLOR — white fg / black bg at boot
     // //e paging soft switches (Mega II).
     bool altzp_ = false, ramrd_ = false, ramwrt_ = false, page2_ = false;
     bool store80_ = false, hires_ = false, intcxrom_ = false, slotc3rom_ = false;

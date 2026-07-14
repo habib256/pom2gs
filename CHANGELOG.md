@@ -4,6 +4,19 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — 80-column text + $C022 text colour
+- **80-column text** (`VGC::renderText80`) — each 40-byte row is split across
+  the banks: aux ($E1) byte at offset k is the even screen column 2k, main
+  ($E0) is the odd column 2k+1 (the //e interleave, reusing the aux/main model
+  from DHGR). 8-px cells (7-px glyph + gap) → 80×8 = 640. Dispatched when
+  `text80()` (80COL soft switch) is set.
+- **$C022 SCREENCOLOR** — text foreground = high nibble, background = low
+  nibble, both indexing the 16-colour lo-res palette (hoisted to a shared
+  `kLoresPalette`). Applies to 40- and 80-col; default $F0 = white on black.
+  Replaces the previously hard-coded white/black.
+- Gate: `text80_test` (synthetic font, verifies aux=even / main=odd interleave
+  and fg/bg colour); visually confirmed with the real 344s0047 font.
+
 ### Added — quality menu UI (inspired by POM1)
 - **`src/Ui.{h,cpp}`** — the desktop chrome extracted from `main.cpp` into one
   module (mirrors POM1's `MainWindow_Menu` separation): a top main-menu bar

@@ -17,6 +17,12 @@ inline uint32_t rgb12(uint8_t lo, uint8_t hi) {
     uint8_t b = (lo & 0x0F) * 17;
     return 0xFF000000u | (uint32_t(b) << 16) | (uint32_t(g) << 8) | r;
 }
+
+// Apple II 16-colour lo-res palette (approx NTSC), 0xAABBGGRR. Shared by
+// lo-res and the $C022 text fg/bg colours.
+const uint32_t kLoresPalette[16] = {
+    0xFF000000,0xFF601490,0xFF7F1040,0xFFE0207F,0xFF006040,0xFF808080,0xFF1090F0,0xFFC0A0F0,
+    0xFF405010,0xFFF06000,0xFF808080,0xFFF090A0,0xFF10D000,0xFFF0F050,0xFF50F090,0xFFFFFFFF };
 }
 
 bool VGC::setCharRom(const std::vector<uint8_t>& rom) {
@@ -26,7 +32,7 @@ bool VGC::setCharRom(const std::vector<uint8_t>& rom) {
 
 const uint32_t* VGC::render(const IIgsMemory& mem) {
     if (mem.shrEnabled())              renderSHR(mem);
-    else if (mem.textMode())           renderText(mem);
+    else if (mem.textMode())           { if (mem.text80()) renderText80(mem); else renderText(mem); }
     else if (mem.hires() && mem.dhires()) renderDHGR(mem);
     else if (mem.hires())              renderHGR(mem);
     else                               renderLores(mem);
@@ -109,10 +115,7 @@ void VGC::renderDHGR(const IIgsMemory& mem) {
 
 // ── Legacy lo-res 40×48 (16 colours) ─────────────────────────────────────
 void VGC::renderLores(const IIgsMemory& mem) {
-    // Apple II 16-colour lo-res palette (approx NTSC), 4-4-4 → 8-8-8.
-    static const uint32_t lut[16] = {
-        0xFF000000,0xFF601490,0xFF7F1040,0xFFE0207F,0xFF006040,0xFF808080,0xFF1090F0,0xFFC0A0F0,
-        0xFF405010,0xFFF06000,0xFF808080,0xFFF090A0,0xFF10D000,0xFFF0F050,0xFF50F090,0xFFFFFFFF };
+    const uint32_t* lut = kLoresPalette;   // 16-colour lo-res palette (shared)
     for (auto& px : fb_) px = 0xFF000000u;
     const uint8_t* e0 = mem.slowRam();
     const int page = mem.textPage2() ? 0x0800 : 0x0400;
@@ -175,8 +178,10 @@ void VGC::renderSHR(const IIgsMemory& mem) {
 
 // ── 40-column text ($E0:0400, //e interleaved) via the IIgs char ROM ─────
 void VGC::renderText(const IIgsMemory& mem) {
-    const uint32_t fg = 0xFFFFFFFFu;   // white text (colour/RGB monitor; real IIgs default)
-    const uint32_t bg = 0xFF000000u;
+    // $C022 SCREENCOLOR: fg = high nibble, bg = low nibble (16-colour palette).
+    const uint8_t sc = mem.textColor();
+    const uint32_t fg = kLoresPalette[sc >> 4];
+    const uint32_t bg = kLoresPalette[sc & 0x0F];
     for (auto& px : fb_) px = bg;
 
     if (charRom_.empty()) return;      // authentic font required (roms/iigs-char.rom)
@@ -198,6 +203,41 @@ void VGC::renderText(const IIgsMemory& mem) {
                     for (int dy = 0; dy < 2; ++dy)
                         for (int dx = 0; dx < 2; ++dx)
                             fb_[size_t((py + dy)) * kW + (px + dx)] = c;
+                }
+            }
+        }
+    }
+}
+
+// ── 80-column text (aux/main interleaved) via the IIgs char ROM ──────────
+// Each row's 40-byte line is split across the banks: the aux byte at offset k
+// is column 2k (even, leftmost of the pair), the main byte at k is column
+// 2k+1. Cells are 8 px wide (7-px glyph + 1-px gap) → 80×8 = 640.
+void VGC::renderText80(const IIgsMemory& mem) {
+    const uint8_t sc = mem.textColor();
+    const uint32_t fg = kLoresPalette[sc >> 4];
+    const uint32_t bg = kLoresPalette[sc & 0x0F];
+    for (auto& px : fb_) px = bg;
+
+    if (charRom_.empty()) return;
+
+    const uint8_t* main = mem.slowRam();               // bank $E0 → odd columns
+    const uint8_t* aux  = mem.slowRam() + 0x10000;     // bank $E1 → even columns
+    const int page = mem.textPage2() ? 0x0800 : 0x0400;
+    for (int rowc = 0; rowc < 24; ++rowc) {
+        int rbase = page + (rowc % 8) * 0x80 + (rowc / 8) * 0x28;
+        for (int colc = 0; colc < 80; ++colc) {
+            const uint8_t* bank = (colc & 1) ? main : aux;   // even = aux, odd = main
+            uint8_t b = bank[rbase + colc / 2];
+            const uint8_t* glyph = &charRom_[(b * 8) & (charRom_.size() - 1)];
+            for (int gy = 0; gy < 8; ++gy) {
+                uint8_t bits = glyph[gy] & 0x7F;
+                for (int gx = 0; gx < 7; ++gx) {
+                    uint32_t c = (bits & (1 << gx)) ? fg : bg;
+                    int px = colc * 8 + gx;              // 8-px cell, 7-px glyph
+                    int py = rowc * 16 + gy * 2;
+                    fb_[size_t(py) * kW + px] = c;
+                    fb_[size_t(py + 1) * kW + px] = c;
                 }
             }
         }

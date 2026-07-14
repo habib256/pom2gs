@@ -56,7 +56,8 @@ private:
     std::vector<uint8_t>  charRom_;   // Mega II 344s0047 (16 KB)
     HgrMode hgrMode_ = HgrMode::CompositeNtsc;
     void renderSHR(const IIgsMemory& mem);
-    void renderText(const IIgsMemory& mem);
+    void renderText(const IIgsMemory& mem);    // 40-column text
+    void renderText80(const IIgsMemory& mem);  // 80-column text (aux/main interleaved)
     void renderHGR(const IIgsMemory& mem);    // legacy 280×192 hi-res
     void renderDHGR(const IIgsMemory& mem);   // double hi-res 140×192 (16 colour)
     void renderLores(const IIgsMemory& mem);  // legacy 40×48 lo-res

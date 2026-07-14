@@ -90,8 +90,9 @@ needs the following, in rough priority order.
   80STORE display-page quirk honoured (PAGE2 = aux-bank select, not page
   flip, when 80STORE+HIRES) → Total Replay DHGR title fades correct. Gate:
   `dhgr_page_test`.
-- 🔴 **80-column text** (aux/main interleaved 80×24).
-- 🔴 **Text colour** from $C022 (currently hard-white); interlaced/VOC mode.
+- 🟢 **80-column text** (aux/main interleaved 80×24). Gate: `text80_test`.
+- 🟢 **Text colour** from $C022 (fg/bg via the 16-colour lo-res palette;
+  applies to 40- and 80-col). Interlaced/VOC mode still TODO.
 
 **P4 — Timing + interrupts**
 - 🔴 Real **2.8 / 1.02 MHz** fast/slow clock (speed reg $C036 stored but inert)
