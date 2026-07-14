@@ -19,6 +19,9 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#ifdef __linux__
+#include <unistd.h>
+#endif
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -27,6 +30,31 @@ static std::vector<uint8_t> readFile(const std::string& path) {
     std::ifstream in(path, std::ios::binary);
     if (!in) return {};
     return std::vector<uint8_t>((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+}
+
+// Directory of the running executable (so `roms/` resolves regardless of the
+// working directory). Empty on platforms where it can't be determined.
+static std::string execDir() {
+#ifdef __linux__
+    char buf[4096];
+    ssize_t n = ::readlink("/proc/self/exe", buf, sizeof buf - 1);
+    if (n > 0) { buf[n] = 0; std::string p(buf); auto s = p.find_last_of('/'); if (s != std::string::npos) return p.substr(0, s + 1); }
+#endif
+    return {};
+}
+
+// Find a resource by trying the CWD, the exec dir, and the exec dir's parent
+// (so it works whether you run from the repo root or build/). Returns the
+// contents + the path that matched.
+static std::vector<uint8_t> findResource(const std::string& rel, std::string& matched) {
+    std::string ed = execDir();
+    for (const std::string& base : { std::string(), ed, ed + "../" }) {
+        std::string p = base + rel;
+        auto data = readFile(p);
+        if (!data.empty()) { matched = p; return data; }
+    }
+    matched = rel;
+    return {};
 }
 
 static void glfwErrorCallback(int e, const char* d) { std::fprintf(stderr, "GLFW error %d: %s\n", e, d); }
@@ -38,12 +66,20 @@ int main(int argc, char** argv) {
     IIgsMemory mem;
     CPU65816 cpu(&mem);
     VGC vgc;
-    const char* romPath = (argc > 1) ? argv[1] : "roms/iigs-rom03.rom";
-    std::vector<uint8_t> rom = readFile(romPath);
+    std::string matched;
+    std::vector<uint8_t> rom;
+    if (argc > 1) { rom = readFile(argv[1]); matched = argv[1]; }
+    else {                                   // try ROM 03 then ROM 01, CWD + exec-relative
+        rom = findResource("roms/iigs-rom03.rom", matched);
+        if (rom.empty()) rom = findResource("roms/iigs-rom01.rom", matched);
+    }
+    static std::string romPathStr = matched;
+    const char* romPath = romPathStr.c_str();
     bool romOk = !rom.empty() && mem.loadRom(rom);
-    if (romOk) { mem.reset(); cpu.hardReset(); }
-    else std::fprintf(stderr, "No/invalid ROM at %s — drop iigs-rom03.rom (256K) or iigs-rom01.rom (128K) in roms/\n", romPath);
-    std::vector<uint8_t> chr = readFile("roms/iigs-char.rom");
+    if (romOk) { mem.reset(); cpu.hardReset(); std::printf("Loaded ROM: %s (%zu KB)\n", romPath, rom.size() / 1024); }
+    else std::fprintf(stderr, "No ROM found — drop iigs-rom03.rom (256K) or iigs-rom01.rom (128K) in roms/\n");
+    std::string chrMatched;
+    std::vector<uint8_t> chr = findResource("roms/iigs-char.rom", chrMatched);
     bool chrOk = !chr.empty() && vgc.setCharRom(chr);
 
     // ── Window / ImGui ───────────────────────────────────────────────────
