@@ -186,6 +186,8 @@ uint8_t IIgsMemory::slotRomRead(uint16_t off) {
     int slot = (off >> 8) & 0x0F;                 // $C7xx → 7
     if (slot == hdd_.slot() && hdd_.loaded())
         return hdd_.romRead(uint8_t(off & 0xFF));
+    if (slot == disk35_.slot() && disk35_.loaded())     // $C5xx → 3.5" SmartPort
+        return disk35_.romRead(uint8_t(off & 0xFF));
     return 0;
 }
 
@@ -256,6 +258,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     // display / paging soft switches with read side-effects
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, false); return 0; }
     if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return 0; }
+    if (r >= 0xD0 && r <= 0xDF) return disk35_.deviceRead(r & 0x0F);                  // slot 5 3.5" device-select
     if (r >= 0xE0 && r <= 0xEF) return iwm_.access(r - 0xE0, false, 0, videoCycles_); // slot 6 IWM
     if (r >= 0xF0 && r <= 0xFF) return hdd_.deviceRead(r & 0x0F);                     // slot 7 HDD device-select
     return 0;   // floating bus (approx)
@@ -311,6 +314,7 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
     }
     if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return; }
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, true); return; }
+    if (r >= 0xD0 && r <= 0xDF) { disk35_.deviceWrite(r & 0x0F, v); return; }             // slot 5 3.5" device-select
     if (r >= 0xE0 && r <= 0xEF) { iwm_.access(r - 0xE0, true, v, videoCycles_); return; } // slot 6 IWM
     if (r >= 0xF0 && r <= 0xFF) { hdd_.deviceWrite(r & 0x0F, v); return; }                // slot 7 HDD device-select
 }

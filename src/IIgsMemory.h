@@ -120,6 +120,12 @@ public:
     }
     // Mount a ProDOS hard-disk image (.hdv/.po/.2mg) on the slot-7 HDD card.
     bool loadHdd(const std::string& path) { return hdd_.loadImage(path); }
+    // Mount an 800K 3.5" image (.po/.2mg) on the slot-5 SmartPort/3.5" drive
+    // (block-level, the IIgs 3.5" convention). See ProDosHdd + POM2 SmartPortCard.
+    bool loadDisk35(const std::string& path) { return disk35_.loadImage(path); }
+    void ejectHdd() { hdd_.eject(); }        // clear slot 7 so a slot-5 3.5" disk boots
+    void ejectDisk35() { disk35_.eject(); }
+    bool hddLoaded() const { return hdd_.loaded(); }
     Iwm& iwm() { return iwm_; }
     Es5503& doc() { return doc_; }
     Scc8530& scc() { return scc_; }
@@ -217,6 +223,7 @@ private:
     Es5503   doc_;                    // Ensoniq 5503 DOC (Sound GLU $C03C-$C03F)
     Scc8530  scc_;                    // SCC 8530 serial ($C038-$C03B)
     ProDosHdd hdd_{7};                // ProDOS hard-disk card in slot 7
+    ProDosHdd disk35_{5};             // 800K 3.5" SmartPort/block drive in slot 5
     CPU65816* cpu_ = nullptr;         // non-owning; for IRQ assertion
 
     // helpers

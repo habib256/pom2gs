@@ -30,6 +30,7 @@ public:
     // File-load hooks (return true on success). Set by main after construction.
     std::function<bool(const std::string&)> onLoadRom;
     std::function<bool(const std::string&)> onLoadHdd;
+    std::function<bool(const std::string&)> onLoadDisk35;   // 800K 3.5" on slot 5
 
     // Shared with the host loop.
     bool running = false;          // emulation gate (Machine ▸ Run/Pause, F6)
@@ -59,7 +60,7 @@ private:
     // Modal state.
     bool  pendingAbout_ = false;
     bool  pendingLoad_  = false;
-    bool  loadIsRom_    = true;
+    int   loadKind_     = 0;             // 0 = ROM, 1 = hard disk, 2 = 3.5" disk
     char  pathBuf_[512] = {0};
 
     std::string statusMsg_;
@@ -70,7 +71,7 @@ private:
     void screenWindow(unsigned int tex);
     void statusBar();
     void dialogs();
-    void openLoad(bool rom);
+    void openLoad(int kind);
     void doReset();
 };
 

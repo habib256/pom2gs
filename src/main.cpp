@@ -116,6 +116,17 @@ int main(int argc, char** argv) {
         std::string rp = findPath(p); if (rp.empty()) rp = p;
         if (!mem.loadHdd(rp)) return false;
         ui.hddPath = rp;
+        mem.reset(); cpu.hardReset();
+        return true;
+    };
+    // Load an 800K 3.5" disk on slot 5. Eject the slot-7 HDD so the ROM boots
+    // the 3.5" (it scans the higher slots first), then cold-reset.
+    ui.onLoadDisk35 = [&](const std::string& p) -> bool {
+        std::string rp = findPath(p); if (rp.empty()) rp = p;
+        if (!mem.loadDisk35(rp)) return false;
+        mem.ejectHdd();
+        ui.hddPath = rp;
+        mem.reset(); cpu.hardReset();
         return true;
     };
     ui.romOk = romOk; ui.romPath = romPathStr; ui.chrOk = chrOk;

@@ -29,9 +29,9 @@ void Ui::doReset() {
     cpu_.hardReset();
 }
 
-void Ui::openLoad(bool rom) {
-    loadIsRom_ = rom;
-    const std::string& cur = rom ? romPath : hddPath;
+void Ui::openLoad(int kind) {
+    loadKind_ = kind;
+    const std::string& cur = (kind == 0) ? romPath : hddPath;   // ROM path or last disk path
     std::snprintf(pathBuf_, sizeof pathBuf_, "%s", cur.c_str());
     pendingLoad_ = true;
 }
@@ -61,8 +61,9 @@ void Ui::menuBar() {
     if (!ImGui::BeginMainMenuBar()) return;
 
     if (ImGui::BeginMenu("File")) {
-        if (ImGui::MenuItem("Load ROM...", nullptr, false, bool(onLoadRom)))    openLoad(true);
-        if (ImGui::MenuItem("Load Hard Disk...", nullptr, false, bool(onLoadHdd))) openLoad(false);
+        if (ImGui::MenuItem("Load ROM...", nullptr, false, bool(onLoadRom)))        openLoad(0);
+        if (ImGui::MenuItem("Load Hard Disk...", nullptr, false, bool(onLoadHdd)))  openLoad(1);
+        if (ImGui::MenuItem("Load 3.5\" Disk...", nullptr, false, bool(onLoadDisk35))) openLoad(2);
         ImGui::Separator();
         if (ImGui::MenuItem("Quit", "Ctrl+Q")) quitRequested = true;
         ImGui::EndMenu();
@@ -217,7 +218,10 @@ void Ui::dialogs() {
 
     ImGui::SetNextWindowSize(ImVec2(560, 0), ImGuiCond_Appearing);
     if (ImGui::BeginPopupModal("Load##dlg", nullptr, ImGuiWindowFlags_NoResize)) {
-        ImGui::Text("%s path:", loadIsRom_ ? "ROM image" : "Hard-disk image (.hdv/.po/.2mg)");
+        const char* label = loadKind_ == 0 ? "ROM image"
+                          : loadKind_ == 1 ? "Hard-disk image (.hdv/.po/.2mg)"
+                                           : "3.5\" disk image, slot 5 (.po/.2mg, 800K)";
+        ImGui::Text("%s path:", label);
         ImGui::SetNextItemWidth(-1);
         const bool enter = ImGui::InputText("##path", pathBuf_, sizeof pathBuf_,
                                             ImGuiInputTextFlags_EnterReturnsTrue);
@@ -228,11 +232,12 @@ void Ui::dialogs() {
         if (go) {
             std::string path = pathBuf_;
             bool ok = false;
-            if (loadIsRom_ && onLoadRom) ok = onLoadRom(path);
-            else if (!loadIsRom_ && onLoadHdd) ok = onLoadHdd(path);
+            if      (loadKind_ == 0 && onLoadRom)    ok = onLoadRom(path);
+            else if (loadKind_ == 1 && onLoadHdd)    ok = onLoadHdd(path);
+            else if (loadKind_ == 2 && onLoadDisk35) ok = onLoadDisk35(path);
             if (ok) {
-                setStatus((loadIsRom_ ? "Loaded ROM: " : "Loaded disk: ") + path);
-                if (loadIsRom_) running = true;
+                setStatus((loadKind_ == 0 ? "Loaded ROM: " : "Loaded disk: ") + path);
+                running = true;
                 ImGui::CloseCurrentPopup();
             } else {
                 setStatus("Load failed: " + path, 4.0f);

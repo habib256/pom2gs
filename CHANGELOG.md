@@ -4,6 +4,19 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — slot-5 3.5" drive (boot 800K disks from the authentic slot)
+- **`disk35_`** — a second `ProDosHdd` on **slot 5** (device-select $C0D0-$C0DF,
+  slot ROM $C500), the IIgs 3.5" convention. 800K `.po`/`.2mg` images boot from
+  slot 5 via the same block-level HLE POM2's SmartPortCard uses. `ProDosHdd`
+  gained `eject()`; `IIgsMemory` gained `loadDisk35()`/`ejectHdd()`.
+- **UI**: File ▸ Load 3.5" Disk (loads slot 5 and ejects the slot-7 HDD so the
+  ROM boots the 3.5"). The load dialog now handles ROM / hard disk / 3.5".
+- Gate: `disk35_test` (slot-5 ROM signature + block streaming + status/eject).
+- Findings: `Arkanoid II.2mg` runs from slot 5 (SHR toggles, active game loop);
+  the `LoGo crack` and GS/OS 6.0.1 stall after their first SHR frame — they need
+  the SmartPort *extended* call dispatch (GS/OS's SmartPort driver) and/or
+  low-level IWM 3.5". Recorded in TODO P2.
+
 ### Added — Super Hi-Res completeness: color-fill + border colour
 - **SHR color-fill** (SCB bit5, 320 mode): a pixel index of 0 now repeats the
   previous pixel's colour instead of palette[0] (the hardware "fill" trick for

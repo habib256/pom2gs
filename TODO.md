@@ -86,9 +86,15 @@ needs the following, in rough priority order.
   stalls — it needs the rest of the boot chain to continue. Arkanoid II behaves
   the same (SHR dialog → stall; reacts to keys). Test disks in `disks35/` and
   `docs/System 6.0.1/`.
-- 🔴 **3.5" Sony disk** (IWM 3.5" mode) + **SmartPort** (slot 5) — the game/GS-OS
-  disk routines want the authentic drive, not just the slot-7 block device.
-  Reuse POM2 `Sony35Drive` / `Disk35Image` / `SmartPort*`.
+- 🟡 **Slot-5 3.5" block device** done (`disk35_`, a ProDosHdd on slot 5;
+  device-select $C0D0-$C0DF, ROM $C500). 800K `.po`/`.2mg` boot from the
+  authentic slot 5 — the same block-level HLE POM2's SmartPortCard uses. UI:
+  File ▸ Load 3.5" Disk (ejects the HDD so it boots). Gate: `disk35_test`.
+  Findings: `Arkanoid II.2mg`/`FUCK crack` **run** from slot 5 (SHR toggling,
+  active game loop); the `LoGo crack` and GS/OS stall after their first SHR
+  frame — they need the **SmartPort *extended* call protocol** (STATUS/
+  READBLOCK/… dispatch, for GS/OS's SmartPort driver + games' own disk code)
+  and/or low-level **IWM 3.5"** (reuse POM2 `Sony35Drive`/`Disk35Image`).
 - 🔴 **GS toolbox** — Memory Mgr, Miscellaneous Tools, QuickDraw II, Event/
   Window/Menu/Control Mgrs, Desk Mgr, the Loader: what GS/OS + the Finder need
   after the welcome screen. The bulk of the remaining IIgs work (many steps).

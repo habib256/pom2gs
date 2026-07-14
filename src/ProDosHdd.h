@@ -32,6 +32,7 @@ public:
     explicit ProDosHdd(int slot = 7) : slot_(slot) { buildRom(); }
 
     bool loadImage(const std::string& path);
+    void eject() { img_.clear(); selectedBlock_ = 0; streamOffset_ = 0; }
     bool loaded() const { return !img_.empty(); }
     int  slot() const { return slot_; }
     size_t blockCount() const { return img_.size() / kBlockBytes; }
