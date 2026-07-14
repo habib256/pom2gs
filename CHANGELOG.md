@@ -4,6 +4,25 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — SmartPort extended dispatch (GS/OS disk protocol)
+- The slot-5 3.5" drive is now a real **SmartPort** device ($C500 ROM,
+  $Cn07=$00 + the extended bit $CnFB). Its dispatch entries are **WDM traps**
+  ($Cn50 = ProDOS block via $42-$47, $Cn53 = SmartPort via `JSR` + inline
+  cmd/param-list), handled in C++ by `IIgsMemory::smartportTrap()` — the trap
+  reads the JSR return address, executes the call, writes results into the
+  caller's buffer (any bank), sets A/carry and skips the inline bytes.
+- Commands: **STATUS** (+ DIB / status code 3 with name + 3.5" type),
+  **READBLOCK**, **WRITEBLOCK**, in both the standard form and the **GS/OS
+  extended** long-address form (4-byte buffer pointer + 4-byte block number, so
+  GS/OS buffers anywhere in the 16 MB space work). `ProDosHdd` gained
+  `readBlock`/`writeBlock` and a `smartport` ROM variant; the CPU's `WDM` ($42)
+  opcode now calls the trap.
+- **GS/OS System 6.0.1 boots to its "Welcome to the IIgs" screen through the
+  real SmartPort path** (faster than the block-device boot). Gates:
+  `smartport_test` (JSR-driven READBLOCK + STATUS/DIB), `disk35_test`. The
+  slot-7 HDD (Total Replay) keeps the plain block-device ROM — unaffected.
+  Full GS/OS boot past the welcome/loading screen still needs the GS toolbox.
+
 ### Added — slot-5 3.5" drive (boot 800K disks from the authentic slot)
 - **`disk35_`** — a second `ProDosHdd` on **slot 5** (device-select $C0D0-$C0DF,
   slot ROM $C500), the IIgs 3.5" convention. 800K `.po`/`.2mg` images boot from

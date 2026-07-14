@@ -627,7 +627,7 @@ void CPU65816::step() {
         // ── misc ──
         case 0xEB: { uint8_t lo = uint8_t(a_), hi = uint8_t(a_ >> 8); a_ = uint16_t((lo << 8) | hi); setZN8(uint8_t(a_)); } break; // XBA
         case 0xEA: break;                                        // NOP
-        case 0x42: fetch(); break;                               // WDM (2-byte NOP)
+        case 0x42: { uint8_t sig = fetch(); if (memory_) memory_->smartportTrap(sig); } break;  // WDM — SmartPort HLE trap ($C5/$C6)
         // Block moves. Object code is `54/44 destbank srcbank`. The counter is
         // the FULL 16-bit accumulator regardless of the M flag; X/Y are used at
         // the index width. One byte per execution; PC re-points at the opcode

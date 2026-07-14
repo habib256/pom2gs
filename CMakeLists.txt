@@ -178,6 +178,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(disk35_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME disk35_test COMMAND disk35_test)
 
+    # SmartPort extended dispatch (READBLOCK / STATUS via the WDM-trap ROM).
+    add_executable(smartport_test tests/smartport_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(smartport_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME smartport_test COMMAND smartport_test)
+
     # Headless PNG screenshot of a booting ROM (dev tool).
     add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

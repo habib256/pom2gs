@@ -77,6 +77,113 @@ void IIgsMemory::frameTick() {
     if (cpu_) cpu_->setIrqLine(CPU65816::IRQ_SRC_DOC, doc_.irqPending());
 }
 
+// ── SmartPort HLE (slot-5 3.5" drive) ────────────────────────────────────
+// The slot-5 ROM's dispatch entries are WDM traps; the CPU calls this on WDM.
+void IIgsMemory::smartportTrap(uint8_t sig) {
+    if (!cpu_) return;
+    if (sig == 0xC6) prodosBlockCall();       // $Cn50 ProDOS block ($42-$47)
+    else if (sig == 0xC5) smartportCall();    // $Cn53 SmartPort dispatch
+    // any other WDM signature: NOP
+}
+
+// Set the CPU carry flag + A = error, the SmartPort/ProDOS return convention.
+static void spReturn(CPU65816* cpu, uint8_t err) {
+    cpu->setA(err);
+    uint8_t p = cpu->getP();
+    if (err) p |= 0x01; else p &= uint8_t(~0x01);   // C = error
+    cpu->setP(p);
+}
+
+// ProDOS block call: cmd=$42, unit=$43, buffer=$44/$45 (bank 0), block=$46/$47.
+void IIgsMemory::prodosBlockCall() {
+    const uint8_t cmd  = read8(0x42);
+    const uint16_t buf = uint16_t(read8(0x44) | (read8(0x45) << 8));
+    const uint16_t blk = uint16_t(read8(0x46) | (read8(0x47) << 8));
+    uint8_t err = 0;
+    if (cmd == 0) {                                   // STATUS → block count in X/Y
+        size_t n = disk35_.blockCount(); if (n > 0xFFFF) n = 0xFFFF;
+        cpu_->setX(uint16_t(n & 0xFF)); cpu_->setY(uint16_t((n >> 8) & 0xFF));
+    } else if (cmd == 1) {                            // READ
+        uint8_t b[512];
+        if (disk35_.readBlock(blk, b)) for (int i = 0; i < 512; ++i) write8(uint16_t(buf + i), b[i]);
+        else err = 0x27;                              // I/O error
+    } else if (cmd == 2) {                            // WRITE
+        uint8_t b[512]; for (int i = 0; i < 512; ++i) b[i] = read8(uint16_t(buf + i));
+        if (!disk35_.writeBlock(blk, b)) err = disk35_.writeProtected() ? 0x2B : 0x27;
+    } else err = 0x01;                                // bad command
+    spReturn(cpu_, err);
+}
+
+// SmartPort dispatch: JSR here, then inline `cmd(1), paramListPtr(2)`. The
+// param list is in bank 0. `cmd & $40` selects the GS/OS extended form
+// (4-byte buffer pointer + 4-byte block number). We adjust the stacked return
+// address past the 3 inline bytes before returning.
+void IIgsMemory::smartportCall() {
+    const uint8_t  pbr = cpu_->getPBR();
+    const uint16_t sp  = cpu_->getSP();
+    // JSR pushed (return-1); the inline bytes follow that+1, in the caller PBR.
+    uint16_t ret = uint16_t(read8(uint16_t(sp + 1)) | (read8(uint16_t(sp + 2)) << 8));
+    auto codeRd = [&](uint16_t o) { return read8((uint32_t(pbr) << 16) | uint16_t(ret + o)); };
+    const uint8_t cmd = codeRd(1);
+    const uint16_t plp = uint16_t(codeRd(2) | (codeRd(3) << 8));   // param list (bank 0)
+    const bool ext = (cmd & 0x40) != 0;
+    const uint8_t base = cmd & 0x3F;
+    auto pRd = [&](uint16_t o) { return read8(uint16_t(plp + o)); };
+
+    const uint8_t unit = pRd(1);
+    uint8_t err = 0;
+    if (base == 0x00) {                               // STATUS
+        uint32_t list; uint8_t code;
+        if (ext) { list = uint32_t(pRd(2)) | (pRd(3) << 8) | (pRd(4) << 16) | (uint32_t(pRd(5)) << 24); code = pRd(6); }
+        else     { list = uint32_t(pRd(2)) | (pRd(3) << 8);                                           code = pRd(4); }
+        err = smartportStatus(unit, code, list);
+    } else if (base == 0x01 || base == 0x02) {        // READ / WRITE BLOCK
+        uint32_t buf, blk;
+        if (ext) { buf = uint32_t(pRd(2)) | (pRd(3) << 8) | (pRd(4) << 16) | (uint32_t(pRd(5)) << 24);
+                   blk = uint32_t(pRd(6)) | (pRd(7) << 8) | (pRd(8) << 16) | (uint32_t(pRd(9)) << 24); }
+        else     { buf = uint32_t(pRd(2)) | (pRd(3) << 8);
+                   blk = uint32_t(pRd(4)) | (pRd(5) << 8) | (pRd(6) << 16); }
+        if (unit == 0) err = 0x21;                    // bad unit for a block op
+        else if (base == 0x01) { uint8_t b[512]; if (disk35_.readBlock(blk, b)) for (int i = 0; i < 512; ++i) write8(buf + i, b[i]); else err = 0x27; }
+        else                   { uint8_t b[512]; for (int i = 0; i < 512; ++i) b[i] = read8(buf + i); if (!disk35_.writeBlock(blk, b)) err = disk35_.writeProtected() ? 0x2B : 0x27; }
+        if (!err) { cpu_->setX(0x00); cpu_->setY(0x02); }   // 512 bytes transferred
+    } else {
+        err = 0x01;                                   // unsupported SmartPort command
+    }
+    spReturn(cpu_, err);
+    // Skip the 3 inline bytes: RTS returns to (stacked+1), want cmdAddr+3.
+    uint16_t nret = uint16_t(ret + 3);
+    write8(uint16_t(sp + 1), uint8_t(nret & 0xFF));
+    write8(uint16_t(sp + 2), uint8_t(nret >> 8));
+}
+
+// SmartPort STATUS: unit 0 = controller (device count); unit 1 = the drive.
+// code 0 = device status (status byte + 3-byte block count); code 3 = DIB
+// (adds the 16-char name + type/subtype) — GS/OS reads this to identify it.
+uint8_t IIgsMemory::smartportStatus(uint8_t unit, uint8_t code, uint32_t list) {
+    auto w = [&](uint32_t o, uint8_t v) { write8(list + o, v); };
+    if (unit == 0) {                                  // controller status
+        w(0, 1);                                      // one device attached
+        w(1, 0); w(2, 0); w(3, 0);
+        return 0;
+    }
+    const size_t n = disk35_.loaded() ? disk35_.blockCount() : 0;
+    const uint8_t st = disk35_.loaded()
+        ? uint8_t(0xF8 | (disk35_.writeProtected() ? 0x04 : 0x00))   // block/write/read/online/format
+        : 0x00;
+    w(0, st);
+    w(1, uint8_t(n & 0xFF)); w(2, uint8_t((n >> 8) & 0xFF)); w(3, uint8_t((n >> 16) & 0xFF));
+    if (code == 3) {                                  // Device Information Block
+        static const char name[17] = "POMIIGS 3.5     ";       // 16 chars
+        w(4, 16);                                     // ID string length
+        for (int i = 0; i < 16; ++i) w(5 + i, uint8_t(name[i]));
+        w(21, 0x02);                                  // device type: 3.5" disk
+        w(22, 0xA0);                                  // subtype: removable, no interrupt
+        w(23, 0x01); w(24, 0x00);                     // version
+    }
+    return 0;
+}
+
 void IIgsMemory::setTestMode(bool on) {
     testMode_ = on;
     if (on && flat_.empty()) flat_.assign(size_t(1) << 24, 0);   // 16 MB

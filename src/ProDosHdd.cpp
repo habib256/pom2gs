@@ -5,6 +5,7 @@
 // ProDOSHardDiskCard (AppleWin lineage). Source: Apple ProDOS 8 Tech Ref.
 
 #include "ProDosHdd.h"
+#include <algorithm>
 #include <fstream>
 
 bool ProDosHdd::loadImage(const std::string& path) {
@@ -18,6 +19,21 @@ bool ProDosHdd::loadImage(const std::string& path) {
     img_.resize((img_.size() / kBlockBytes) * kBlockBytes);
     selectedBlock_ = 0; streamOffset_ = 0;
     return !img_.empty();
+}
+
+bool ProDosHdd::readBlock(uint32_t blk, uint8_t* out) const {
+    size_t off = size_t(blk) * kBlockBytes;
+    if (img_.empty() || off + kBlockBytes > img_.size()) return false;
+    std::copy(img_.begin() + off, img_.begin() + off + kBlockBytes, out);
+    return true;
+}
+
+bool ProDosHdd::writeBlock(uint32_t blk, const uint8_t* in) {
+    if (writeProtect_) return false;
+    size_t off = size_t(blk) * kBlockBytes;
+    if (img_.empty() || off + kBlockBytes > img_.size()) return false;
+    std::copy(in, in + kBlockBytes, img_.begin() + off);
+    return true;
 }
 
 uint8_t ProDosHdd::deviceRead(uint8_t low4) {
@@ -66,6 +82,30 @@ void ProDosHdd::buildRom() {
     const uint8_t unit = uint8_t(slot_ << 4);            // ProDOS unit (slot n, drive 1)
     const uint8_t kBoot = 0x20, kDrv = 0x50;
 
+    // ── SmartPort variant: boot + ProDOS-block + SmartPort dispatch entries
+    // are WDM traps ($C6 = ProDOS block, $C5 = SmartPort) handled in C++.
+    if (smartport_) {
+        rom_[0x00] = 0x4C; rom_[0x01] = kBoot; rom_[0x02] = hi;    // JMP $Cn20 (boot)
+        rom_[0x03] = 0x00; rom_[0x05] = 0x03; rom_[0x07] = 0x00;   // SmartPort ($Cn07=$00)
+        rom_[0xFB] = 0x02;                                         // extended SmartPort supported
+        rom_[0xFE] = 0xBF;                                         // status: read/write/status/format
+        rom_[0xFF] = kDrv;                                         // ProDOS entry $Cn50
+        // Boot: read block 0 to $0800 via the ProDOS-block trap, then JMP $0801.
+        uint8_t pc = kBoot;
+        emit(rom_, pc, {
+            0xA9,0x01, 0x85,0x42, 0xA9,unit, 0x85,0x43,        // cmd=read, unit
+            0xA9,0x00, 0x85,0x44, 0xA9,0x08, 0x85,0x45,        // buffer = $0800
+            0xA9,0x00, 0x85,0x46, 0x85,0x47,                   // block = 0
+            0x20,kDrv,hi, 0xB0,0x07,                           // JSR $Cn50 / BCS err
+            0xA2,unit, 0xA9,0x00, 0x4C,0x01,0x08,              // LDX unit/LDA #0/JMP $0801
+            0x4C,0xE0,hi });                                   // err: JMP $CnE0
+        rom_[0xE0] = 0x4C; rom_[0xE1] = 0xE0; rom_[0xE2] = hi; // $CnE0 halt loop
+        rom_[0x50] = 0x42; rom_[0x51] = 0xC6; rom_[0x52] = 0x60;  // $Cn50 ProDOS block: WDM $C6 / RTS
+        rom_[0x53] = 0x42; rom_[0x54] = 0xC5; rom_[0x55] = 0x60;  // $Cn53 SmartPort:    WDM $C5 / RTS
+        return;
+    }
+
+    // ── ProDOS block device (slot-7 HDD): streaming firmware, no traps ──────
     // ProDOS signature + entry offsets.
     rom_[0x00] = 0x4C; rom_[0x01] = kBoot; rom_[0x02] = hi;   // JMP $Cn20
     rom_[0x03] = 0x00; rom_[0x05] = 0x03; rom_[0x07] = 0x01;

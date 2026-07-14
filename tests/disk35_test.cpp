@@ -39,7 +39,7 @@ int main() {
     check("sig $C501=$20", rom5(0xC501) == 0x20);
     check("sig $C503=$00", rom5(0xC503) == 0x00);
     check("sig $C505=$03", rom5(0xC505) == 0x03);
-    check("sig $C507=$01", rom5(0xC507) == 0x01);   // ProDOS block device
+    check("sig $C507=$00", rom5(0xC507) == 0x00);   // SmartPort device
 
     // Device-select $C0D0-$C0DF (slot 5). Select block 0, stream 512 bytes.
     auto io = [&](uint16_t r) { return uint32_t(0xE0) << 16 | (0xC000 | r); };

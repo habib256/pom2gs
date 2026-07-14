@@ -83,6 +83,13 @@ public:
     // (VBL edge stays in tick(); this adds ¼-second, 1-second, scan-line).
     void frameTick();
 
+    // WDM ($42) trap from the CPU: the slot-5 SmartPort ROM's dispatch entries
+    // are `WDM $C5` (SmartPort call) and `WDM $C6` (ProDOS block call). Executes
+    // the disk operation on the slot-5 3.5" drive in C++ (STATUS / READBLOCK /
+    // WRITEBLOCK, standard + GS/OS extended long-address form) and returns via
+    // the CPU registers. Other WDM signatures are ignored (NOP).
+    void smartportTrap(uint8_t sig);
+
     // Per-access slow-side penalty. In FAST mode (2.8 MHz) any access that
     // lands on the Mega II slow side — banks $E0/$E1, the $Cxxx I/O + slot ROM
     // + language card of banks $00/$01, and shadowed video writes — is stretched
@@ -223,7 +230,7 @@ private:
     Es5503   doc_;                    // Ensoniq 5503 DOC (Sound GLU $C03C-$C03F)
     Scc8530  scc_;                    // SCC 8530 serial ($C038-$C03B)
     ProDosHdd hdd_{7};                // ProDOS hard-disk card in slot 7
-    ProDosHdd disk35_{5};             // 800K 3.5" SmartPort/block drive in slot 5
+    ProDosHdd disk35_{5, true};       // 800K 3.5" SmartPort drive in slot 5 (WDM-trap ROM)
     CPU65816* cpu_ = nullptr;         // non-owning; for IRQ assertion
 
     // helpers
@@ -243,6 +250,10 @@ private:
     // Recompute the shared CPU IRQ lines from the flag/enable registers.
     void updateMega2Irq();   // VBL + ¼-second ($C041 INTEN & $C046 INTFLAG)
     void updateVgcIrq();     // scan-line + 1-second ($C023 VGCINT)
+    // SmartPort HLE (slot-5 3.5" drive).
+    void    prodosBlockCall();       // WDM $C6 — ProDOS block via $42-$47
+    void    smartportCall();         // WDM $C5 — SmartPort dispatch (inline params)
+    uint8_t smartportStatus(uint8_t unit, uint8_t code, uint32_t list);
 };
 
 #endif // POMIIGS_IIGSMEMORY_H
