@@ -65,12 +65,22 @@ inline void buildHgrWordRow(const uint8_t* row, uint16_t (&words)[40]) {
     }
 }
 
-// Full colour decode of one HGR scanline (40 bytes at `row`) into 280 RGBA
-// pixels (`out`), via the 560-sub-pixel windowed artifact LUT + pair average.
-inline void decodeHgrLine(const uint8_t* row, uint32_t* out /*[280]*/) {
+// DHGR word row: 80-column mode lays aux memory (leftmost 7 dots) then main
+// memory (next 7 dots) per column — 40 columns × 14 dots = 560. No bit-
+// doubling and no half-dot delay (DHGR ignores bit 7). This yields the same
+// 14-bit-per-column `words[]` shape the artifact decoder consumes, so the
+// composite decode below is shared with HGR. Cited: MAME apple2video.cpp
+// (dhgr builds the 560-dot stream from interleaved aux/main 7-bit groups).
+inline void buildDhgrWordRow(const uint8_t* aux, const uint8_t* main,
+                             uint16_t (&words)[40]) {
+    for (int col = 0; col < 40; ++col)
+        words[col] = uint16_t((aux[col] & 0x7F) | ((main[col] & 0x7F) << 7));
+}
+
+// Shared windowed artifact decode: 40 × 14-bit words → 280 RGBA pixels via the
+// 560-sub-pixel LUT + pair average. Used by both HGR and DHGR composite paths.
+inline void decodeWordRow(const uint16_t (&words)[40], uint32_t* out /*[280]*/) {
     constexpr int kCtx = 3;
-    uint16_t words[40];
-    buildHgrWordRow(row, words);
     uint32_t sub[kStreamLen];
     uint32_t w = uint32_t(words[0]) << kCtx;
     for (int col = 0; col < 40; ++col) {
@@ -88,6 +98,42 @@ inline void decodeHgrLine(const uint8_t* row, uint32_t* out /*[280]*/) {
         uint32_t g = (((a >> 8) & 0xFF) + ((b >> 8) & 0xFF)) >> 1;
         uint32_t bl = (((a >> 16) & 0xFF) + ((b >> 16) & 0xFF)) >> 1;
         out[x] = 0xFF000000u | (bl << 16) | (g << 8) | r;
+    }
+}
+
+// Full colour decode of one HGR scanline (40 bytes at `row`) into 280 RGBA
+// pixels (`out`), via the 560-sub-pixel windowed artifact LUT + pair average.
+inline void decodeHgrLine(const uint8_t* row, uint32_t* out /*[280]*/) {
+    uint16_t words[40];
+    buildHgrWordRow(row, words);
+    decodeWordRow(words, out);
+}
+
+// Composite (NTSC) DHGR: 40 aux + 40 main bytes → 280 RGBA pixels.
+inline void decodeDhgrLine(const uint8_t* aux, const uint8_t* main, uint32_t* out /*[280]*/) {
+    uint16_t words[40];
+    buildDhgrWordRow(aux, main, words);
+    decodeWordRow(words, out);
+}
+
+// Clean RGB DHGR: the IIgs RGB monitor shows DHGR as 140 fat pixels, each a
+// 4-dot colour clock indexing the 16-colour lo-res palette (no NTSC fringing).
+// Aligned to 4-dot boundaries from column 0, so the dot phase is constant and
+// the nibble maps directly (dot 0 = LSB). Output is 280 (each fat pixel ×2).
+inline void decodeDhgrRgbLine(const uint8_t* aux, const uint8_t* main, uint32_t* out /*[280]*/) {
+    uint8_t bits[kStreamLen];
+    for (int col = 0; col < 40; ++col) {
+        const uint8_t a = aux[col] & 0x7F, m = main[col] & 0x7F;
+        for (int i = 0; i < 7; ++i) {
+            bits[col * 14 + i]     = (a >> i) & 1;
+            bits[col * 14 + 7 + i] = (m >> i) & 1;
+        }
+    }
+    for (int p = 0; p < 140; ++p) {                 // 140 fat pixels, 4 dots each
+        unsigned v = bits[p * 4] | (bits[p * 4 + 1] << 1) |
+                     (bits[p * 4 + 2] << 2) | (bits[p * 4 + 3] << 3);
+        uint32_t c = kPalette[v];
+        out[p * 2] = c; out[p * 2 + 1] = c;
     }
 }
 

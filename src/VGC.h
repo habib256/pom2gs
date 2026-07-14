@@ -58,6 +58,7 @@ private:
     void renderSHR(const IIgsMemory& mem);
     void renderText(const IIgsMemory& mem);
     void renderHGR(const IIgsMemory& mem);    // legacy 280×192 hi-res
+    void renderDHGR(const IIgsMemory& mem);   // double hi-res 140×192 (16 colour)
     void renderLores(const IIgsMemory& mem);  // legacy 40×48 lo-res
 };
 

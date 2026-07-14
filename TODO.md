@@ -14,7 +14,7 @@ self-test, then the visible/audible subsystems.
 | **M0** | Foundation | Repo, CMake (native/WASM/headless), doc suite, subsystem map | 🟢 `cmake && make` builds an ImGui window |
 | **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on 64 opcode families × 2 modes (384k vectors, regs+RAM+**cycles**). MVN/MVP excluded (cycle-cap granularity, see DEV). Extending corpus to full 256 = ongoing |
 | **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟡 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → speed-calibration loop ($FF:FCDC). Needs VBL/timer to progress. Verify: `boot_trace` |
-| **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); scanline IRQ + 80col/DHGR/NTSC-colour next |
+| **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); HGR + DHGR colour (NTSC + RGB, dhgr_test); scanline IRQ + 80col next |
 | **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing + BRAM persistence + ROM 01 banner = follow-ups |
 | **M5** | Disk (IWM/SWIM) + **//e legacy** | Reuse POM2 `IWMDevice`+`DiskImage`; add `Swim` for ROM 03. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. | 🟡 IWM 5.25" read path + //e HGR/LORES video done; ROM boots to **"Check startup device!"** (no disk). Real disk boot + SWIM/3.5" + NTSC-colour + full //e mem = follow-ups |
 | **M6** | Ensoniq 5503 DOC | `Es5503` — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$C03F) | 🟢 chip renders a tone (doc_test gate); DOC + 1-bit speaker ($C030) wired to miniaudio (`AudioOut`, cycle-exact speaker). DOC IRQ + native-rate pitch = follow-up |
@@ -85,7 +85,9 @@ needs the following, in rough priority order.
 **P3 — VGC completeness (games / demos / apps)**
 - 🔴 **Scanline interrupts** (SCB bit6) — split modes (640 menu + 320 gfx).
 - 🔴 SHR **colour-fill** mode (SCB bit5); **border colour** ($C034).
-- 🔴 **Double Hi-Res** (DHGR 560 + colour); **80-column text**.
+- 🟢 **Double Hi-Res** (DHGR 140×192, 16 colour) — aux/main interleave,
+  Composite NTSC + Clean RGB (same toggle as HGR). Gate: `dhgr_test`.
+- 🔴 **80-column text** (aux/main interleaved 80×24).
 - 🔴 **Text colour** from $C022 (currently hard-white); interlaced/VOC mode.
 
 **P4 — Timing + interrupts**

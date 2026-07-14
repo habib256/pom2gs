@@ -136,6 +136,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(scc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME scc_test COMMAND scc_test)
 
+    # Double Hi-Res colour decode gate (header-only VGCNtsc.h).
+    add_executable(dhgr_test tests/dhgr_test.cpp)
+    target_include_directories(dhgr_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME dhgr_test COMMAND dhgr_test)
+
     # Headless PNG screenshot of a booting ROM (dev tool).
     add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

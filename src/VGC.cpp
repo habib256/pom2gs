@@ -25,10 +25,11 @@ bool VGC::setCharRom(const std::vector<uint8_t>& rom) {
 }
 
 const uint32_t* VGC::render(const IIgsMemory& mem) {
-    if (mem.shrEnabled())      renderSHR(mem);
-    else if (mem.textMode())   renderText(mem);
-    else if (mem.hires())      renderHGR(mem);
-    else                       renderLores(mem);
+    if (mem.shrEnabled())              renderSHR(mem);
+    else if (mem.textMode())           renderText(mem);
+    else if (mem.hires() && mem.dhires()) renderDHGR(mem);
+    else if (mem.hires())              renderHGR(mem);
+    else                               renderLores(mem);
     return fb_.data();
 }
 
@@ -72,6 +73,32 @@ void VGC::renderHGR(const IIgsMemory& mem) {
         if (hgrMode_ == HgrMode::RgbClean) decodeHgrRgbLine(e0 + hgrRowBase(y, base), line);
         else                               pomiigs::ntsc::decodeHgrLine(e0 + hgrRowBase(y, base), line);
         for (int x = 0; x < 280; ++x) {            // ×2 horizontally, ×2 vertically
+            uint32_t c = line[x];
+            int px = x * 2 + ox, py = y * 2;
+            fb_[size_t(py) * kW + px] = c;      fb_[size_t(py) * kW + px + 1] = c;
+            fb_[size_t(py + 1) * kW + px] = c;  fb_[size_t(py + 1) * kW + px + 1] = c;
+        }
+    }
+}
+
+// ── Double Hi-Res 140×192 (16 colours) — composite NTSC or clean RGB ────────
+// 80-column interleave: the leftmost 7 dots of each column come from aux
+// memory (bank $E1), the next 7 from main (bank $E0). Same HgrMode toggle as
+// HGR: fuzzy composite artifacts vs sharp 16-colour RGB.
+void VGC::renderDHGR(const IIgsMemory& mem) {
+    for (auto& px : fb_) px = 0xFF000000u;
+    const uint8_t* main = mem.slowRam();               // bank $E0
+    const uint8_t* aux  = mem.slowRam() + 0x10000;     // bank $E1
+    const int base = mem.page2() ? 0x4000 : 0x2000;
+    const int ox = (kW - 560) / 2;                     // centre 560-wide (280×2)
+    for (int y = 0; y < 192; ++y) {
+        const int rb = hgrRowBase(y, base);
+        uint32_t line[280];
+        if (hgrMode_ == HgrMode::RgbClean)
+            pomiigs::ntsc::decodeDhgrRgbLine(aux + rb, main + rb, line);
+        else
+            pomiigs::ntsc::decodeDhgrLine(aux + rb, main + rb, line);
+        for (int x = 0; x < 280; ++x) {                // ×2 horizontally, ×2 vertically
             uint32_t c = line[x];
             int px = x * 2 + ox, py = y * 2;
             fb_[size_t(py) * kW + px] = c;      fb_[size_t(py) * kW + px + 1] = c;
