@@ -135,6 +135,16 @@ void IIgsMemory::applyDisplaySwitch(uint8_t r) {
     }
 }
 
+// Slot / internal ROM $C100-$CFFF. Per-slot ROM at $Cn00-$CnFF (slots 1-7);
+// $C800-$CFFF is the shared expansion window. The slot-7 HDD card exposes its
+// firmware here; the IIgs internal slot firmware is not yet mapped (returns 0).
+uint8_t IIgsMemory::slotRomRead(uint16_t off) {
+    int slot = (off >> 8) & 0x0F;                 // $C7xx → 7
+    if (slot == hdd_.slot() && hdd_.loaded())
+        return hdd_.romRead(uint8_t(off & 0xFF));
+    return 0;
+}
+
 // ── $C000-$C0FF I/O ──────────────────────────────────────────────────────
 uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     (void)bank;
@@ -186,6 +196,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, false); return 0; }
     if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return 0; }
     if (r >= 0xE0 && r <= 0xEF) return iwm_.access(r - 0xE0, false, 0, videoCycles_); // slot 6 IWM
+    if (r >= 0xF0 && r <= 0xFF) return hdd_.deviceRead(r & 0x0F);                     // slot 7 HDD device-select
     return 0;   // floating bus (approx)
 }
 
@@ -235,6 +246,7 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
     if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return; }
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, true); return; }
     if (r >= 0xE0 && r <= 0xEF) { iwm_.access(r - 0xE0, true, v, videoCycles_); return; } // slot 6 IWM
+    if (r >= 0xF0 && r <= 0xFF) { hdd_.deviceWrite(r & 0x0F, v); return; }                // slot 7 HDD device-select
 }
 
 // Writes to shadowed display regions of banks $00/$01 mirror into $E0/$E1 so
@@ -260,13 +272,15 @@ uint8_t IIgsMemory::read8(uint32_t a) {
         return rom_[a - (uint32_t(romBankBase_) << 16)];
 
     if (bank == 0xE0 || bank == 0xE1) {
-        if (off >= 0xC000 && off <= 0xCFFF) return ioRead(bank, off);
+        if (off >= 0xC000 && off <= 0xC0FF) return ioRead(bank, off);
+        if (off >= 0xC100 && off <= 0xCFFF) return slotRomRead(off);
         return slowRam_[(size_t(bank - 0xE0) * 0x10000) + off];
     }
 
     if (bank <= 0x01) {
         if (iolcShadow()) {
-            if (off >= 0xC000 && off <= 0xCFFF) return ioRead(bank, off);
+            if (off >= 0xC000 && off <= 0xC0FF) return ioRead(bank, off);
+            if (off >= 0xC100 && off <= 0xCFFF) return slotRomRead(off);
             if (off >= 0xD000)                  return lcRead(bank, off);
         }
         int pb = (bank == 0) ? physBank01(off, false) : 1;
@@ -286,14 +300,16 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
     if (bank >= romBankBase_ && !rom_.empty()) return;   // ROM write ignored
 
     if (bank == 0xE0 || bank == 0xE1) {
-        if (off >= 0xC000 && off <= 0xCFFF) { ioWrite(bank, off, v); return; }
+        if (off >= 0xC000 && off <= 0xC0FF) { ioWrite(bank, off, v); return; }
+        if (off >= 0xC100 && off <= 0xCFFF) return;   // slot ROM: read-only
         slowRam_[(size_t(bank - 0xE0) * 0x10000) + off] = v;
         return;
     }
 
     if (bank <= 0x01) {
         if (iolcShadow()) {
-            if (off >= 0xC000 && off <= 0xCFFF) { ioWrite(bank, off, v); return; }
+            if (off >= 0xC000 && off <= 0xC0FF) { ioWrite(bank, off, v); return; }
+            if (off >= 0xC100 && off <= 0xCFFF) return;   // slot ROM: read-only
             if (off >= 0xD000)                  { lcWrite(bank, off, v); return; }
         }
         int pb = (bank == 0) ? physBank01(off, true) : 1;

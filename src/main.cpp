@@ -57,6 +57,16 @@ static std::vector<uint8_t> findResource(const std::string& rel, std::string& ma
     return {};
 }
 
+// Resolve a path (CWD / exec dir / parent) without reading the file.
+static std::string findPath(const std::string& rel) {
+    std::string ed = execDir();
+    for (const std::string& base : { std::string(), ed, ed + "../" }) {
+        std::ifstream f(base + rel, std::ios::binary);
+        if (f) return base + rel;
+    }
+    return {};
+}
+
 static void glfwErrorCallback(int e, const char* d) { std::fprintf(stderr, "GLFW error %d: %s\n", e, d); }
 
 int main(int argc, char** argv) {
@@ -84,6 +94,10 @@ int main(int argc, char** argv) {
     std::string chrMatched;
     std::vector<uint8_t> chr = findResource("roms/iigs-char.rom", chrMatched);
     bool chrOk = !chr.empty() && vgc.setCharRom(chr);
+    // Optional ProDOS hard disk on slot 7: argv[2], else auto-find hdv/*.hdv.
+    std::string hddPath = (argc > 2) ? argv[2] : findPath("hdv/Total Replay v6.0.hdv");
+    if (!hddPath.empty() && mem.loadHdd(hddPath))
+        std::printf("HDD (slot 7): %s\n", hddPath.c_str());
 
     // ── Window / ImGui ───────────────────────────────────────────────────
     glfwSetErrorCallback(glfwErrorCallback);

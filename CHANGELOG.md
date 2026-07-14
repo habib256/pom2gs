@@ -4,6 +4,24 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — ProDOS hard disk: boots Total Replay
+- `src/ProDosHdd.{h,cpp}` — a synthetic ProDOS block device (slot 7) for
+  .hdv/.po/.2mg images. Slot ROM at $C700 advertises the ProDOS signature
+  ($Cn01=$20/$Cn03=$00/$Cn05=$03) with a block driver at $Cn50; block data
+  streams through the slot device-select window $C0F0-$C0FF (block# lo/hi,
+  data byte, status, block count). Firmware ported from POM2's
+  ProDOSHardDiskCard (AppleWin lineage).
+- MMU: split $C000-$C0FF (registers) from $C100-$CFFF (slot ROM); route the
+  slot-7 ROM + device-select to the card. `IIgsMemory::loadHdd()` mounts an
+  image; the app auto-loads `hdv/*.hdv` (or argv[2]) onto slot 7.
+- **The IIgs now finds the slot-7 device, boots block 0 -> ProDOS ->
+  LAUNCHER.SYSTEM, and Total Replay v6.0 renders its hi-res title screen**
+  ("TOTAL REPLAY", 518 games, "Type to search") -- waiting for keyboard input.
+  Booting without a disk still reaches "Check startup device". Disk images are
+  git-ignored (bundled games are copyrighted).
+
+## [Unreleased] — Milestone 0: foundation
+
 ### Fixed — audit / bug-fix pass
 - **CPU: emulation-mode direct-page indexed wrap.** `ea_dpx`/`ea_dpy` now wrap
   within page 0 when E=1 and DL=0 (the 6502 quirk), matching `ea_indx`. Was a

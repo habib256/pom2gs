@@ -22,10 +22,11 @@
 int main(int argc, char** argv) {
     if (argc < 2) { std::fprintf(stderr, "usage: %s <rom> [--steps N] [--trace K]\n", argv[0]); return 2; }
     const char* romPath = argv[1];
-    long steps = 200000; int traceN = 40;
+    long steps = 200000; int traceN = 40; const char* hddPath = nullptr;
     for (int i = 2; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--steps") && i + 1 < argc) steps = std::strtol(argv[++i], nullptr, 10);
         else if (!std::strcmp(argv[i], "--trace") && i + 1 < argc) traceN = int(std::strtol(argv[++i], nullptr, 10));
+        else if (!std::strcmp(argv[i], "--hdd") && i + 1 < argc) hddPath = argv[++i];
     }
 
     std::ifstream in(romPath, std::ios::binary);
@@ -37,6 +38,7 @@ int main(int argc, char** argv) {
     mem.reset();
     CPU65816 cpu(&mem);
     mem.setCpu(&cpu);
+    if (hddPath) std::printf("HDD: %s -> %s\n", hddPath, mem.loadHdd(hddPath) ? "mounted" : "FAILED");
     cpu.hardReset();
 
     std::printf("ROM %s: %zu KB, banks $%02X-$FF; reset PBR:PC = $%02X:%04X (E=%d)\n",

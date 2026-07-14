@@ -40,3 +40,6 @@ roms/*.bin
 
 # MAME apple2gs BIOS set (copyrighted — user-provided, e.g. 344s0047.bin char ROM)
 bios_apple2gs/
+
+# Disk images (.hdv/.2mg — bundled games are copyrighted)
+hdv/

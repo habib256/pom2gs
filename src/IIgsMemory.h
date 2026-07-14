@@ -23,6 +23,7 @@
 #include "Iwm.h"
 #include "Es5503.h"
 #include "Scc8530.h"
+#include "ProDosHdd.h"
 
 #include <cstdint>
 #include <vector>
@@ -66,6 +67,8 @@ public:
     bool loadDisk525(const std::vector<uint8_t>& img, bool prodosOrder) {
         return iwm_.loadDisk525(img, prodosOrder);
     }
+    // Mount a ProDOS hard-disk image (.hdv/.po/.2mg) on the slot-7 HDD card.
+    bool loadHdd(const std::string& path) { return hdd_.loadImage(path); }
     Iwm& iwm() { return iwm_; }
     Es5503& doc() { return doc_; }
     Scc8530& scc() { return scc_; }
@@ -139,6 +142,7 @@ private:
     Iwm      iwm_;                    // on-board 5.25" IWM ($C0E0-$C0EF)
     Es5503   doc_;                    // Ensoniq 5503 DOC (Sound GLU $C03C-$C03F)
     Scc8530  scc_;                    // SCC 8530 serial ($C038-$C03B)
+    ProDosHdd hdd_{7};                // ProDOS hard-disk card in slot 7
     CPU65816* cpu_ = nullptr;         // non-owning; for IRQ assertion
 
     // helpers
@@ -146,6 +150,7 @@ private:
     uint8_t ioRead(uint8_t bank, uint16_t off);
     void    ioWrite(uint8_t bank, uint16_t off, uint8_t v);
     void    applyDisplaySwitch(uint8_t r);   // $C050-$C05F toggles
+    uint8_t slotRomRead(uint16_t off);       // $C100-$CFFF slot/internal ROM
     uint8_t& fastCell(uint32_t bank, uint16_t off);   // fast RAM cell (with mirroring for out-of-range)
     // //e main/aux redirection for a bank $00/$01 access: returns physical
     // bank 0 (main) or 1 (aux) per ALTZP / RAMRD / RAMWRT / 80STORE / PAGE2.

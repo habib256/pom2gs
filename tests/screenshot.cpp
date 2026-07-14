@@ -28,16 +28,17 @@ int main(int argc, char** argv) {
     if (argc < 3) { std::fprintf(stderr, "usage: %s <rom> <out.png> [--frames N] [--char file]\n", argv[0]); return 2; }
     const char* romPath = argv[1];
     const char* outPath = argv[2];
-    long frames = 120; const char* charPath = "roms/iigs-char.rom";
+    long frames = 120; const char* charPath = "roms/iigs-char.rom"; const char* hddPath = nullptr;
     for (int i = 3; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--frames") && i + 1 < argc) frames = std::strtol(argv[++i], nullptr, 10);
         else if (!std::strcmp(argv[i], "--char") && i + 1 < argc) charPath = argv[++i];
+        else if (!std::strcmp(argv[i], "--hdd") && i + 1 < argc) hddPath = argv[++i];
     }
 
     std::vector<uint8_t> rom = readFile(romPath);
     IIgsMemory mem; CPU65816 cpu(&mem); VGC vgc;
     if (rom.empty() || !mem.loadRom(rom)) { std::fprintf(stderr, "bad ROM %s\n", romPath); return 2; }
-    mem.setCpu(&cpu); mem.reset(); cpu.hardReset();
+    mem.setCpu(&cpu); mem.reset(); if (hddPath) mem.loadHdd(hddPath); cpu.hardReset();
     std::vector<uint8_t> chr = readFile(charPath);
     bool chrOk = !chr.empty() && vgc.setCharRom(chr);
 
@@ -51,7 +52,7 @@ int main(int argc, char** argv) {
     }
     std::printf("wrote %s (%dx%d) after %ld frames — mode=%s, char ROM=%s, CPU $%02X:%04X\n",
                 outPath, vgc.width(), vgc.height(), frames,
-                mem.shrEnabled() ? "SHR" : "text", chrOk ? "yes" : "no",
+                mem.shrEnabled() ? "SHR" : (mem.textMode() ? "text" : (mem.hires() ? "HGR" : "LORES")), chrOk ? "yes" : "no",
                 cpu.getPBR(), cpu.getPC());
     return 0;
 }
