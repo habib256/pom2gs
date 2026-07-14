@@ -235,7 +235,13 @@ host file. **MAME reference**: clock/BRAM state machine in `apple2gs.cpp`.
 
 ## Disk — IWM / SWIM
 
-*(planned — Milestone 5)*
+*(Milestone 5 — 5.25" read path. With no disk, the ROM boots all the way to the
+authentic **"Check startup device!"** screen; the IWM soft switches, mode
+register, and write-protect sense are modelled. `src/Iwm` nibblises a 143 360-B
+.dsk/.do/.po (6-and-2 GCR, DOS 3.3 / ProDOS interleave) into per-track streams
+and delivers nibbles timed by CPU cycles at $C0E0-$C0EF (slot 6). Getting a
+real disk to boot GS/OS needs read-timing tuning + a boot image; SWIM (ROM 03
+MFM) and 3.5"/SmartPort are next.)*
 
 ROM 01 uses the **IWM** (reuse POM2 `IWMDevice` — same chip, already
 cycle-faithful for 5.25"/3.5"). ROM 03 uses the **SWIM** (Super Woz Integrated

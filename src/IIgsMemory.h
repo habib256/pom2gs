@@ -20,6 +20,8 @@
 #ifndef POMIIGS_IIGSMEMORY_H
 #define POMIIGS_IIGSMEMORY_H
 
+#include "Iwm.h"
+
 #include <cstdint>
 #include <vector>
 
@@ -53,6 +55,12 @@ public:
     void tick(int cpuCycles);
     int  vpos() const;                // current scanline 0..261
     bool inVbl() const { return vpos() >= 192; }
+
+    // Disk: mount a 5.25" image into the on-board IWM (slot 6).
+    bool loadDisk525(const std::vector<uint8_t>& img, bool prodosOrder) {
+        return iwm_.loadDisk525(img, prodosOrder);
+    }
+    Iwm& iwm() { return iwm_; }
 
     // Flat 16 MB RAM mode: bypasses all banking/I/O so the CPU can be tested
     // in isolation against Tom Harte (which models a flat bus). POM2 pattern.
@@ -120,6 +128,7 @@ private:
     uint8_t  intflag_ = 0;            // $C046 INTFLAG (VBL=0x08, QUARTER=0x10)
     uint8_t  inten_ = 0;              // $C041 INTEN
     uint8_t  vgcint_ = 0;             // $C023 VGCINT
+    Iwm      iwm_;                    // on-board 5.25" IWM ($C0E0-$C0EF)
 
     // helpers
     bool   iolcShadow() const { return !(shadow_ & SHAD_IOLC); }

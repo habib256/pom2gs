@@ -4,6 +4,21 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — Milestone 5 (IWM disk + //e video — ROM boots to "Check startup device")
+- **The ROM 03 now completes the full boot sequence to the authentic "Check
+  startup device!" screen** (banner -> self-tests -> disk search -> no-disk
+  prompt), exactly what a real IIgs shows with no disk. 4190 distinct PCs.
+- `src/Iwm.{h,cpp}` -- IWM Disk II 5.25" controller at $C0E0-$C0EF (slot 6):
+  phase stepper, motor, drive select, Q6/Q7 latches, the MODE register (the
+  write/verify at $FF:4724 that had blocked boot), status + write-protect
+  sense. A 143360-B .dsk/.do/.po is nibblised (6-and-2 GCR, DOS 3.3/ProDOS
+  interleave) into per-track streams; .nib passes through. Nibbles advance with
+  CPU cycles. loadDisk525() mounts an image.
+- //e legacy video (M5 pt.1): HGR 280x192 + LORES 40x48 in the VGC, display
+  soft switches $C050-$C05F in the MMU.
+- Diagnosed each blocker via boot_trace + disassembly (IWM mode register,
+  write-protect sense loop at $FF:5829).
+
 ### Added — Milestone 4 (ADB + MMU fixes — ROM boots to the banner)
 - **ROM 03 now boots through every self-test to the authentic "Apple IIgs /
   Copyright Apple Computer, Inc. 1977-1989 / ROM Version 3" banner**, then

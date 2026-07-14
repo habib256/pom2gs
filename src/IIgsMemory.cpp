@@ -178,6 +178,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     // display / paging soft switches with read side-effects
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, false); return 0; }
     if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return 0; }
+    if (r >= 0xE0 && r <= 0xEF) return iwm_.access(r - 0xE0, false, 0, videoCycles_); // slot 6 IWM
     return 0;   // floating bus (approx)
 }
 
@@ -224,6 +225,7 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
     }
     if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return; }
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, true); return; }
+    if (r >= 0xE0 && r <= 0xEF) { iwm_.access(r - 0xE0, true, v, videoCycles_); return; } // slot 6 IWM
 }
 
 // Writes to shadowed display regions of banks $00/$01 mirror into $E0/$E1 so

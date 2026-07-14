@@ -45,6 +45,7 @@ set(SOURCES
     src/main.cpp
     src/CPU65816.cpp      # M1
     src/IIgsMemory.cpp    # M2
+    src/Iwm.cpp           # M5
     src/VGC.cpp           # M3
     # src/Es5503.cpp        # M6
     # ...
@@ -52,6 +53,7 @@ set(SOURCES
 set(HEADERS
     src/CPU65816.h
     src/IIgsMemory.h
+    src/Iwm.h
     src/VGC.h)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${IMGUI_SOURCES})
@@ -97,7 +99,7 @@ endif()
 option(POMIIGS_TESTS "Build the test targets" ON)
 if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     enable_testing()
-    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp src/IIgsMemory.cpp)
+    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp)
     target_include_directories(tomharte_65816 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     set(POMIIGS_TOMHARTE_DIR "" CACHE PATH "Directory of SingleStepTests/65816 .json vectors")
     # MVN/MVP ($54/$44) are excluded: Tom Harte caps block moves at 100 cycles
@@ -107,15 +109,15 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
              COMMAND tomharte_65816 "${POMIIGS_TOMHARTE_DIR}" --skip 44,54)
 
     # Dev tool (not a gate): load a real ROM and trace how far it boots.
-    add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp)
+    add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp)
     target_include_directories(boot_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
     # VGC Super Hi-Res render smoke test (M3 gate).
-    add_executable(vgc_test tests/vgc_test.cpp src/VGC.cpp src/IIgsMemory.cpp)
+    add_executable(vgc_test tests/vgc_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp)
     target_include_directories(vgc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME vgc_test COMMAND vgc_test)
 
     # Headless PNG screenshot of a booting ROM (dev tool).
-    add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp)
+    add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()
