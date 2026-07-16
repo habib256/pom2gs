@@ -26,6 +26,7 @@
 #include "ProDosHdd.h"
 
 #include <cstdint>
+#include <iosfwd>
 #include <vector>
 
 class CPU65816;   // for VBL/IRQ assertion (non-owning back-pointer)
@@ -102,13 +103,28 @@ public:
     // nothing is charged. Cited: MAME apple2gs.cpp (fast/slow clock sync).
     // Drain the accrued slow-side penalty, in master-clock ticks (the host loop
     // accounts the whole frame in master ticks).
-    int takeSlowPenalty() { int m = int(slowPenMaster_); slowPenMaster_ = 0; return m; }
+    int takeSlowPenalty() { int m = int(slowPenMaster_); slowPenMaster_ = 0; slowPenSeen_ = 0; return m; }
     // Wire the CPU so the MMU can raise the VBL (and later DOC/scanline) IRQ.
     void setCpu(CPU65816* c) { cpu_ = c; }
 
-    // Host keyboard → the classic $C000 latch (bit7 = strobe). The Mega II
-    // presents ADB keys here for 8-bit software; $C010 clears the strobe.
-    void keyDown(uint8_t ascii) { kbdLatch_ = uint8_t(ascii | 0x80); }
+    // Host keyboard → the classic $C000 latch (bit7 = strobe) + an ADB keyboard
+    // interrupt. GS/OS reads the ASCII from $C000 in an interrupt handler (it
+    // never polls $C000), so a key must both latch the ASCII and raise the ADB
+    // IRQ; the $C010 strobe-clear consumes the event. See keyEvent()/DEV § ADB.
+    void keyDown(uint8_t ascii) { keyEvent(uint8_t(ascii | 0x80)); }
+    void keyEvent(uint8_t latch);
+    void setKbdIntStatus(uint8_t s) { kbdIntStatus_ = s; }   // dev: tune the $C026 keycode byte
+
+    // Host keyboard modifiers → ADB KEYMODREG ($C025). Bit layout (Apple IIgs
+    // Hardware Reference, ADB GLU): b7 command(⌘/open-apple), b6 option(solid-
+    // apple), b4 keypad, b3 repeat, b2 caps-lock, b1 control, b0 shift.
+    void setKeyModifiers(uint8_t mod) { keyMod_ = mod; }
+
+    // Host mouse → ADB GLU mouse register ($C024 MOUSEDATA, status $C027). The
+    // firmware/toolbox reads X then Y (7-bit signed delta + button in bit7),
+    // gated by the mouse-data-available bit. Deltas accumulate between reads.
+    void mouseMove(int dx, int dy);
+    void mouseButton(bool down);
 
     // Host joystick → paddles ($C064-$C067, RC-timed via $C070) + push buttons
     // ($C061-$C063, bit7 = pressed). Axes are 0..255 (128 = centre).
@@ -131,8 +147,22 @@ public:
     // (block-level, the IIgs 3.5" convention). See ProDosHdd + POM2 SmartPortCard.
     bool loadDisk35(const std::string& path) { return disk35_.loadImage(path); }
     void ejectHdd() { hdd_.eject(); }        // clear slot 7 so a slot-5 3.5" disk boots
-    void ejectDisk35() { disk35_.eject(); }
+    void ejectDisk35() { disk35_.eject(); disk35Changed_ = true; disk35SwitchIo_ = true; }
     bool hddLoaded() const { return hdd_.loaded(); }
+    bool hddBootable() const { return hdd_.bootable(); }   // block-0 byte 0 == $01
+    // Hot-swap the 3.5" without a reset (Installer disk swaps): change the image and
+    // arm the disk-switched signal. The media-change signal is a one-shot SmartPort
+    // **$2E** returned on the next block READ/WRITE (KEGS' just_ejected), which makes
+    // GS/OS drop the cached volume and re-read block 2 to re-identify it by name (the
+    // Installer's "insert SystemTools1" prompt). NB: only on READ/WRITE, *not* STATUS
+    // — GS/OS STATUS-polls the drive continuously, and firing $2E on STATUS lets that
+    // poll consume the one-shot before the actual file access, so the swap goes
+    // unnoticed. STATUS reports it as bit0 of the status byte instead. See smartportCall.
+    bool swapDisk35(const std::string& path) {
+        bool ok = disk35_.loadImage(path);
+        disk35Changed_ = true; disk35SwitchIo_ = true;
+        return ok;
+    }
     Iwm& iwm() { return iwm_; }
     Es5503& doc() { return doc_; }
     Scc8530& scc() { return scc_; }
@@ -147,16 +177,35 @@ public:
 
     // ── introspection (for the boot-trace harness / video / debugger) ────
     uint8_t shadowReg() const { return shadow_; }
+    uint32_t sp5Calls() const { return sp5Calls_; }   // slot-5 SmartPort/ProDOS calls (poll liveness)
+
+    // Snapshot: RAM + MMU/softswitch/LC/video-timing/ADB/clock/BRAM + DOC +
+    // the mounted media paths (remounted on load if they differ). Transients
+    // (speaker stamps, slow-penalty accumulators, diagnostics) reset on load.
+    void saveState(std::ostream& os) const;
+    bool loadState(std::istream& is);
     uint8_t speedReg()  const { return speed_; }
     bool    romLoaded() const { return !rom_.empty(); }
     uint32_t romBankBase() const { return romBankBase_; }
     const uint8_t* slowRam() const { return slowRam_.data(); }   // $E0/$E1 (video)
+    const uint8_t* bram() const { return bram_; }                // 256-byte battery RAM
     uint8_t newVideo()  const { return newvideo_; }              // $C029
     bool    shrEnabled() const { return (newvideo_ & 0x80) != 0; }
     bool    text80()    const { return eightyCol_; }
     uint8_t textColor() const { return txtColor_; }              // $C022: fg = hi nibble, bg = lo
     uint8_t borderColor() const { return clkCtl_ & 0x0F; }       // $C034 bits0-3 (16-colour index)
     bool    page2()     const { return page2_; }
+    // CPU hardware-vector pull ($00FFE4-$00FFFF). On the IIgs these always read
+    // ROM even when the language card has RAM banked in at $E000-$FFFF: GS/OS
+    // runs with LC RAM read-enabled but never installs RAM vectors — it reaches
+    // its interrupt handlers through the fixed ROM stubs at $C071-$C07F. Without
+    // this, every IRQ under GS/OS pulls an uninitialised-RAM vector and crashes.
+    uint8_t vectorPull(uint16_t off) {
+        // Flat-bus CPU unit tests (Tom Harte) have no ROM: fall back to the
+        // normal bus so BRK/COP vector reads still hit the test's RAM image.
+        if (testMode_ || rom_.empty()) return read8(off);
+        return rom_[(uint32_t(0xFF - romBankBase_) << 16) + off];
+    }
     // Legacy //e display mode (for the VGC).
     bool    textMode()  const { return textMode_; }
     bool    mixed()     const { return mixed_; }
@@ -178,7 +227,7 @@ private:
     std::vector<uint8_t> fastRam_;    // banks $00.. (size = fastRamKB_)
     std::vector<uint8_t> slowRam_;    // 128 KB, banks $E0/$E1
     std::vector<uint8_t> rom_;        // 128 or 256 KB
-    uint32_t fastRamKB_ = 1024;
+    uint32_t fastRamKB_ = 8192;   // full fast side $00-$7F (ROM 03 max 8 MB)
     uint32_t romBankBase_ = 0xFC;     // $FC (256 KB) or $FE (128 KB)
 
     // MMU / soft-switch state.
@@ -193,7 +242,7 @@ private:
     bool eightyCol_ = false, altchar_ = false;
     bool textMode_ = true, mixed_ = false, dhgr_ = false;   // $C050-$C053, $C05E/F
     // Language card.
-    bool lcRamRead_ = false, lcRamWrite_ = false, lcBank2_ = true, lcPreWrite_ = false;
+    bool lcRamRead_ = false, lcRamWrite_ = true, lcBank2_ = true, lcPreWrite_ = false;
     // Keyboard latch.
     uint8_t kbdLatch_ = 0;
     // Joystick / paddles.
@@ -204,6 +253,14 @@ private:
     std::vector<uint64_t> spkEvents_;
     // Slow-side access penalty accumulator, in master-clock ticks (14.318 MHz).
     long slowPenMaster_ = 0;
+    long slowPenSeen_ = 0;    // high-water for tick()'s per-instruction penalty delta (DOC timing)
+    bool docIrqLast_ = false; // last DOC IRQ level mirrored to the CPU (edge-only updates)
+    uint32_t sp5Calls_ = 0;   // slot-5 device-call counter (diagnostics)
+    uint8_t  diskReg_ = 0;    // $C031 DISKREG (b7 = 3.5" select, b6 = head select)
+    // Single edge-tracked mirror of the DOC IRQ line — EVERY path that can change
+    // the pend state must go through this (a direct setIrqLine call elsewhere would
+    // desync docIrqLast_ and a later re-assert would be skipped).
+    void mirrorDocIrq();
     static constexpr int kSlowExtraMaster = 9;   // 14 (slow cycle) − 5 (fast cycle)
     // Charge one slow-side access (no-op unless in 2.8 MHz fast mode).
     void chargeSlow() { if (speed_ & SPEED_HIGH) slowPenMaster_ += kSlowExtraMaster; }
@@ -214,13 +271,59 @@ private:
     // (real keyboard/mouse routing lands later). See DEV § ADB.
     bool    adbDataReady_ = false;
     uint8_t adbResponse_ = 0;
-    // Battery RAM ($C033/$C034 serial clock/BRAM interface).
-    uint8_t clkData_ = 0, clkCtl_ = 0;
-    uint8_t bram_[256] = {0};
+    // ADB µC command machine (KEGS adb.c HLE): a $C026 write is either a new
+    // command byte or a parameter for the pending one; responses queue up and
+    // are drained by $C026 reads. $C027 writes latch the interrupt-ENABLE bits
+    // (b6 mouse, b4 data, b2 keyboard) — games program these and then take the
+    // ADB IRQ instead of polling (Arkanoid writes $30, Battle Chess talks the
+    // µC directly; the old stub ignored both → dead in-game mice).
+    uint8_t adbIntEn_ = 0;                 // latched $C027 enable bits ($54 mask)
+    uint8_t adbMode_ = 0;                  // µC modes byte (cmd $04 set / $05 clear)
+    uint8_t adbCmd_ = 0;                   // pending command
+    int     adbParamsLeft_ = 0;            // parameter bytes still expected
+    uint8_t adbParams_[8] = {0};
+    int     adbParamCount_ = 0;
+    uint8_t adbResp_[16] = {0};            // response queue
+    int     adbRespN_ = 0, adbRespI_ = 0;
+    void    adbCommand(uint8_t v);         // handle a $C026 write
+    void    adbQueue(uint8_t v) { if (adbRespN_ < 16) adbResp_[adbRespN_++] = v; adbDataReady_ = true; }
+    // ADB mouse ($C024 MOUSEDATA / $C027 KMSTATUS) + keyboard modifiers ($C025).
+    // Deltas accumulate from the host; a read of $C024 returns X then Y (the
+    // $C027 bit1 X/Y toggle), each carrying the button in bit7, and the second
+    // (Y) read clears the data-available bit ($C027 bit7). See DEV § ADB.
+    int      mouseDX_ = 0, mouseDY_ = 0;   // pending host deltas (clamped on read)
+    bool     mouseBtn_ = false;            // button currently down
+    bool     mouseDataFull_ = false;       // $C027 bit7 — movement/button pending
+    bool     mouseReadY_ = false;          // $C027 bit1 — false: X next, true: Y next
+    uint8_t  keyMod_ = 0;                  // $C025 KEYMODREG
+    uint64_t mouseSetCycle_ = 0;           // videoCycles_ when mouse data was posted
+    bool     kbdIntPending_ = false;       // a key event awaits the ROM handler
+    uint8_t  kbdIntStatus_ = 0x40;         // $C026 status byte routing to the kbd handler
+    uint64_t kbdSetCycle_ = 0;             // videoCycles_ when the key was posted
+    void updateAdbIrq();                   // assert IRQ_SRC_ADB while mouse/key data pending
+    // RTC + Battery RAM chip ($C033 CLOCKDATA / $C034 CLOCKCTL, serial protocol).
+    // The ROM writes command/address bytes to $C033 and strobes $C034 bit7; the
+    // chip serves the real-time-clock seconds (from the host clock) or the
+    // 256-byte battery RAM (Control Panel settings — startup slot, date format,
+    // …). MAME apple2gs.cpp clock. Without it GS/OS shows a bogus date and the
+    // Control Panel can't persist the boot slot.
+    enum ClkState { CLK_IDLE, CLK_ADDR, CLK_DATA };
+    enum ClkSrc   { SRC_SECONDS, SRC_BRAM, SRC_INTERNAL };
+    ClkState clkState_ = CLK_IDLE;
+    ClkSrc   clkSrc_ = SRC_SECONDS;        // what the pending data phase reads/writes
+    uint8_t  clkData_ = 0, clkCtl_ = 0;
+    uint8_t  clkAddr_ = 0;                 // BRAM byte address for the data phase
+    uint8_t  clkReg_ = 0;                  // seconds (0-3) or internal (0-1) register index
+    uint8_t  clkInternal_[2] = {0, 0};     // test ($0) + write-protect ($1) registers
+    bool     clkRead_ = false;
+    uint8_t  bram_[256] = {0};
+    void     clockStrobe(uint8_t c034);    // advance the $C033/$C034 transaction
+    uint8_t  rtcByte(int n) const;         // byte n of the 32-bit RTC seconds count
     // Video / interrupt timing.
-    static constexpr int kLineCycles = 65;
-    static constexpr int kLines      = 262;
-    uint64_t videoCycles_ = 0;
+    static constexpr int kLineCycles    = 65;                 // slow (1.02 MHz) cycles per line
+    static constexpr int kLines         = 262;
+    static constexpr int kMasterPerLine = kLineCycles * 14;   // 910 master ticks per line
+    uint64_t videoCycles_ = 0;        // MASTER-clock ticks (14.318 MHz — wall time)
     int      lastVpos_ = 0;
     uint8_t  intflag_ = 0;            // $C046 INTFLAG (VBL=0x08, QUARTER=0x10)
     uint8_t  inten_ = 0;              // $C041 INTEN  (VBL=0x08, QUARTER=0x10)
@@ -231,6 +334,8 @@ private:
     Scc8530  scc_;                    // SCC 8530 serial ($C038-$C03B)
     ProDosHdd hdd_{7};                // ProDOS hard-disk card in slot 7
     ProDosHdd disk35_{5, true};       // 800K 3.5" SmartPort drive in slot 5 (WDM-trap ROM)
+    bool      disk35Changed_ = false;  // a 3.5" swap/eject → report "disk switched" in STATUS bit0
+    bool      disk35SwitchIo_ = false; // a 3.5" swap/eject → return $2E on the next block READ/WRITE once
     CPU65816* cpu_ = nullptr;         // non-owning; for IRQ assertion
 
     // helpers
@@ -245,6 +350,8 @@ private:
     int physBank01(uint16_t off, bool writing) const;
     uint8_t  lcRead(uint8_t bank, uint16_t off);
     void     lcWrite(uint8_t bank, uint16_t off, uint8_t v);
+    uint8_t  slowLcRead(uint8_t bank, uint16_t off);           // Mega II LC ($E0/$E1 $D000+)
+    void     slowLcWrite(uint8_t bank, uint16_t off, uint8_t v);
     void     lcSwitch(uint16_t off, bool writing);
     bool     maybeShadow(uint8_t bank, uint16_t off, uint8_t v);   // true = wrote slow side
     // Recompute the shared CPU IRQ lines from the flag/enable registers.
@@ -253,7 +360,7 @@ private:
     // SmartPort HLE (slot-5 3.5" drive).
     void    prodosBlockCall();       // WDM $C6 — ProDOS block via $42-$47
     void    smartportCall();         // WDM $C5 — SmartPort dispatch (inline params)
-    uint8_t smartportStatus(uint8_t unit, uint8_t code, uint32_t list);
+    uint8_t smartportStatus(uint8_t unit, uint8_t code, uint32_t list, bool ext);
 };
 
 #endif // POMIIGS_IIGSMEMORY_H

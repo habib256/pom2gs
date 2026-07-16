@@ -298,7 +298,18 @@ void CPU65816::step() {
         p_ |= Status::I; p_ &= ~Status::D;
         pbr_ = 0;
         uint16_t vec = emulation_ ? vecEmu : vecNative;
-        pc_ = uint16_t(m.read8(vec) | (m.read8(uint16_t(vec + 1)) << 8));
+        // Hardware-vector pulls read ROM even with LC RAM banked in, in BOTH
+        // native and emulation mode: the IIgs asserts the 65816 VP (vector-pull)
+        // line, and the FPI forces the vector fetch to ROM regardless of the
+        // language-card state (see IIgsMemory::vectorPull; flat-bus CPU tests
+        // fall back to RAM). GS/OS never installs RAM interrupt vectors — its
+        // handlers are reached through the fixed ROM stubs at $C071-$C07F
+        // ($00FFFE emul IRQ = $00FFEE native = $C074 = the GS Interrupt Mgr).
+        // This matters when GS/OS briefly drops to emulation mode to call a
+        // ProDOS-8 block driver (e.g. enumerating a slot-7 hard disk) WITHOUT
+        // masking IRQs: a VBL IRQ during that window pulled $00FFFE from LC RAM
+        // ($0000) and derailed to $00:0000. (Diagnosed with tests/hdd_trace.)
+        pc_ = uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec + 1)) << 8));
         cycles_ += 7;
     };
     if (NMI_) { NMI_ = 0; serviceInt(0xFFEA, 0xFFFA); return; }
@@ -657,14 +668,21 @@ void CPU65816::step() {
             pushB(uint8_t(p_ | (emulation_ ? 0x30 : 0x00)));   // native: push P as-is (no B)
             p_ |= Status::I; p_ &= ~Status::D;
             uint16_t vec = emulation_ ? 0xFFFE : 0xFFE6; pbr_ = 0;
-            pc_ = uint16_t(m.read8(vec) | (m.read8(uint16_t(vec+1))<<8)); } break; // BRK
+            pc_ = emulation_ ? uint16_t(m.read8(vec) | (m.read8(uint16_t(vec+1))<<8))
+                             : uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec+1))<<8)); } break; // BRK
         case 0x02: { fetch();
             if (!emulation_) pushB(pbr_);
             pushW(pc_);
             pushB(uint8_t(p_ | (emulation_ ? 0x30 : 0)));
             p_ |= Status::I; p_ &= ~Status::D;
             uint16_t vec = emulation_ ? 0xFFF4 : 0xFFE4; pbr_ = 0;
-            pc_ = uint16_t(m.read8(vec) | (m.read8(uint16_t(vec+1))<<8)); } break; // COP
+            // COP keeps //e language-card semantics in emulation mode: GS/OS
+            // *does* install a RAM COP handler at $00/FFF4 (→ $FC85) and dispatches
+            // its emulation-mode COP calls through it, unlike the IRQ/BRK vector
+            // ($00/FFFE) which it leaves null and expects to reach ROM. Reading
+            // ROM here would send GS/OS's COP calls to the ROM monitor and hang.
+            pc_ = emulation_ ? uint16_t(m.read8(vec) | (m.read8(uint16_t(vec+1))<<8))
+                             : uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec+1))<<8)); } break; // COP
         case 0xCB: /* WAI */ break;
         case 0xDB: /* STP */ running_ = false; break;
 

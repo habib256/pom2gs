@@ -33,7 +33,7 @@ namespace {
 // voice for 8-bit software; keep it comfortably below full scale so it doesn't
 // clip when it stacks with the DOC.
 constexpr float kSpkAmp   = 0.22f;
-constexpr float kDocGain  = 0.55f / 32768.0f;
+constexpr float kDocGain  = 0.95f / 32768.0f;   // music near full scale (final mix clamps)
 // Fast-side clock (2.8 MHz). Only used as a sanity reference; the per-frame
 // sample count is derived from sampleRate/60 so it never drifts against the
 // device rate.
@@ -68,7 +68,21 @@ AudioOut::AudioOut()
     sampleRate_ = raw->sampleRate ? raw->sampleRate : 44100;
     device_ = raw;
     available_ = true;
+    // Pre-fill ~35 ms of silence (the rate-control band's centre): the device
+    // starts pulling immediately but the first mixFrame lands a frame later —
+    // the empty-ring gap was ~55 underruns in the first second (a crackly boot
+    // beep).
+    write_.store(1536, std::memory_order_release);   // ring_ is zero-initialised
     std::printf("Audio: miniaudio ready (%u Hz)\n", sampleRate_);
+    // POMWAV=<path>: record the mixed output for offline crackle analysis.
+    if (const char* wp = std::getenv("POMWAV")) {
+        wavFile_ = std::fopen(wp, "wb");
+        if (wavFile_) {
+            uint8_t hdr[44] = {0};                    // placeholder; fixed in dtor
+            std::fwrite(hdr, 1, 44, wavFile_);
+            std::printf("Audio: recording to %s\n", wp);
+        }
+    }
 #endif
 }
 
@@ -81,6 +95,20 @@ AudioOut::~AudioOut()
         device_ = nullptr;
     }
 #endif
+    if (wavFile_) {                                   // finalise the POMWAV header
+        const uint32_t dlen = wavSamples_ * 2, rlen = 36 + dlen, fmtlen = 16;
+        const uint32_t rate = sampleRate_, bps = rate * 2;
+        const uint16_t pcm = 1, ch = 1, align = 2, bits = 16;
+        std::fseek(wavFile_, 0, SEEK_SET);
+        std::fwrite("RIFF", 1, 4, wavFile_); std::fwrite(&rlen, 4, 1, wavFile_);
+        std::fwrite("WAVEfmt ", 1, 8, wavFile_);
+        std::fwrite(&fmtlen, 4, 1, wavFile_); std::fwrite(&pcm, 2, 1, wavFile_);
+        std::fwrite(&ch, 2, 1, wavFile_); std::fwrite(&rate, 4, 1, wavFile_);
+        std::fwrite(&bps, 4, 1, wavFile_); std::fwrite(&align, 2, 1, wavFile_);
+        std::fwrite(&bits, 2, 1, wavFile_);
+        std::fwrite("data", 1, 4, wavFile_); std::fwrite(&dlen, 4, 1, wavFile_);
+        std::fclose(wavFile_); wavFile_ = nullptr;
+    }
 }
 
 // ── SPSC ring ────────────────────────────────────────────────────────────
@@ -90,8 +118,9 @@ void AudioOut::push(const float* s, int n)
     const uint32_t r = read_.load(std::memory_order_acquire);
     const uint32_t used = w - r;
     uint32_t freeSlots = uint32_t(kRingSize) - used;
-    if (freeSlots == 0) return;                    // ring full — drop (device stalled)
+    if (freeSlots == 0) { drops_.fetch_add(1, std::memory_order_relaxed); return; }   // device stalled
     int toWrite = std::min<int>(n, int(freeSlots));
+    if (toWrite < n) drops_.fetch_add(1, std::memory_order_relaxed);                  // partial drop
     for (int i = 0; i < toWrite; ++i)
         ring_[(w + uint32_t(i)) & (kRingSize - 1)] = s[i];
     write_.store(w + uint32_t(toWrite), std::memory_order_release);
@@ -103,6 +132,7 @@ void AudioOut::pull(float* out, int n)
     const uint32_t w = write_.load(std::memory_order_acquire);
     const uint32_t avail = w - r;
     int toRead = std::min<int>(n, int(avail));
+    if (toRead < n) underruns_.fetch_add(1, std::memory_order_relaxed);   // audible gap
     for (int i = 0; i < toRead; ++i)
         out[i] = ring_[(r + uint32_t(i)) & (kRingSize - 1)];
     for (int i = toRead; i < n; ++i) out[i] = 0.0f;   // underflow → silence
@@ -130,9 +160,21 @@ void AudioOut::mixFrame(IIgsMemory& mem)
     const uint64_t cyc0 = lastCyc_;
     lastCyc_ = cyc1;
 
-    // One frame worth of samples. 44100/60 and 48000/60 are both integral.
-    const int n = int(sampleRate_ / 60);
+    // One frame worth of samples (44100/60 = 735) — with DYNAMIC RATE CONTROL:
+    // we push vsync-paced (~60 Hz), the device pulls at its own crystal's 44100.
+    // The two clocks drift (fractions of a %), so the ring slowly drains or
+    // fills until it underruns (a crackle) or drops a burst — the "random
+    // cracks" during long music playback. Nudge this frame's sample count a
+    // hair (±8 ≈ ±0.65 %, inaudible) to keep the ring centred in a band, the
+    // standard emulator fix (KEGS sound.c does the same).
+    int n = int(sampleRate_ / 60);
     if (n <= 0) return;
+    {
+        const uint32_t fill = write_.load(std::memory_order_relaxed)
+                            - read_.load(std::memory_order_acquire);
+        if (fill < 1100)      n += 8;              // draining → produce a bit more
+        else if (fill > 1900) n -= 8;              // backing up → a bit less
+    }
     const uint64_t span = (cyc1 > cyc0) ? (cyc1 - cyc0) : 1;
 
     if (int(mixBuf_.size()) < n) mixBuf_.resize(n);
@@ -148,18 +190,42 @@ void AudioOut::mixFrame(IIgsMemory& mem)
     // Any events past the last sampled cycle still flip the persistent level.
     for (; ei < ev.size(); ++ei) spkLevel_ = !spkLevel_;
 
-    // DOC: render and add. Silent (all oscillators halted) at boot → no-op.
-    mem.docChip().render(docBuf_.data(), n);
+    // DOC: drain the samples the MMU produced cycle-accurately this frame
+    // (IIgsMemory::tick → Es5503::tickMaster), resampled to our rate. Silent
+    // (all oscillators halted) at boot → flat line.
+    mem.docChip().drainResampled(docBuf_.data(), n, sampleRate_);
     for (int s = 0; s < n; ++s) {
         float v = mixBuf_[s] + float(docBuf_[s]) * kDocGain;
         if (v > 1.0f) v = 1.0f; else if (v < -1.0f) v = -1.0f;
         mixBuf_[s] = v;
     }
 
+    // AC-couple the mix (one-pole DC blocker, fc ≈ 20 Hz) — a real speaker can't
+    // hold DC. The 1-bit speaker level parked the output at a ±kSpkAmp offset,
+    // so any device-level gap (an underrun's zero-padding) was a full-amplitude
+    // step = a loud click; on a ~0-centred signal the same gap is nearly
+    // inaudible. Also gives the square wave the exponential sag of the real
+    // cone. Music (no DC) passes through untouched.
+    for (int s = 0; s < n; ++s) {
+        const float x = mixBuf_[s];
+        const float y = x - dcX_ + 0.9971f * dcY_;
+        dcX_ = x; dcY_ = y;
+        mixBuf_[s] = y;
+    }
+
     // Master volume / mute.
     const float g = muted_.load(std::memory_order_relaxed) ? 0.0f
                                                            : volume_.load(std::memory_order_relaxed);
     if (g != 1.0f) for (int s = 0; s < n; ++s) mixBuf_[s] *= g;
+
+    // POMWAV=<path>: append the mixed output to a WAV for offline analysis
+    // (crackle hunting — the header is finalised in the destructor).
+    if (wavFile_) {
+        static std::vector<int16_t> w16; if (int(w16.size()) < n) w16.resize(n);
+        for (int s = 0; s < n; ++s) w16[s] = int16_t(mixBuf_[s] * 32767.0f);
+        std::fwrite(w16.data(), 2, size_t(n), wavFile_);
+        wavSamples_ += uint32_t(n);
+    }
 
     push(mixBuf_.data(), n);
 }

@@ -4,6 +4,618 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — the video/wall-clock timebase counted CPU cycles (VBL at 164 Hz!)
+- **Game music ran ~2.8× fast and digitized samples stopped ~2.8× early** (Captain
+  Blood, Transylvania III), while synthLAB's tempo was correct. Root cause: the
+  machine's wall-clock timebase (`videoCycles_`) counted **raw CPU cycles**, so at
+  2.8 MHz the emulated video beam scanned 2.8× too fast — **VBL fired at ~164 Hz
+  instead of 60** — and every VBL-clocked engine (game music tick, sample-duration
+  timers) ran accelerated. synthLAB was immune because it clocks from the DOC.
+  A chip-level audit had already cleared the DOC (a one-shot sample test measures
+  EXACTLY the hardware duration at 1/5/32 oscillators — pinned in scratchpad).
+- **Fix: one master-clock timebase** (14.318 MHz) for everything: `tick()` computes
+  the instruction's master ticks once (CPU cycles × 5 fast / 14 slow + the
+  slow-side stall penalty — the beam keeps moving while the CPU stalls) and
+  advances the beam AND the DOC with it. One line = 65 slow cycles × 14 = 910
+  ticks; 262 lines = 238420 = exactly the frame target. Converted consumers:
+  `vpos()`, HORIZCNT (`/14`), the ADB 2-frame valves, the paddle RC constant
+  (11 slow cycles × 14 per count). At reset the machine is slow (×14), so all
+  slow-side timing — and every existing test — is bit-identical.
+- Verified: **Captain Blood now completes its intro to "PRESS FIRE TO BEGIN"**
+  (previously stalled at the planet screen waiting on its sample/VBL state
+  machine); GS/OS boots clean; Battle Chess raster sync intact; 15/15 gates.
+
+### Fixed — in-game mice: ADB GLU interrupt-enables + µC command machine
+- **Games' mice were dead** (Battle Chess's hand cursor frozen; Arkanoid's paddle
+  barely responding) while the Finder mouse worked. Probes (ADBDBG read/write traces
+  + injected motion): games program the ADB GLU directly — Arkanoid writes a µC
+  command stream to `$C026` at init (`$04/$05` set/clear modes, `$06` set config…)
+  then writes **`$C027 = $30`** to enable the DATA interrupt, and waits for ADB
+  **IRQs** instead of polling; the old stub ignored `$C027` writes entirely and
+  answered every `$C026` command with a canned byte, and the ADB IRQ was gated on a
+  "native mode + VBL int enabled" heuristic games never satisfy. Three fixes
+  (KEGS `adb.c` as the HLE reference):
+  1. **`$C027` writes latch the interrupt-enable bits** (b6 mouse / b4 data / b2
+     keyboard) and reads report them (b6 still also raised with b7 for the ROM's
+     poll path, which never programs enables).
+  2. **`updateAdbIrq` follows the hardware rule**: a source delivers when ITS
+     enable bit is set (the legacy sysUp gate is kept for the ROM/GS-OS path).
+  3. **A real `$C026` µC command machine** (`adbCommand`): commands consume their
+     parameter counts and queue real responses (modes byte read-back, version,
+     charsets/layouts, config), drained by `$C026` reads.
+  Verified headless: Battle Chess attract, 120 frames of injected motion → 676
+  pixels changed (cursor moves) vs 0 in the no-motion control. Snapshot format
+  bumped to v2 (+ the ADB enables/modes).
+
+### Fixed — HORIZCNT ($C02F) horizontal beam counter (Battle Chess froze at the board)
+- **Battle Chess drew its chessboard then froze**: the game raster-syncs by polling
+  `$C02F` in a tight loop at `$00:AB26` (`LDA $C02F / AND #$1F / BEQ`), waiting for
+  the beam to enter a horizontal window. POMIIGS returned only the vertical parity
+  bit — **the horizontal counter bits 6-0 were stuck at 0**, so the loop spun on a
+  frozen beam forever. Fix (IIgs HW Ref): `$C02F` = vertical count bit0 in bit7 +
+  the horizontal counter in bits 6-0 (one `$00` state then `$40-$7F` across the
+  65-cycle scan line, derived from `videoCycles_ % 65`). Battle Chess now runs into
+  its attract mode (replaying Saemisch–Nimzovich, Copenhagen 1923). First fix from
+  the games-compat pass — any raster-synced title benefits.
+
+### Added — universal media browser (the Load dialog grew directory navigation)
+- Every "Load…"/"Insert…" dialog is now a real file browser: **Places** bar
+  (disks35 / hdv / roms / the games share / Home — shown only if they exist),
+  **Up**, directory entries (`[+]`) with double-click navigation, files filtered
+  by media kind (.rom/.bin, .hdv/.po/.2mg, .2mg/.po/.dsk), double-click-to-load,
+  a sticky last-directory per kind, and the manual path field kept for exotic
+  locations (typing a folder navigates into it). Unblocks browsing the 361-image
+  games collection from the UI.
+
+### Added — Save/Load state (F7/F8, `Snapshot.h/.cpp`)
+- Machine snapshots to `states/quick.pgss` (Machine menu or F7 save / F8 load):
+  a `PGSS` v1 header + 65C816 registers + `IIgsMemory::saveState` (fast+slow RAM,
+  every MMU/LC/video/ADB/clock softswitch, BRAM, the full DOC via
+  `Es5503::saveState`, and the mounted media paths — remounted on load if they
+  differ). POM2's MachineSnapshot split: the wrapper owns the file format, each
+  subsystem owns its field roster. Host transients (speaker stamps, audio rings,
+  penalty accumulators) reset on load and the IRQ lines are re-derived from the
+  restored registers. **Gate `snapshot_test`: boots GS/OS from the HDD, saves,
+  diverges 1M instructions, loads — the next 200 000 instructions retrace the
+  identical PC path.** The RewindBuffer ring (POM2 port) comes later — the IIgs
+  fast side is up to 8 MB per snapshot, so the ring needs delta compression.
+
+### Fixed — residual cracks: speaker DC offset amplified device-level gaps
+- After the `$C031` fix, a 100 s `POMWAV` capture of a full synthLAB session showed the
+  MIXED signal essentially clean (2 sub-1100 jumps in 100 s, both plausibly note
+  attacks) — so the remaining audible cracks happen **after the tap**, at the device
+  layer (an underrun's zero-padding or a push drop). The amplifier: the 1-bit speaker
+  level parked the output at a **±0.15 DC offset**, so any zero-padded gap was a
+  full-amplitude step = a loud click. Fix: **AC-couple the mix** (one-pole DC blocker,
+  fc ≈ 20 Hz) — a real speaker can't hold DC; gaps now land on a ~0-centred signal
+  (nearly inaudible) and the square wave gets the real cone's exponential sag. Also
+  added a push-side `drops` counter to the `POMDBG` line (the other loss the WAV tap
+  can't see).
+
+### Fixed — THE "random cracks" root cause: $C031 is DISKREG, not a speaker mirror
+- **Every system beep rendered as a sharp CLICK instead of a tone — the "cracks" heard
+  since the first boot.** Diagnosed from a `POMWAV` capture (beeps appeared as 3-4
+  isolated edges with the speaker level then STUCK for 18 s) + a headless probe that
+  compared raw `$C030` toggle stamps against the rendered wave: the boot beep's **196
+  toggles rendered as 4 edges**, and the stamps arrived in **same-cycle pairs**
+  (`0, 1792, 0, 1792 …`) that cancelled inside one output sample. The pair-maker: the
+  IIgs ROM's beep loop is a **16-bit `LDA $C030`** (`FF:9AE7`, m=0) whose second bus
+  access hits **$C031** — and POMIIGS toggled the speaker on `$C031` too, keeping the
+  classic Apple II's partial `$C030-$C03F` decode. **On the IIgs, `$C031` is DISKREG**
+  (3.5" drive/head select — MAME `apple2gs.cpp`), NOT a speaker mirror. Fix: only
+  `$C030` toggles; `$C031` is now a readable/writable DISKREG stub. After the fix the
+  probe shows **93 toggles → 93 edges**, a clean ~285 Hz square — the classic IIgs
+  boot "bong", audible for the first time. Every GS/OS beep (alerts, synthLAB events)
+  was a crack before this.
+
+### Fixed — random crackles during music (clock drift) + DOC output level
+- **Random cracks that ruined long music playback**: the mixer pushes vsync-paced
+  (~60 Hz × 735 samples) while the audio device pulls at its own crystal's 44100 Hz —
+  the two clocks drift by fractions of a percent, so the ring slowly drains (underrun
+  crackle) or fills (burst drop) every few minutes. Fix: **dynamic rate control**
+  (KEGS `sound.c` approach) — each frame nudges the sample count ±8 (±0.65 %,
+  inaudible) to keep the ring centred in a [1100..1900] band; the startup pre-fill sits
+  at the band centre (1536 ≈ 35 ms). Underruns and drops become structurally
+  impossible while the emulator keeps ~60 fps.
+- **DOC still too quiet**: mix gain `kDocGain` 0.55 → 0.95 (music near full scale; the
+  final float mix clamps). NB the GS Control Panel volume slider genuinely attenuates
+  now (Sound GLU bits 0-3) — half volume = half amplitude.
+- `pomiigs.cfg` default `disk35 =` is now the synthLAB disk (mounted online at boot in
+  `boot = hdd`, see below).
+
+### Fixed — 3.5" menu inserts invisible when booting from the HDD (empty drive)
+- **Inserting a 3.5" disk from the menu did nothing in `boot = hdd`** (synthLAB never
+  mounted). Root-caused with the new `POMDBG=1` per-second health line (wall FPS,
+  slot-5 device calls, DOC samples/s, audio underruns): the user's trace showed
+  **`sp5=0/s` forever** — GS/OS never enumerated the drive. Two layers:
+- **(1) The 3.5" card's firmware vanished without a disk** (`slotRomRead` gated the
+  slot-5 card ROM on `loaded()`): an empty-at-boot drive served the INTERNAL SmartPort
+  firmware instead, GS/OS bound the real-IWM Sony driver to a drive we don't model at
+  that level, and our HLE was invisible. The card ROM is now always present (a real
+  drive's firmware doesn't vanish with the media); STATUS reports "no disk" until an
+  image is inserted. After the fix the boot enumerates the drive (`sp5-boot=4`).
+- **(2) GS/OS never re-polls a SmartPort drive that was OFFLINE at boot** — its media
+  detection rides the `$2E` disk-switched error on the next access of an *online*
+  volume, and an empty drive gets no accesses. That's why every mount that ever worked
+  had a disk in the drive at boot. All references (KEGS/MAME) sidestep this by
+  modelling the real IWM/Sony port whose driver polls disk-in-place — our "low-level
+  IWM 3.5" TODO. Until then, **`boot = hdd` now also mounts the configured
+  `disk35 =`** so the drive is online from boot — and hot-swapping then works:
+  headless-verified end-to-end for the first time (boot HDD + Install online, menu-swap
+  to synthLAB → 35 slot-5 calls and the desktop icon within **1 s**).
+- Also: the audio device now pre-fills ~90 ms of silence — the empty-ring gap between
+  device start and the first mixed frame was ~55 underruns (an audibly crackly boot
+  beep; steady-state underruns measured 0/s for 100 s).
+
+### Fixed — DOC ring under-production (crackles) after the cycle-driven change
+- The first cycle-driven build **crackled much more**: the tick→master conversion
+  omitted the **slow-side stall penalty**, so the DOC ring under-produced every frame
+  (production = 238420−P ticks vs the frame loop's 238420) and the drain — at a fixed
+  nominal ratio — ran the ring dry, emitting hold-gaps. Two fixes: (1) `tick()` now
+  adds the per-instruction penalty delta (`slowPenMaster_` high-water peek — the same
+  accounting the frame loop uses); (2) `drainResampled` is **self-balancing**: it
+  spreads exactly what was produced since the last drain across the frame's output
+  samples (occupancy-driven, gapless by construction; pitch = the emulated rate; an
+  empty ring holds the last level). The CPU IRQ mirror is also edge-only now (was a
+  per-instruction atomic store). Pinned by doc_test 16.
+
+### Fixed — DOC follow-ups from the first synthLAB run (tempo, IRQ storm, volume)
+- **synthLAB played music (first DOC audio ever) but ~3× too slow, too quiet, and
+  eventually crashed to a BRK cascade in unmapped banks (`$4C`, `$B1`).** Three fixes:
+- **(1) Cycle-driven DOC (tempo).** The chip was only advanced once per video frame
+  (inside the audio mixer), so the timer-oscillator IRQs music engines derive their
+  TEMPO from were batched at 60 Hz — 3-4 IRQs merged into one → ~3× slow playback.
+  Now `IIgsMemory::tick` drives `Es5503::tickMaster` with the master-clock ticks each
+  instruction consumed (one native sample per 16×(oscs+2) ticks — MAME output_rate
+  restated in master ticks), into a ring that `Audio::mixFrame` drains resampled
+  (`drainResampled`). IRQs land at their real time; the CPU IRQ line mirrors per tick.
+  Boot perf unchanged (1500 frames ≈ 1.2 s headless). The project's own `emuCycles`
+  convention, finally applied to the DOC.
+- **(2) IRQ-line mask (the crash).** `irqPending()` tested ALL 32 pend bits but the
+  `$E0` ack scan only covers the ENABLED oscillator count — a stale pend above a
+  shrunken `$E1` count could hold the CPU IRQ line high forever: an interrupt storm
+  that chews the stack and derails into unmapped banks (the observed BRK cascade,
+  `K=$4C`/`$B1`). The line is now masked to the enabled count, and the per-tick
+  delivery (1) removes the batched multi-IRQ bursts that stressed the handler.
+- **(3) Output scaling (volume).** `(mix × gluVol) >> 7` (was >>8): a 4-8-voice
+  musical mix at max GLU volume now lands near full scale (doc_test tone rms 1436 →
+  2871). Pinned by `doc_test` check 16 (tickMaster/drainResampled tone).
+
+### Fixed — Ensoniq 5503 DOC: MAME-parity engine + two Sound GLU bugs (silent DOC)
+- **The Sound GLU control-register bits were SWAPPED** (`Es5503::gluRead/gluWrite`):
+  hardware (MAME `apple2gs.cpp` `$C03D` handlers) is **bit6 = RAM/registers select,
+  bit5 = address auto-increment** — POMIIGS had them inverted, so every DOC *register*
+  write done the normal way (`ctl=$2x`, registers + auto-inc) landed in **sound RAM**
+  instead: no oscillator was ever keyed on and the DOC stayed silent forever. (RAM
+  loads used `ctl=$6x` — both bits set — and worked by luck, masking the bug.)
+  Found by tracing a full GS/OS boot + BASIC run: 160k+ GLU writes, **zero** register
+  writes. Also added the **`$C03D` one-deep read latch** (MAME `m_sndglu_dummy_read`):
+  reads return the *previous* fetch — the dummy-read/stream protocol the `$E0` IRQ-ack
+  ISRs rely on.
+- **The oscillator engine was rewritten to MAME `es5503.cpp` parity** (was a partial
+  stub): **swap mode** with partner start (`pPartner->control &= ~1`) — the ping-pong
+  GS/OS's Sound Tools and synthLAB stream audio with; the **even-oscillator retrigger
+  quirk** ("verified on IIgs hardware", MAME `halt_osc`); free-run **phase-preserving
+  wrap** (`acc -= wtsize << resshift`); sync/AM halting like free-run; per-oscillator
+  **IRQ pend flags + the `$E0` protocol** (lowest pending osc in bits 5-1, read clears
+  one pend, line holds while others pend, bit7 = none); the exact
+  wavesizes/wavemasks/accmasks/resshifts tables; and **native-rate rendering** —
+  `docRate = clock/8/(oscs+2)` (894886/(N+2) Hz; 26.3 kHz at GS/OS's 32 oscillators)
+  resampled to the host rate, fixing the former "rendered at 44.1 kHz" ~68 %-sharp
+  pitch. GLU master volume (ctl bits 0-3) now scales the output. Pinned by the
+  rewritten `doc_test` (15 checks: tone, absolute pitch, swap ping-pong, `$E0` stream,
+  GLU decode + latch).
+- Verified along the way: the IIgs **boot beep and the text BELL are `$C030` speaker
+  tones, not DOC** (identical ~190-toggle signatures at boot and after a BASIC
+  `PRINT CHR$(7)`) — so a silent DOC during boot/Finder/BASIC is correct; the DOC's
+  first real customers are synthLAB / games / the Media Control sound patches.
+
+### Fixed — BASIC.System / ProDOS 8 launches from the GS/OS Finder (two MMU gaps)
+- **Launching BASIC.System (or any ProDOS-8 app) from the Finder crashed to the //e
+  monitor** (register dump on the text screen). Diagnosed with a temporary CPU trace
+  (`P8LOG`, since removed) and fixed as **two missing MMU pieces**, both cited from
+  MAME `apple2gs.cpp` + KEGS `moremem.c`:
+- **(1) The Mega II language card was missing** (`IIgsMemory::slowLcRead/slowLcWrite`).
+  Banks `$E0/$E1 $D000-$FFFF` are a full //e language card over slow RAM (MAME `lc_r`/
+  `lc_w` + the `m_lcbank` views): read-ROM mode shows the bank-`$FF` ROM; RAM mode banks
+  `$D000` (bank 2 lives in the unused `$C000-$CFFF` window, `m_megaii_ram[off+0xc000]`);
+  ALTZP swaps `$E0` onto the aux side; writes gated by the LC write-enable. POMIIGS
+  served **flat slow RAM** — LC bank 1/2 aliased into one region, so GS/OS's ProDOS-8
+  launch glue in the `$E0` LC (P8 lives in LC bank 2) was corrupted, and the launch
+  stub's RTL to `$E0:D3FA` executed garbage → BRK at `$E0:D406`. Also reset now matches
+  MAME's LC default: *read ROM, write **enabled**, bank 2* (write was disabled).
+- **(2) The internal `$C100-$CFFF` firmware was unmapped** (`IIgsMemory::slotRomRead`).
+  Slots other than our cards (5 = 3.5", 7 = HDD) returned **0** — so BASIC.System's
+  PR#3-style `JSR $C300` (80-column firmware) executed zeros (`$00` = BRK) → monitor.
+  Now every unclaimed slot page + the `$C800-$CFFF` expansion window serves the IIgs
+  internal firmware image from the bank-`$FF` ROM (`FF:C100-CFFF`), same as KEGS
+  (`g_rom_fc_ff`) and MAME (inh views).
+- **Verified end-to-end headless** (`scratchpad/basic_launch` harness: boots the HDD to
+  the Finder, drives it by keyboard — type-select `G`, ⌘-O, `B`, ⌘-O): ProDOS 8 V2.0.3
+  splash → `PRODOS BASIC 1.5` → the `]` prompt → typed `PRINT 2+2` → **`4`**. The
+  earlier "80-column display bug" report was this crash (the monitor's register dump
+  happens to render on the 80-col text screen); the 80-col renderer itself was fine.
+- Likely also fixes the **intermittent boot hang with audio crackle**: its trace
+  signature (spin at `FF:CF94` "polling EMStatus") turned out to be the ROM's **KEYIN
+  key-wait** — i.e. the machine had silently BRK'd to the monitor (`*` prompt, invisible
+  under the SHR boot screen) and was waiting for a keypress; same class of silent Cxxx/LC
+  crash as above. Needs interactive confirmation.
+
+### Added — GS/OS boots from the hard disk (`boot = hdd`)
+- With a full System 6.0.1 install on `hdv/GSOS.hdv`, **`boot = hdd` now starts GS/OS to
+  the Finder straight from the hard disk** (SHR on ~750k steps, ~141k toolbox dispatches,
+  desktop drawn, no derail; headless `hdd_trace none hdv/GSOS.hdv`). **Gotcha:** the
+  Installer's Easy Update copies the System Folder + the `PRODOS` loader but does **not**
+  rewrite the ProDOS **boot block** (block 0) on an already-formatted volume, so the
+  freshly-installed disk stayed non-bootable (byte 0 = `$00` → the slot-7 card chained to
+  the slot-5 install disk). The ProDOS boot block is a standard, device-agnostic block-0
+  loader (finds `PRODOS` in the volume directory and runs it). Fix: `make_prodos_hdd.py`
+  gained `--boot-from <prodos-disk>` to copy a real boot block from any bootable ProDOS/
+  GS-OS image (e.g. a System 6 install disk); `hdv/GSOS.hdv` now carries one. `pomiigs.cfg`
+  defaults to `boot = hdd`.
+
+### Fixed — full GS/OS 6.0.1 install to a hard disk (3.5" disk-swap detection)
+- **The System 6 Installer's disk-swap prompt ("insert SystemTools1") was never detected
+  once a *writable* HDD was mounted**, so a from-scratch install to the HDD couldn't
+  complete. Root-caused with a temporary SmartPort/ProDOS-block/HDD trace (`SP35LOG`)
+  fed by three interactive Installer runs: after a menu hot-swap **and** the dialog's OK
+  click, GS/OS made **zero** further slot-5 accesses — it answered the Installer from its
+  cached Volume Control Record and re-showed the prompt without ever re-reading the drive.
+  GS/OS runs **no periodic disk-insertion poll** on a drive it doesn't consider
+  disk-switched-capable, so neither the `$2E` block-READ one-shot nor STATUS bit0 could
+  fire (nothing polled/read the drive). **Fix: advertise the 3.5" SmartPort subtype
+  `$80`** (`IIgsMemory::smartportStatus`, std + ext DIB). The subtype byte's high bits
+  (Firmware Ref fig 7-7; A2 Tech Note "UniDisk 3.5 #2"): **bit7 = supports disk-switched
+  errors** ("removable, poll me"), **bit6 = the unintelligent Apple 3.5 Drive that needs
+  the host `AppleDisk3.5` driver**. Prior `$00` (UniDisk) lacked bit7 → GS/OS treated the
+  drive as fixed and never polled it. `$C0` (Apple 3.5) set bit7 **and** bit6 → GS/OS
+  demanded the AppleDisk3.5 low-level driver and crashed (POMIIGS is HLE — WDM-trap
+  SmartPort, no real IWM). **`$80` = bit7 only**: disk-switched-capable so GS/OS polls it,
+  without the driver-requiring Apple-3.5 bit — intelligent + removable, exactly our HLE
+  drive (and the value POM2's `SmartPortCard` uses for its 3.5"). With the drive now
+  polled, STATUS bit0 + the `$2E` one-shot invalidate the VCR and re-mount, so the
+  Installer walks all 7 disks and **installs GS/OS to the HDD in full**. Pinned by
+  `smartport_test` (DIB subtype = `$80`). *Sources: A2 Tech Note UniDisk 3.5 #2; Apple
+  IIgs Firmware Reference ch.7 fig 7-7; POM2 `SmartPortCard`.*
+
+### Fixed — GS/OS boots to the Finder with a hard disk mounted (install unblocked)
+- **GS/OS + a hard disk had never worked** — mounting any emulated HDD during boot
+  crashed (`TODO.md` PRIORITY: derails to `$A500`/`$4200`, or "Unable to load
+  START.GS.OS  Error=$0046"). GS/OS now boots all the way to the **Finder desktop**
+  with a blank or formatted HDD on slot 7 (screenshot-parity: the SHR menu bar +
+  desktop render identically to the no-HDD boot; ~150k–258k toolbox dispatches, no
+  derail). Diagnosed end-to-end with the new `tests/hdd_trace` dev tool; pinned by
+  `tests/hdd_test`. **Two independent bugs, both cited from the ranked references
+  (KEGS `iwm.c`/`clock.c`, MAME `apple2gs.cpp`, GSSquared `pdblock3`):**
+- **(1) Boot device stuck on slot 7 → `$0046`.** The ROM boot scan (`$FF/FAB6`,
+  `JMP ($0000)` at `$FF/FAD4`) walks slots `$C8`→ and finds the slot-7 HDD first
+  (our ProDOS signature `$Cn01/03/05` matches), committing it as the startup device
+  ($00/$01 = `$C7`, MSLOT `$07F8` = `$C7`). Our slot-7 firmware correctly chains to
+  slot 5 for a non-GS-bootable (blank/install-target) volume, but a bare `JMP $C500`
+  left those boot-slot globals reading `$C7`, so the 3.5"-loaded GS/OS bootstrap
+  (`$00:21C8`) derived its boot device as slot 7 and looked for `*/SYSTEM/START.GS.OS`
+  on the empty HDD → not found. **Fix (`ProDosHdd`):** the chain stub now sets
+  `$01`=`$C5` + MSLOT `$07F8`=`$C5` and re-issues the ROM's own `JMP ($0000)`, so
+  slot 5 boots exactly as if the scan had picked it. Traced with `hdd_trace`
+  (`$43` DEVNUM `$70`→`$50`→`$70`, the last write from the RAM bootstrap).
+- **(2) Emulation-mode IRQ vector pulled from LC RAM → `$00:0000`.** With (1) fixed,
+  boot reached SHR then derailed to `$0000`. GS/OS drops to **emulation mode** to
+  call the ProDOS-8 block driver while enumerating the HDD (`$22D0 XCE` / `JSR
+  $C550` = `WDM $C6`) **without masking IRQs**; a VBL IRQ in that window pulled the
+  emulation IRQ vector `$00/FFFE` from language-card RAM (`$0000`, never set by
+  GS/OS) instead of ROM. **Fix (`CPU65816::serviceInt`):** emulation-mode hardware
+  vector pulls now read ROM too (the IIgs VP line forces the fetch to ROM under LC
+  RAM, same as the native-mode fix), so `$00/FFFE` → `$C074` → the GS Interrupt Mgr.
+  The `vectorPull` test-mode fallback keeps the flat-bus Tom Harte CPU tests on RAM.
+- **HDD writes now persist to the backing file** (`ProDosHdd::flushBlock`, on both
+  the SmartPort/direct `writeBlock` and the streaming `$C0(8+n)2` byte path), so a
+  ProDOS **format / GS/OS install** survives across sessions. `main.cpp` GS/OS mode
+  now mounts the configured `hdd =` alongside the installer 3.5" instead of ejecting
+  it (a *bootable* HDD is skipped so it can't hijack the GS/OS boot). All 14 gates
+  green + new `hdd_test`.
+
+### Fixed — System 6 Installer no longer crashes (extended SmartPort + B accumulator)
+- Booting the **Installer disk** (System 6.0.1 "Disk 1 of 7 Install") crashed to the
+  ROM monitor (`BRK` at `$00:0001`). Two more HLE bugs, both in the slot-5 SmartPort
+  path the Installer drives (diagnosed with `tests/hdd_trace`; independent of the
+  HDD — the crash reproduced with no hard disk mounted):
+  - **Extended SmartPort inline pointer** (`IIgsMemory::smartportCall`). A GS/OS
+    *extended* call (`cmd & $40`) passes its parameter list as a **4-byte,
+    bank-qualified** inline pointer (`DFB cmd; DC I4'plist'`), not the 2-byte bank-0
+    pointer of a standard call — and the caller resumes **5** bytes after the JSR,
+    not 3. The old code read a 2-byte bank-0 pointer (→ a zeroed param list in the
+    wrong bank) and skipped only 3 bytes, so the caller ran the pointer's high bytes
+    as a stray `COP`. Now the extended form reads the 24-bit pointer, addresses the
+    param list in its real bank, and skips 5.
+  - **`spReturn` clobbered the B "hidden" accumulator.** The SmartPort/ProDOS error
+    is a *byte* in the low half of A; in 8-bit mode the high half (B) must be
+    preserved. GS/OS's emulation-mode SmartPort trampoline stashes the caller's
+    stack-pointer high byte in B across the call (`TSC` then 8-bit stores) and
+    rebuilds a 16-bit SP from it afterward — clearing B gave a page-0 stack and the
+    trampoline's closing `RTL` returned to `$0000`. `spReturn` now writes only A's
+    low byte when the accumulator is 8-bit.
+### Fixed — System 6 Installer runs to its window (SmartPort DIB + unit scan)
+- After the crash fix the Installer reached the "Welcome to the IIgs" splash and then
+  **stalled** — it enumerates SmartPort devices and never finished. Two more SmartPort
+  STATUS bugs (diagnosed with `tests/hdd_trace`; the fix advice was cross-checked
+  against **KEGS `smartport.c`**, **MAME / Apple IIgs Firmware Reference ch.7**, and
+  **GSSquared `pdblock3`**, which agree on the DIB layout):
+  - **DIB device type was $02 (a ProFile hard disk) instead of $01 (3.5" disk).**
+    SmartPort TN #4. The Installer keys on this field; a 3.5" reports type **$01**.
+  - **STATUS answered every unit number with a valid DIB.** The Installer *scans*
+    SmartPort units (1, 2, 3, …) and only stops when one returns an error — since only
+    unit 1 exists, a STATUS to unit ≥ 2 must fail (`$28`, no device). Answering all of
+    them made the scan loop forever. Also implemented the extended-STATUS **4-byte
+    block count** (vs 3-byte standard) so the extended DIB's fields line up (KEGS
+    `status_ptr++`); the 3.5" reports type $01 / subtype $A0 (removable, disk-switch).
+- **Result:** booting "Disk 1 of 7 Install" now brings up the **"Apple IIGS Installer —
+  Easy Update"** window (screenshot-verified) — Easy Update / Change Disk / Customize /
+  Quit, with the blank **GSOS** hard disk mounted as an install target.
+
+### Fixed — hard disk was mounted read-only ("Writing to this disk is not allowed")
+- The Installer reached its target-select but reported **"Installations … are not
+  possible. Writing to this disk is not allowed (it may be locked)."** for the GSOS
+  hard disk, and any write raised GS/OS **$4E "Access not allowed"**. Cause: the
+  slot-7 ProDOS-block firmware's device-characteristics byte **`$CnFE` was `$03`**
+  (ProDOS 8 TRM Table 6-1: bit1 read + bit0 status only) — **no write bit (bit 2)**,
+  so GS/OS mounted the volume read-only. Set `$CnFE = $07` (read + write + status).
+  The HDD is now a writable install target; block writes persist (`ProDosHdd::flushBlock`).
+
+### Fixed — Installer disk-swap (SmartPort disk-switched $2E + EJECT / CONTROL / FORMAT)
+- When the Installer asks for the next disk ("Please insert SystemTools1") and you
+  swap via the "3.5\" Drive" menu + OK, GS/OS didn't notice the new disk (it kept the
+  old volume) and the prompt wedged. Fixed per **KEGS `smartport.c` `do_c70d`** and
+  **MAME / Apple IIgs Firmware Reference** (both consulted, and both agree):
+    Two media-change signals are needed (KEGS + MAME), and a menu swap must present
+    BOTH:
+  - **bit-4 presence pulse (MAME).** GS/OS polls the removable drive's STATUS ~1 Hz and
+    auto-mounts on a bit-4 (disk-in-drive) **0→1 transition**. A menu swap is instant —
+    the disk is never "absent" — so GS/OS's poll saw no change and never re-mounted. Now
+    the **first STATUS after a swap reports bit4=0 (no disk), the next bit4=1**, so the
+    poll sees the insert and re-reads the volume. *Verified end-to-end*: after swapping
+    the 3.5" to "SystemTools1", GS/OS mounts the SYSTEMTOOLS1 volume within ~1 s.
+  - **$2E on the first block READ (KEGS `just_ejected`).** The first block READ/WRITE
+    after a swap returns `$2E` (disk switched) and does no I/O, then the latch clears;
+    GS/OS drops the cached Volume Control Record and re-reads block 2. **Not on STATUS**
+    — the ~1 Hz STATUS poll would consume the one-shot before the actual file access
+    (this regressed a first attempt). STATUS carries only the passive bit0 hint.
+    Verified swap→STATUS(bit4 pulse)→READ=$2E→retry=new-data (`smartport_test`).
+  - **CONTROL / EJECT (`$04`)** ejects the 3.5" (STATUS then reports bit4=0, no disk)
+    and arms the latch; other control codes and **FORMAT (`$03`)** succeed. (All were
+    the "bad command" `$01` before, which wedged the prompt.)
+  - **Unit validation**: any SmartPort call to a unit other than 1 returns `$28`
+    (no device) instead of aliasing to the one drive.
+
+### Added — `3.5" Drive` menu: hot-swap install disks without a reset
+- New menu bar entry lists every `.2mg`/`.po` image in the boot disk's folder (so all
+  seven System 6.0.1 disks are one click away) and swaps the slot-5 3.5" **live** —
+  `swapDisk35()` changes the image without a cold reset, and the next SmartPort STATUS
+  reports bit 0 = *disk switched* so GS/OS re-reads the new volume. Plus "Insert
+  other 3.5" disk…" (hot, no reset) and "Eject". This is the disk-swap the Installer
+  needs when it prompts "insert disk X" mid-install. `Ui.*`, `main.cpp`, `IIgsMemory`.
+- Note: **installing to a hard disk still doesn't work** — GS/OS crashes when it
+  mounts any emulated HDD during boot (see `TODO.md` PRIORITY). This menu is the
+  groundwork (disk swapping) for when that blocker is fixed.
+
+### Fixed — real-time clock (RTC/BRAM) now returns host time without wedging boot
+- Replaced the clock/BRAM stub (which echoed writes → garbage date) with the real
+  Mega II serial protocol at `$C033`/`$C034`. The command byte selects **battery
+  RAM** (`(cmd & 0x78) == 0x38` → 1-byte address then data) or the **RTC seconds**
+  (`$81/$85/$89/$8D` → registers 0-3); command bit 7 is the read/write direction.
+  `rtcByte()` returns live host time in the IIgs epoch (seconds since 1 Jan 1904 =
+  host Unix time + 2 082 844 800). Verified against `date`: reads of registers 1-3
+  return the exact high bytes of the host clock; the Finder/Control Panel now show
+  the correct date. `IIgsMemory.cpp`.
+- **Why it kept wedging the boot:** the first attempt matched BRAM with
+  `(cmd & 0x7C) == 0x38`, which includes bit 2 — that catches the read command
+  `$B8` but *not* the write command `$3F` (both are really `x011 1xxx`, bits 6-3 =
+  `0111`). GS/OS reinitialises an invalid (all-zero) battery RAM by *writing* it
+  back via `$3F`; the too-strict mask sent those writes down the RTC path, where a
+  data byte like `$FF` (bit 7 set) was misread as an RTC *read* and answered with a
+  time byte — desyncing the transaction and hanging boot at the "Welcome" splash.
+  Widening the mask to `0x78` plus **persisting** BRAM writes lets the reinit stick
+  (valid checksum → boot proceeds to the Finder). All 13 gates green.
+- **Full command decode + 2-strobe read timing (KEGS `clock.c`).** Two fixes for
+  the Control Panel showing `1900`/garbage even though the RTC seconds were correct.
+  (1) Decode `op = (cmd>>4)&7`, `reg = (cmd>>2)&3`: `op 0` = seconds, `op 2` = BRAM
+  `$10-$13`, `op 4-7` = BRAM `$00-$0F`, `op 3 & reg&2` = extended BRAM (2-byte
+  address), `op 3 & reg<2` = internal test/write-protect registers — the `0x78`
+  mask had misrouted the single-byte and internal commands to the seconds path.
+  (2) **The real bug:** a clock read is *two* strobes — the firmware clocks the
+  command byte in ($C034 bit6=0), then clocks the data byte **out on a second
+  strobe** (bit6=1). We were answering on the *command* strobe and returning the
+  firmware's dummy (`00`) on the read strobe, so GS/OS's `ReadTimeHex` assembled
+  `00`s → a bogus date, independent of the real time. Captured the live Control
+  Panel read (a `CLKLOG` file trace) to see it, then reworked the state machine to
+  set up the target on the command strobe and serve the value (seconds/BRAM/
+  internal) on the data strobe, with direction taken from `$C034` bit 6. Boot to
+  the Finder intact; all gates green.
+
+### Added — mouse capture (`Del`) — usable GS/OS mouse
+- **`Del` captures / releases the mouse.** GS/OS draws its own cursor, so a usable
+  pointer needs *relative* capture: on `Del`, GLFW locks + hides the OS cursor
+  (`GLFW_CURSOR_DISABLED`) and each frame's raw cursor delta + left button feed
+  the ADB mouse (`mouseMove`/`mouseButton`); `ImGuiConfigFlags_NoMouse` keeps
+  clicks/hover out of the menu bar while captured. `Del` again releases it back to
+  ImGui. Verified the GS cursor tracks host motion (it moves across the Finder
+  desktop). A startup hint + a toggle status message point it out. `main.cpp`.
+
+### Fixed — lo-res / text palette (IIgs boot banner was orange, now blue)
+- The shared 16-colour lo-res / `$C022` text palette (`kLoresPalette`) was
+  scrambled — e.g. colour 6 (the IIgs boot-banner background) rendered **orange**
+  instead of **medium blue**, plus wrong greens/yellows/browns. Replaced with the
+  canonical IIgs colours (MAME `apple2gs.cpp`). The "Apple IIgs / ROM Version 3"
+  boot banner is now white-on-blue as on real hardware; lo-res graphics get
+  correct colours too. HGR/DHGR (separate NTSC palette) and SHR unaffected.
+  `text80_test`'s palette mirror updated to match; all 13 gates green.
+
+### Added — boot config file (`pomiigs.cfg`) + `--gsos`
+- New **`pomiigs.cfg`** (repo root, `key = value`) selects what boots:
+  `boot = gsos|finder` → GS/OS to the Finder from a slot-5 3.5" disk (`disk35 =`),
+  `boot = hdd` → the slot-7 ProDOS HDD (`hdd =`); also `rom =`. **Shipped default
+  is `boot = gsos`**, so a plain launch now lands on the Finder desktop.
+- Precedence **CLI > config > built-in**: `--gsos [disk]` (alias `--finder`) and
+  `run_gsos.sh` force the Finder; `--hdd` forces the HDD; positional args still
+  give ROM then HDD. `main.cpp` only.
+
+### Added — command-key menu shortcuts (⌘-A etc.)
+- **GS/OS Finder menu shortcuts now fire** — pressing ⌘-A flashes the Edit menu
+  title (the standard menu-shortcut feedback), screenshot-verified across frames.
+- The ROM side was already correct: the keyboard handler (`$FE:EC46`) maps
+  `$C025` KEYMODREG bits to GS event modifiers through the `$FEE267` table
+  (bit7→appleKey `$0100`, bit1→controlKey, bit0→shiftKey, …), so a key posted
+  with `$C025` bit7 set carries the command modifier and TaskMaster routes it to
+  MenuKey. (The prior "doesn't work" note was a false negative — wrong MenuKey
+  tool number + a too-late screenshot that missed the transient flash.)
+- The real gap was in the app: **Command/Option/Control suppress ImGui's
+  `InputQueueCharacters`**, so the letter of a modifier-combo never reached
+  `keyDown`. `main.cpp` now delivers A-Z / 0-9 via `IsKeyPressed` whenever a
+  shortcut modifier is held, alongside the `$C025` modifier bits it already sets.
+
+### Added — GS keyboard (interact with the Finder)
+- **Typing now reaches the GS/OS Finder** — a keypress selects a desktop icon
+  (screenshot-verified: typing highlights the System.Disk icon). GS/OS drives the
+  keyboard entirely by interrupt (it never polls `$C000` — 5 reads in 200M
+  instrs, all at boot), so a key must both latch the ASCII *and* raise the ADB
+  IRQ. Reverse-engineered path: `keyDown` → `IRQ_SRC_ADB` → the ROM interrupt
+  manager reads a `$C026` routing byte (b6 = `$40`) + `$C027` b5, dispatches the
+  keyboard handler `$FE:EC99`, which reads the ASCII from `$C000` + modifiers
+  from `$C025`, clears the `$C010` strobe, and calls **EventMgr PostEvent
+  (`$1406`)**. The Finder's GetNextEvent then retrieves it.
+- Storm-safe (same native + VBL-int-enabled gate + 2-frame drop as the mouse);
+  the `$C010` strobe-clear consumes the event and drops the IRQ. Gate: `adb_test`
+  (extended — latch, `$C026`/`$C027` status, IRQ raise/clear via `$C010`).
+- **Follow-up:** command-key menu shortcuts. Plain keys work; the command
+  (open-apple) *modifier* flows through the ADB µC's GS/OS-installed translation
+  table (`$E100E7`), not `$C025`/`$C061` directly, so Command-key combos don't
+  trigger MenuKey yet — part of the full ADB µC command model.
+
+### Fixed — the full GS/OS Finder desktop renders (SHR fast-side shadow)
+- **GS/OS 6.0.1 now boots all the way to a complete Finder desktop** — the menu
+  bar (🍎 File Edit Windows View Disk Special Colors Extras), the mouse cursor,
+  the **System.Disk** volume icon, and the Trash all render, and the boot
+  "Welcome" window is dismissed.
+- Root cause was **not** input (the earlier suspicion): the Finder drew the menu
+  bar / disk icon to the **fast-side SHR (bank `$01`, `$2xxx`)** all along, but
+  `maybeShadow` never mirrored those writes to `$E1` (what the VGC scans), so the
+  display showed a stale image. The SHR region (`$01:2000-9FFF`, gated by
+  `SHAD_SUPERHIRES` bit 3) **overlaps** the Hi-Res ranges (`$2000-5FFF`), and the
+  Hi-Res `else if` branches matched first — using the Hi-Res shadow bits, which
+  GS/OS *sets* (inhibits), while it *clears* the SuperHiRes bit (shadow on). So
+  fast-side SHR writes fell through unshadowed. Fixed by OR-ing the SHR gate into
+  the overlapping ranges (`!(HIRESPG1) || shr`) and covering `$6000-9FFF`. MAME
+  `apple2gs.cpp` shadow_w. All 13 gates green (DHGR/HGR/text shadowing unchanged —
+  the SHR term only activates when SuperHiRes shadowing is enabled).
+
+### Added — ADB mouse interrupt (GS/OS Event Manager delivery)
+- Modeled the ADB microcontroller **mouse interrupt** so mouse motion reaches
+  GS/OS. Reverse-engineered the ROM path: the interrupt manager (`$FF:BE31`,
+  reached on every serviced IRQ) reads `$C027` and, when b7 (mouse-data) + b6
+  (mouse-int) are set, dispatches the mouse handler (`$E10034`) which calls
+  **ReadMouse (`$FE:B1E1`)** — that reads `$C024` (X then Y). Host motion/button
+  now raises `IRQ_SRC_ADB`; the ROM services it and reads `$C024` (verified:
+  post-boot mouse motion produces `$C024` reads at `$FE:B1EB`/`$FE:B1F8`, where
+  before it read `$C024` zero times).
+- **Storm-safe.** A naive ADB IRQ wedges the boot — during early emulation-mode
+  boot the ADB mouse handler isn't installed, so an unclearable IRQ storms the
+  ROM interrupt manager. Delivery is therefore gated on **native mode + VBL
+  interrupts enabled** (`$C041` b3 — a proxy for "GS/OS's interrupt system is
+  up"), plus a **2-frame safety valve** that drops an unconsumed sample. Result:
+  continuous mouse motion *during* boot still reaches the desktop unharmed, and
+  post-boot the ROM services the mouse. Gate: `adb_test` (extended — b6/b7
+  toggle, IRQ raised only when native+VBL-on, cleared on the `$C024` read).
+- **Keyboard is a follow-up.** GS keyboard events flow through the ADB µC's
+  `$C026` DATAREG command/response protocol (the interrupt manager reads
+  `$C025`/`$C026`, *not* `$C000`), which needs the full ADB µC command model; the
+  classic `$C000` latch (8-bit path) is unchanged. Modeling the µC's TALK/LISTEN
+  + SRQ + register-0 protocol would also give a hardware-accurate interrupt
+  enable (replacing the native+VBL proxy above).
+- Note: this does **not** yet complete the Finder desktop — the Finder reaches
+  its event loop but the menu bar / disk icon / welcome-close is a separate,
+  non-mouse-gated blocker.
+
+### Fixed — GS/OS boots to the Finder desktop (fast-RAM banking)
+Two memory-banking bugs kept GS/OS 6.0.1 hung in its loader just after the
+welcome screen. Fixing them takes GS/OS from "loads 60 blocks then hangs" all
+the way to **the Finder loading the full system (1140+ blocks over the real
+SmartPort driver) and rendering the desktop** (background pattern + Trash icon).
+- **Full fast side is now backed RAM.** `fastCell` *wrapped* out-of-range banks
+  (`idx %= fastRam_.size()`), so with only 1 MB of RAM bank `$10` aliased onto
+  bank `$00`. GS/OS's `MVN $10,$00` relocation then copied bank 0 onto itself,
+  scrambling the zero page (incl. the COUT vector `$0036`) — and the wrap made
+  the RAM probe detect phantom RAM. Fixed by backing the whole fast side
+  (`$00-$7F` = 8 MB, the ROM 03 maximum), so every fast bank is real and the
+  probe reports the true size.
+- **Language-card RAM follows the physical bank.** `lcRead`/`lcWrite` ignored
+  the bank and always picked main/aux by ALTZP, so a bank-`$01` LC access
+  (`$01:Dxxx`) read *main* LC when ALTZP=0. GS/OS relocates code into bank-1
+  (aux) LC and `JSR`s into it; reading the wrong bank landed those calls in a
+  data table and derailed to a `BRK` in slot-ROM space (`$01:CFFA`). Now a
+  bank-`$01` LC access is always aux (`pb = bank==1 || altzp`), matching the
+  rest of the //e aux-memory model.
+- Result: GS/OS boots through the loader, switches the SmartPort driver in,
+  loads the Finder, and the Finder draws the GS/OS desktop. All 13 gates green;
+  Tom Harte unaffected (flat-bus test mode bypasses this banking). Remaining: the
+  Finder reaches its main event loop (TaskMaster/GetNextEvent, ~32k idle
+  iterations) but the desktop stays incomplete (no menu bar / disk icon, welcome
+  window not closed). Diagnosis: GS/OS **never reads the mouse register `$C024`**
+  (0 reads in 200M instructions) — it drives the mouse through **interrupt-driven
+  ADB** (the µC autopolls and interrupts), which the register-level ADB HLE
+  doesn't provide, so the event queue stays empty. Interrupt-driven ADB event
+  delivery is the next milestone.
+
+### Added — ADB GLU mouse + keyboard modifiers (real host input)
+- **Mouse** now reaches the GS toolbox through the ADB GLU registers. `$C024`
+  MOUSEDATA returns the X delta then the Y delta (the `$C027` bit1 X/Y toggle),
+  each carrying the button in bit7 (0 = down) and a signed 7-bit delta; the Y
+  read consumes the deltas and clears the mouse-data-available bit (`$C027`
+  bit7). Host motion/button accumulate via `IIgsMemory::mouseMove/mouseButton`,
+  wired from ImGui in `main.cpp` (suppressed while ImGui owns the mouse).
+- **Keyboard modifiers**: `$C025` KEYMODREG now reports real shift/control/
+  caps/option(⌘)/command state (`setKeyModifiers`, fed from the host each
+  frame) instead of always 0.
+- **Poll-based, not interrupt-driven** (deliberately): GS/OS's Event Manager
+  reads the mouse off the already-firing VBL/heartbeat, so no dedicated ADB IRQ
+  is asserted yet — the HLE'd ADB couldn't cleanly clear one, and a spurious
+  ADB IRQ would storm the ROM Interrupt Manager and break the boot. The
+  interrupt-driven ADB/mouse path is a follow-up (needs a reachable GS UI to
+  validate against MAME).
+- Gate: **`adb_test`** — the `$C024`/`$C025`/`$C027` register protocol
+  (X/Y toggle, button bit, 7-bit clamp, data-available flag, modifier
+  pass-through). Source: Apple IIgs Hardware Reference (ADB GLU), MAME
+  `apple2gs.cpp` keyglu. GS/OS still boots past the welcome screen unchanged.
+
+### Fixed — GS toolbox runs: IIgs interrupt vectors (`$C071-$C07F` ROM + native vector pull)
+- **Root cause of the post-"Welcome" crash.** GS/OS 6.0.1 loads and starts the
+  entire ROM toolbox correctly (LLE: the Tool Locator, Memory Mgr, QuickDraw II,
+  Event/Window/Menu/Control Mgrs, the Loader — every `_xxStartUp` dispatches from
+  ROM). It then enables the **VBL interrupt** (`$C041` bit3, ROM routine
+  `$FE/B80F`) and, on the very next hardware IRQ, the machine derailed into a RAM
+  data table and sledded to a crash. Two missing pieces of the IIgs interrupt
+  path caused it:
+  1. **`$C071-$C07F` reads must return internal ROM**, not floating-bus I/O
+     (Apple IIgs Hardware Reference: this softswitch sub-range is *reserved,
+     reads return ROM*). The 65C816 native/emulation **vector table**
+     (`$FFE4-$FFEF` / `$FFF4-$FFFF`) points here — e.g. native IRQ `$FFEE` =
+     `$C074`, which in ROM is `CLV : JML $E10010` (the GS Interrupt Manager
+     entry). Reading garbage there sent every IRQ into nonsense. Fixed in
+     `IIgsMemory::ioRead`.
+  2. **Native-mode vector pulls read ROM even with LC RAM banked in.** GS/OS runs
+     with the language card in RAM-read mode but never installs RAM interrupt
+     vectors (it reaches its handlers through the fixed ROM stubs), so a native
+     vector pull of `$00FFEE` must hit ROM, not the uninitialised LC RAM.
+     `IIgsMemory::vectorPull()` serves the top-bank ROM byte; `CPU65816`
+     interrupt/`BRK`/`COP` dispatch uses it in native mode only — **emulation
+     mode keeps //e language-card vector semantics** so 8-bit software (Total
+     Replay) can still install RAM IRQ vectors. Flat-bus CPU unit tests fall
+     back to the normal bus.
+- **Result:** interrupts now dispatch correctly (`$00FFEE → $C074 → $E10010`);
+  GS/OS runs stably past the welcome screen into its VBL-timed boot loop instead
+  of crashing. Tom Harte 65816 (384k vectors) still green; all 12 subsystem
+  gates green. Dev tool `gsos_trace` added (boot an 800K GS/OS disk from slot 5,
+  trace toolbox dispatch + SHR timeline + hang/sled detection); `screenshot`
+  gained `--disk35`.
+
 ### Added — SmartPort extended dispatch (GS/OS disk protocol)
 - The slot-5 3.5" drive is now a real **SmartPort** device ($C500 ROM,
   $Cn07=$00 + the extended bit $CnFB). Its dispatch entries are **WDM traps**

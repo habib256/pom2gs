@@ -71,7 +71,41 @@ int main() {
     check("DIB status = block device", (mem.read8(0x0500) & 0x80) != 0);
     unsigned n = mem.read8(0x0501) | (mem.read8(0x0502) << 8) | (mem.read8(0x0503) << 16);
     check("DIB block count = 16", n == 16);
-    check("DIB device type = 3.5\"", mem.read8(0x0515) == 0x02);   // offset 21
+    check("DIB device type = 3.5\"", mem.read8(0x0515) == 0x01);   // offset 21: $01 = 3.5" (SmartPort TN #4)
+    check("DIB subtype = removable/disk-switched, no driver ($80)", mem.read8(0x0516) == 0x80);  // offset 22
+
+    // STATUS to a non-existent unit (2) must FAIL — only unit 1 exists. The System 6
+    // Installer scans units 1,2,3,… and only stops on a no-device error; answering
+    // every unit with a valid DIB loops it forever. Expect carry set + A = $28.
+    wr(0x0321, 0x02);                                      // unit 2 (does not exist)
+    cpu.setPC(0x0300);
+    for (int i = 0; i < 6; ++i) cpu.step();
+    check("STATUS unit 2 → error (carry set)", (cpu.getP() & 0x01) != 0);
+    check("STATUS unit 2 → A = $28 (no device)", (cpu.getA() & 0xFF) == 0x28);
+
+    // Disk swap: the first block READ (not STATUS) after a swap returns $2E (disk
+    // switched, KEGS just_ejected) so GS/OS drops the cached volume and re-reads it.
+    { std::vector<uint8_t> img2(size_t(kBlocks) * 512, 0xBB);
+      const char* path2 = "/tmp/pomiigs_smartport_swap.po";
+      { std::ofstream o(path2, std::ios::binary); o.write((const char*)img2.data(), img2.size()); }
+      mem.swapDisk35(path2);
+      // A STATUS in between must NOT consume the $2E one-shot (GS/OS polls STATUS).
+      wr(0x0303, 0x00); wr(0x0304, 0x20); wr(0x0305, 0x03);   // cmd STATUS, param list @ $0320
+      wr(0x0321, 0x01); wr(0x0324, 0x00);                     // unit 1, status code 0
+      cpu.setPC(0x0300); for (int i = 0; i < 6; ++i) cpu.step();
+      check("STATUS after swap succeeds (bit0 switched), no $2E",
+            (cpu.getP() & 0x01) == 0 && (mem.read8(0x0500) & 0x01) != 0);
+      // First READBLOCK after the swap → $2E (STATUS didn't eat it).
+      wr(0x0303, 0x01); wr(0x0304, 0x10); wr(0x0305, 0x03);   // cmd READ, param list @ $0310
+      wr(0x0311, 0x01);
+      cpu.setPC(0x0300); for (int i = 0; i < 6; ++i) cpu.step();
+      check("READBLOCK after swap → $2E (disk switched)",
+            (cpu.getP() & 0x01) && (cpu.getA() & 0xFF) == 0x2E);
+      // Latch cleared: retry returns the NEW disk's data.
+      cpu.setPC(0x0300); for (int i = 0; i < 6; ++i) cpu.step();
+      check("READBLOCK retry → new disk data", (cpu.getP() & 0x01) == 0 && mem.read8(0x0400) == 0xBB);
+      std::remove(path2);
+    }
 
     std::remove(path);
     if (fails) { std::printf("smartport_test: %d failure(s)\n", fails); return 1; }

@@ -204,8 +204,55 @@ to `$C026`, waits for CMDFULL (`$C027` bit 0) to clear, then waits for
 data-ready (`$C027` bit 5) and reads the response; with no ADB it times out and
 raises **fatal error `$0911`** (`PEA $0911 / JSR $A6E4` at `$FF:81B6`). We
 accept commands immediately (CMDFULL always clear) and queue a trivial response
-(data-ready set), so the handshake completes and `$0911` clears. Real
-keyboard/mouse routing lands later.
+(data-ready set), so the handshake completes and `$0911` clears.
+
+**Real keyboard/mouse routing** (gate `adb_test`):
+- **Keyboard** stays on the classic `$C000` latch / `$C010` strobe (the Mega II
+  posts ADB keys there); **`$C025` KEYMODREG** now carries live host modifiers
+  (b7 ⌘/command, b6 option, b2 caps, b1 control, b0 shift).
+- **Mouse** via the GLU mouse register: **`$C024` MOUSEDATA** returns the X delta
+  then the Y delta (toggled by **`$C027` bit 1**), each with the button in bit 7
+  (0 = down) and a signed 7-bit delta; the Y read consumes the deltas and clears
+  **`$C027` bit 7** (data-available). Host motion accumulates via `mouseMove`/
+  `mouseButton` (wired from ImGui in `main.cpp`).
+**Mouse interrupt** (what GS/OS actually uses — it reads `$C024` *zero* times
+without it). The ROM interrupt manager, reached on every serviced IRQ, does at
+`$FF:BE31`: `LDA $C027` → if b7 (mouse-data) **and** b6 (mouse-int) are set,
+`JSL $E10034` → **ReadMouse (`$FE:B1E1`)**, which reads `$C024` (X, then Y if
+`$C027` b1 set). So `mouseMove`/`mouseButton` set b7 (data) + b6 (int) and raise
+`IRQ_SRC_ADB`; the `$C024` Y-read consumes the sample and drops the IRQ.
+
+**Storm-safety.** A naive ADB IRQ wedges the boot: during early emulation-mode
+boot the ADB mouse handler isn't installed, so an unclearable IRQ storms the ROM
+Interrupt Manager. `updateAdbIrq` therefore only delivers when **native mode +
+VBL interrupts enabled** (`$C041` b3) — a proxy for "the interrupt system is up"
+— and `tick()` drops any sample unconsumed after ~2 frames. With this, continuous
+mouse motion *during* boot still reaches the desktop, and post-boot the ROM
+services the mouse (verified: `$C024` read at `$FE:B1EB`/`B1F8`). Gate:
+`adb_test`.
+
+**Keyboard interrupt** (typing reaches the GS/OS Finder — selects desktop icons).
+GS/OS never polls `$C000` (5 reads in a whole boot, all early), so a key must
+raise an interrupt. `keyEvent` latches the ASCII at `$C000` and raises
+`IRQ_SRC_ADB`; the ROM interrupt manager reads a `$C026` *routing byte*
+(`kbdIntStatus_ = $40`, b6) gated by `$C027` b5, and dispatches the keyboard
+handler **`$FE:EC99`**, which reads the ASCII from `$C000` + modifiers from
+`$C025`, clears the `$C010` strobe, and calls **EventMgr PostEvent (`$1406`)** —
+the Finder's GetNextEvent then retrieves it. The `$C010` strobe-clear (read or
+write) consumes the event and drops the IRQ; same native+VBL storm gate as the
+mouse. Gate: `adb_test`.
+
+**Command-key menu shortcuts fire** (⌘-A flashes the Edit menu). The keyboard
+handler's modifier builder `$FE:EC46` maps each `$C025` KEYMODREG bit to a GS
+event-modifier flag via the ROM table `$FEE267`: bit7→appleKey (`$0100`),
+bit6→optionKey, bit1→controlKey, bit0→shiftKey, bit2→capsLock, bit4→keypad. So a
+key posted with `$C025` bit7 set carries the command modifier and TaskMaster
+routes it to MenuKey. The emulator side needed no change; the missing piece was
+in `main.cpp` — Command/Option/Control suppress ImGui's `InputQueueCharacters`,
+so the combo's letter is now delivered via `IsKeyPressed` while a shortcut
+modifier is held (the `$C025` bits are set from LeftAlt=⌘/RightAlt=option each
+frame). A hardware-accurate mouse-int *enable* (replacing the native+VBL proxy)
+still needs the full ADB µC command model — the `Adb.cpp` subsystem.
 
 **Two other fixes were load-bearing for the banner boot** (both surfaced by the
 boot trace):
