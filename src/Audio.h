@@ -11,14 +11,15 @@
 //
 // The speaker is cycle-exact: within a frame the [cyc0,cyc1) span is mapped
 // linearly onto the frame's sample slice, so 8-bit software (Total Replay,
-// classic Apple II games) sounds at the right pitch. The DOC is rendered at
-// the output rate (pitch is approximate — see TODO P1 "DOC accuracy").
+// classic Apple II games) sounds at the right pitch. The DOC runs at its
+// native rate (894886/(oscs+2) Hz, MAME output_rate) and resamples to ours.
 
 #ifndef POMIIGS_AUDIO_H
 #define POMIIGS_AUDIO_H
 
 #include <atomic>
 #include <cstdint>
+#include <cstdio>
 #include <vector>
 
 class IIgsMemory;
@@ -35,6 +36,10 @@ public:
 
     bool     available() const { return available_; }
     uint32_t sampleRate() const { return sampleRate_; }
+    uint32_t underruns() const { return underruns_.load(std::memory_order_relaxed); }   // device starved
+    uint32_t drops()     const { return drops_.load(std::memory_order_relaxed); }       // push overflow
+    uint32_t ringFill()  const { return write_.load(std::memory_order_relaxed)
+                                      - read_.load(std::memory_order_relaxed); }        // rate-control health
 
     // Master volume [0,1] and mute (bound to the ImGui panel).
     void  setVolume(float v) { volume_.store(v < 0 ? 0 : (v > 1 ? 1 : v), std::memory_order_relaxed); }
@@ -64,6 +69,8 @@ private:
 
     std::atomic<float> volume_{0.7f};
     std::atomic<bool>  muted_{false};
+    std::atomic<uint32_t> underruns_{0};   // pull() came up short (audible crackle)
+    std::atomic<uint32_t> drops_{0};       // push() couldn't fit a frame (audible skip)
 
     // Speaker reconstruction state (persists across frames).
     bool     spkLevel_ = false;
@@ -72,6 +79,9 @@ private:
 
     std::vector<int16_t> docBuf_;   // scratch for the DOC render
     std::vector<float>   mixBuf_;   // scratch for the per-frame mix
+    std::FILE* wavFile_ = nullptr;  // POMWAV=<path> capture (offline crackle analysis)
+    uint32_t   wavSamples_ = 0;
+    float dcX_ = 0.0f, dcY_ = 0.0f; // one-pole DC blocker (speaker AC coupling)
 };
 
 #endif // POMIIGS_AUDIO_H

@@ -37,11 +37,15 @@ public:
         : slot_(slot), smartport_(smartport) { buildRom(); }
 
     bool loadImage(const std::string& path);
-    void eject() { img_.clear(); selectedBlock_ = 0; streamOffset_ = 0; }
+    void eject() { img_.clear(); path_.clear(); selectedBlock_ = 0; streamOffset_ = 0; }
     bool loaded() const { return !img_.empty(); }
+    const std::string& path() const { return path_; }   // backing image ("" = none)
     int  slot() const { return slot_; }
     size_t blockCount() const { return img_.size() / kBlockBytes; }
     bool writeProtected() const { return writeProtect_; }
+    // A ProDOS boot block starts with byte 0 = $01. A blank/data volume ($00)
+    // is a chain-to-slot-5 install target, not a boot device.
+    bool bootable() const { uint8_t b[512]; return readBlock(0, b) && b[0] == 0x01; }
 
     // Direct block access for the SmartPort trap (any-bank buffers). Return
     // false on an out-of-range block or empty image.
@@ -62,8 +66,13 @@ private:
     uint16_t selectedBlock_ = 0;
     uint32_t streamOffset_ = 0;
     bool writeProtect_ = false;
+    std::string path_;                    // backing file (for write-through)
+    size_t headerBytes_ = 0;              // 64 for a .2mg, else 0
 
     void buildRom();
+    // Persist one 512-byte block back to the backing file so a GS/OS install /
+    // ProDOS format survives across sessions. No-op if the image isn't file-backed.
+    void flushBlock(uint32_t blk);
 };
 
 #endif // POMIIGS_PRODOSHDD_H

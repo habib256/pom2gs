@@ -49,6 +49,7 @@ set(SOURCES
     src/Es5503.cpp        # M6
     src/Scc8530.cpp       # M7
     src/ProDosHdd.cpp     # HDD ProDOS
+    src/Snapshot.cpp      # save/load state
     src/VGC.cpp           # M3
     src/Audio.cpp         # M6 audio host (miniaudio)
     src/Ui.cpp            # ImGui menu bar / status bar / dialogs
@@ -60,6 +61,7 @@ set(HEADERS
     src/Es5503.h
     src/Scc8530.h
     src/ProDosHdd.h
+    src/Snapshot.h
     src/VGC.h
     src/VGCNtsc.h
     src/Audio.h
@@ -123,6 +125,16 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(boot_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+    # Dev tool (not a gate): boot an 800K GS/OS disk from slot 5 and trace the
+    # toolbox dispatch / SHR timeline / hang detection. Used to pin the ROM
+    # interrupt-vector fix (see CHANGELOG "GS toolbox / interrupt vectors").
+    add_executable(gsos_trace tests/gsos_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    target_include_directories(gsos_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+    # GS/OS + hard-disk derail microscope (boots 3.5" with a HDD mounted).
+    add_executable(hdd_trace tests/hdd_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    target_include_directories(hdd_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
     # VGC Super Hi-Res render smoke test (M3 gate).
     add_executable(vgc_test tests/vgc_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(vgc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -168,6 +180,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(irq_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME irq_test COMMAND irq_test)
 
+    # ADB GLU mouse + keyboard-modifier register protocol ($C024/$C025/$C027).
+    add_executable(adb_test tests/adb_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(adb_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME adb_test COMMAND adb_test)
+
     # Super Hi-Res color-fill (SCB bit5) + $C034 border colour.
     add_executable(shr_test tests/shr_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(shr_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -182,6 +199,16 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_executable(smartport_test tests/smartport_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(smartport_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME smartport_test COMMAND smartport_test)
+
+    # Hard-disk boot fixes: emulation-mode ROM vector pull + slot-7 chain +
+    # block-write persistence (GS/OS boots to the Finder with a HDD mounted).
+    add_executable(hdd_test tests/hdd_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(hdd_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME hdd_test COMMAND hdd_test)
+
+    add_executable(snapshot_test tests/snapshot_test.cpp src/Snapshot.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(snapshot_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME snapshot_test COMMAND snapshot_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Headless PNG screenshot of a booting ROM (dev tool).
     add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)

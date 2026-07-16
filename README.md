@@ -49,6 +49,28 @@ cd build && cmake .. && make -j
 cd .. && ./run_emulator.sh          # cwd = repo root so roms/ probes resolve
 ```
 
+### What it boots — `pomiigs.cfg`
+
+Startup reads **`pomiigs.cfg`** (repo root). The shipped default boots **GS/OS to
+the Finder desktop** from a slot-5 3.5" disk:
+
+```ini
+boot   = gsos                                       # gsos|finder → Finder; hdd → slot-7 HDD
+disk35 = disks35/System 6.0.1/Disk 2 of 7 System Disk.2mg
+hdd    = hdv/Total Replay v6.0.hdv
+```
+
+Edit it, or override per-run on the CLI (CLI > config > built-in):
+
+```bash
+./run_emulator.sh              # uses pomiigs.cfg → Finder
+./run_emulator.sh --hdd        # force the slot-7 ProDOS HDD (e.g. Total Replay)
+./run_gsos.sh ["disk.2mg"]     # force the Finder (alias: --finder [disk])
+```
+
+Disk images are copyrighted and not bundled — place your own GS/OS system disk
+under `disks35/` and hard disks under `hdv/`.
+
 ### ROMs (user-provided — none bundled)
 
 The IIgs ROM is copyrighted; drop your own dump in `roms/`:
@@ -70,13 +92,17 @@ to avoid the Apple II keyboard):
 
 | Key | Action |
 |-----|--------|
+| `Del` | **Capture / release the mouse** (drives the GS/OS cursor) |
 | `F6` | Run / Pause |
 | `F5` | Reset |
 | `F2` | Toggle HGR/DHGR colour mode (Composite NTSC ↔ Clean RGB) |
 | `Ctrl+Q` | Quit |
 
-The host keyboard feeds the Apple II `$C000` latch (printables, arrows,
-Return/Esc/Backspace); a game controller drives the paddles + buttons.
+**Mouse:** press `Del` to capture — the OS pointer is hidden/locked and its
+relative motion + left button drive the GS/OS mouse (needed since GS/OS draws its
+own cursor). `Del` again releases it back to the ImGui menu bar. The host
+keyboard feeds the ADB keyboard (typing, arrows, Return/Esc, and ⌘/option menu
+shortcuts via Left/Right-Alt); a game controller drives the paddles + buttons.
 
 ## WebAssembly
 

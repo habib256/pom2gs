@@ -6,19 +6,39 @@
 
 #include "ProDosHdd.h"
 #include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
+#include <string>
 
 bool ProDosHdd::loadImage(const std::string& path) {
     std::ifstream in(path, std::ios::binary);
     if (!in) return false;
     img_.assign((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
     // .2mg images carry a 64-byte header; a raw .hdv/.po is a multiple of 512.
-    if (img_.size() >= 64 && img_[0] == '2' && img_[1] == 'I' && img_[2] == 'M' && img_[3] == 'G')
+    headerBytes_ = 0;
+    if (img_.size() >= 64 && img_[0] == '2' && img_[1] == 'I' && img_[2] == 'M' && img_[3] == 'G') {
         img_.erase(img_.begin(), img_.begin() + 64);
+        headerBytes_ = 64;
+    }
     // Round down to a whole number of blocks.
     img_.resize((img_.size() / kBlockBytes) * kBlockBytes);
     selectedBlock_ = 0; streamOffset_ = 0;
+    path_ = path;
     return !img_.empty();
+}
+
+// Write one 512-byte block back to the backing file (in place, past any .2mg
+// header) so a format / GS/OS install persists. Silently skipped if not
+// file-backed, write-protected, or out of range.
+void ProDosHdd::flushBlock(uint32_t blk) {
+    if (path_.empty() || writeProtect_) return;
+    const size_t off = size_t(blk) * kBlockBytes;
+    if (off + kBlockBytes > img_.size()) return;
+    std::fstream f(path_, std::ios::in | std::ios::out | std::ios::binary);
+    if (!f) return;
+    f.seekp(std::streamoff(headerBytes_ + off), std::ios::beg);
+    f.write(reinterpret_cast<const char*>(img_.data() + off), kBlockBytes);
 }
 
 bool ProDosHdd::readBlock(uint32_t blk, uint8_t* out) const {
@@ -33,6 +53,7 @@ bool ProDosHdd::writeBlock(uint32_t blk, const uint8_t* in) {
     size_t off = size_t(blk) * kBlockBytes;
     if (img_.empty() || off + kBlockBytes > img_.size()) return false;
     std::copy(in, in + kBlockBytes, img_.begin() + off);
+    flushBlock(blk);
     return true;
 }
 
@@ -67,6 +88,7 @@ void ProDosHdd::deviceWrite(uint8_t low4, uint8_t v) {
         size_t a = size_t(selectedBlock_) * kBlockBytes + streamOffset_;
         if (a < img_.size()) img_[a] = v;
         streamOffset_ = (streamOffset_ + 1) % kBlockBytes;
+        if (streamOffset_ == 0) flushBlock(selectedBlock_);   // block complete → persist
     }
 }
 
@@ -109,9 +131,31 @@ void ProDosHdd::buildRom() {
     // ProDOS signature + entry offsets.
     rom_[0x00] = 0x4C; rom_[0x01] = kBoot; rom_[0x02] = hi;   // JMP $Cn20
     rom_[0x03] = 0x00; rom_[0x05] = 0x03; rom_[0x07] = 0x01;
-    rom_[0xFE] = 0x03; rom_[0xFF] = kDrv;
+    // $CnFE = ProDOS device characteristics (ProDOS 8 TRM Table 6-1): bit0 status,
+    // bit1 read, bit2 WRITE, bit3 format, bits5-4 #volumes, bit6 interrupt, bit7
+    // removable. Was $03 = read+status only → GS/OS/the Installer treated the hard
+    // disk as **locked** ("Writing to this disk is not allowed"). $07 = read + write
+    // + status makes it a writable install target. (No format bit: the streaming
+    // driver has no FORMAT command and the image is a fixed pre-formatted volume.)
+    rom_[0xFE] = 0x07; rom_[0xFF] = kDrv;
 
-    // Boot ($Cn20): read block 0 to $0800, JMP $0801 with X=unit.
+    // Boot ($Cn20): read block 0 to $0800. If it's a valid ProDOS boot block
+    // (byte 0 = $01) JMP $0801; otherwise (blank / non-bootable disk, or read
+    // error) chain to slot 5 so the ROM boots the 3.5" install disk there. This
+    // lets a blank hard disk sit on slot 7 as an install *target* without
+    // hijacking the boot — GS/OS installs a real boot block later.
+    //
+    // The chain must re-point the boot device to slot 5, not just JMP $C500:
+    // the IIgs ROM commits the startup slot in zero-page $00/$01 and boots it
+    // via `JMP ($0000)` (ROM $FF/FAD4). Scanning $C8→ it finds slot 7 first (our
+    // ProDOS signature), sets $01=$C7, and boots us. A bare `JMP $C500` leaves
+    // $01=$C7, so the 3.5"-loaded GS/OS bootstrap derives its boot device from
+    // $01 = slot 7 and looks for `*/SYSTEM/START.GS.OS` on the (blank) HDD →
+    // "Unable to load START.GS.OS  Error=$0046" and a hung boot. Instead we set
+    // $01=$C5 and re-issue the ROM's own `JMP ($0000)`, so slot 5 boots exactly
+    // as if the scan had selected it and every downstream boot-slot global reads
+    // $C5. (Diagnosed with tests/hdd_trace: $43 DEVNUM went $70→$50→$70, the last
+    // set by the RAM bootstrap at $00:21C8 from a slot-7 boot global.)
     uint8_t pc = kBoot;
     emit(rom_, pc, {
         0xA9,0x01, 0x85,0x42,               // LDA #1 / STA $42 (read)
@@ -119,12 +163,25 @@ void ProDosHdd::buildRom() {
         0xA9,0x00, 0x85,0x44,               // buffer lo = 0
         0xA9,0x08, 0x85,0x45,               // buffer hi = $08
         0xA9,0x00, 0x85,0x46, 0x85,0x47,    // block = 0
-        0x20,kDrv,hi,                       // JSR $Cn50
-        0xB0,0x07,                          // BCS error
+        0x20,kDrv,hi,                       // JSR $Cn50 (read block 0)
+        0xB0,0x0E,                          // BCS chain (read error → slot 5)
+        0xAD,0x00,0x08,                     // LDA $0800 (block-0 byte 0)
+        0xC9,0x01,                          // CMP #$01 (ProDOS boot block?)
+        0xD0,0x07,                          // BNE chain (not bootable → slot 5)
         0xA2,unit, 0xA9,0x00, 0x4C,0x01,0x08, // LDX unit / LDA #0 / JMP $0801
-        0x4C,0xE0,hi                        // error: JMP $CnE0
+        0x4C,0x08,hi                          // chain: JMP $Cn08 (re-point + boot slot 5)
     });
-    rom_[0xE0] = 0x4C; rom_[0xE1] = 0xE0; rom_[0xE2] = hi;    // $CnE0: halt loop
+    // Chain-to-slot-5 stub in the free $Cn08-$Cn1F scratch area. Re-point every
+    // boot-slot global the ROM/GS bootstrap consults from slot 7 ($C7) to slot 5
+    // ($C5): zero-page $00/$01 (the ROM's `JMP ($0000)` boot vector) and MSLOT
+    // $07F8 (which the 3.5"/GS boot block reads to derive its slot). Then re-issue
+    // the ROM's own boot mechanism, `JMP ($0000)`, so slot 5 boots exactly as if
+    // the startup scan had selected it. Without fixing MSLOT the RAM bootstrap
+    // still derives slot 7 → START.GS.OS not found on the blank HDD ($46).
+    { uint8_t sp = 0x08; emit(rom_, sp, {
+        0xA9,0xC5, 0x85,0x01, 0x64,0x00,     // LDA #$C5 / STA $01 / STZ $00
+        0xA9,0xC5, 0x8D,0xF8,0x07,           // LDA #$C5 / STA $07F8 (MSLOT)
+        0x6C,0x00,0x00 }); }                 // JMP ($0000) → $C500
 
     // Driver dispatch ($Cn50).
     pc = kDrv;

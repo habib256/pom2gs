@@ -18,11 +18,16 @@ inline uint32_t rgb12(uint8_t lo, uint8_t hi) {
     return 0xFF000000u | (uint32_t(b) << 16) | (uint32_t(g) << 8) | r;
 }
 
-// Apple II 16-colour lo-res palette (approx NTSC), 0xAABBGGRR. Shared by
-// lo-res and the $C022 text fg/bg colours.
+// Apple IIgs 16-colour lo-res / text palette, 0xAABBGGRR (little-endian RGBA).
+// The canonical IIgs colours (4-bit-per-channel nibbles replicated, e.g. $D→$DD)
+// — matches MAME apple2gs.cpp. Shared by lo-res and the $C022 text fg/bg. The
+// previous table was scrambled (e.g. colour 6, the IIgs boot-banner background,
+// rendered orange instead of medium blue).
 const uint32_t kLoresPalette[16] = {
-    0xFF000000,0xFF601490,0xFF7F1040,0xFFE0207F,0xFF006040,0xFF808080,0xFF1090F0,0xFFC0A0F0,
-    0xFF405010,0xFFF06000,0xFF808080,0xFFF090A0,0xFF10D000,0xFFF0F050,0xFF50F090,0xFFFFFFFF };
+    0xFF000000, 0xFF3300DD, 0xFF990000, 0xFFDD22DD,  //  0 black   1 deep red  2 dk blue  3 purple
+    0xFF007700, 0xFF555555, 0xFFFF2222, 0xFFFFAA66,  //  4 dk green 5 dk grey   6 med blue 7 lt blue
+    0xFF005588, 0xFF0066FF, 0xFFAAAAAA, 0xFF8899FF,  //  8 brown    9 orange   10 lt grey 11 pink
+    0xFF00DD11, 0xFF00FFFF, 0xFF99FF44, 0xFFFFFFFF };//  12 lt green 13 yellow 14 aqua    15 white
 }
 
 uint32_t VGC::loresColor(uint8_t idx) { return kLoresPalette[idx & 0x0F]; }

@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 class IIgsMemory;
 class CPU65816;
@@ -30,7 +31,17 @@ public:
     // File-load hooks (return true on success). Set by main after construction.
     std::function<bool(const std::string&)> onLoadRom;
     std::function<bool(const std::string&)> onLoadHdd;
-    std::function<bool(const std::string&)> onLoadDisk35;   // 800K 3.5" on slot 5
+    std::function<bool(const std::string&)> onLoadDisk35;   // 800K 3.5" on slot 5 (cold-boot)
+    std::function<bool(const std::string&)> onSwapDisk35;   // hot-swap 3.5" (no reset)
+    std::function<void()>                   onEjectDisk35;
+    std::function<bool()>                   onSaveState;    // quick save state (F7)
+    std::function<bool()>                   onLoadState;    // quick load state (F8)
+
+    // Quick-swap menu of 3.5" images (label, full path) — set by main from the
+    // directory of the configured install disk. Lets the user change disks during
+    // an install without typing a path.
+    std::vector<std::pair<std::string, std::string>> disk35Menu;
+    std::string disk35Path;                                 // currently-inserted 3.5"
 
     // Shared with the host loop.
     bool running = false;          // emulation gate (Machine ▸ Run/Pause, F6)
@@ -60,8 +71,14 @@ private:
     // Modal state.
     bool  pendingAbout_ = false;
     bool  pendingLoad_  = false;
-    int   loadKind_     = 0;             // 0 = ROM, 1 = hard disk, 2 = 3.5" disk
+    int   loadKind_     = 0;             // 0 = ROM, 1 = hard disk, 2 = 3.5" disk, 3 = hot-swap
     char  pathBuf_[512] = {0};
+    // Universal media browser (the Load dialog): current directory + entries.
+    std::string browseDir_;
+    std::vector<std::pair<bool, std::string>> browseEntries_;   // (isDir, name)
+    int  browseSel_ = -1;
+    void browseTo(const std::string& dir);      // cd + rescan (filtered by loadKind_)
+    bool browseAccept(const std::string& path); // dispatch to the right onLoad* hook
 
     std::string statusMsg_;
     double      statusUntil_ = 0.0;

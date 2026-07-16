@@ -13,8 +13,12 @@
 
 #include "imgui.h"
 
+#include <algorithm>
+#include <cctype>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <filesystem>
 
 Ui::Ui(IIgsMemory& mem, CPU65816& cpu, VGC& vgc, AudioOut& audio)
     : mem_(mem), cpu_(cpu), vgc_(vgc), audio_(audio) {}
@@ -29,10 +33,61 @@ void Ui::doReset() {
     cpu_.hardReset();
 }
 
+// Per-kind extension filter for the media browser.
+static bool mediaMatch(int kind, std::string ext) {
+    for (auto& c : ext) c = char(std::tolower((unsigned char)c));
+    if (kind == 0) return ext == ".rom" || ext == ".bin";
+    if (kind == 1) return ext == ".hdv" || ext == ".po" || ext == ".2mg";
+    return ext == ".2mg" || ext == ".po" || ext == ".dsk";      // 3.5" load / hot-swap
+}
+
+void Ui::browseTo(const std::string& dir) {
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    fs::path d = dir.empty() ? fs::current_path(ec) : fs::path(dir);
+    if (!fs::is_directory(d, ec)) d = fs::current_path(ec);
+    browseDir_ = d.string();
+    browseSel_ = -1;
+    browseEntries_.clear();
+    for (const auto& e : fs::directory_iterator(d, ec)) {
+        const std::string name = e.path().filename().string();
+        if (!name.empty() && name[0] == '.') continue;          // hidden
+        if (e.is_directory(ec)) browseEntries_.emplace_back(true, name);
+        else if (e.is_regular_file(ec) && mediaMatch(loadKind_, e.path().extension().string()))
+            browseEntries_.emplace_back(false, name);
+    }
+    std::sort(browseEntries_.begin(), browseEntries_.end(), [](const auto& a, const auto& b) {
+        if (a.first != b.first) return a.first;                 // directories first
+        return a.second < b.second;
+    });
+}
+
+bool Ui::browseAccept(const std::string& path) {
+    bool ok = false;
+    if      (loadKind_ == 0 && onLoadRom)    ok = onLoadRom(path);
+    else if (loadKind_ == 1 && onLoadHdd)    ok = onLoadHdd(path);
+    else if (loadKind_ == 2 && onLoadDisk35) ok = onLoadDisk35(path);
+    else if (loadKind_ == 3 && onSwapDisk35) { ok = onSwapDisk35(path); if (ok) disk35Path = path; }
+    if (ok) {
+        setStatus((loadKind_ == 0 ? "Loaded ROM: " : loadKind_ == 3 ? "Inserted: " : "Loaded disk: ") + path);
+        running = true;
+    } else setStatus("Load failed: " + path, 4.0f);
+    return ok;
+}
+
 void Ui::openLoad(int kind) {
     loadKind_ = kind;
-    const std::string& cur = (kind == 0) ? romPath : hddPath;   // ROM path or last disk path
-    std::snprintf(pathBuf_, sizeof pathBuf_, "%s", cur.c_str());
+    // Start in the last directory used for this kind (sticky across the session).
+    static std::string lastDir[4];
+    if (lastDir[kind].empty()) {
+        namespace fs = std::filesystem;
+        std::error_code ec;
+        const std::string& seed = (kind == 0) ? romPath : (kind >= 2 ? disk35Path : hddPath);
+        if (!seed.empty()) lastDir[kind] = fs::path(seed).parent_path().string();
+    }
+    browseTo(lastDir[kind]);
+    lastDir[kind] = browseDir_;
+    pathBuf_[0] = 0;
     pendingLoad_ = true;
 }
 
@@ -47,6 +102,10 @@ void Ui::handleShortcuts() {
         running = !running;
         setStatus(running ? "Running" : "Paused");
     }
+    if (ImGui::IsKeyPressed(ImGuiKey_F7, false) && onSaveState)
+        setStatus(onSaveState() ? "State saved" : "State save FAILED");
+    if (ImGui::IsKeyPressed(ImGuiKey_F8, false) && onLoadState)
+        setStatus(onLoadState() ? "State loaded" : "State load FAILED (no save?)");
 }
 
 void Ui::render(unsigned int screenTex) {
@@ -69,6 +128,26 @@ void Ui::menuBar() {
         ImGui::EndMenu();
     }
 
+    // 3.5" drive: quick-swap between the install-set disks WITHOUT a reset, so the
+    // Installer can prompt "insert disk X" mid-install. The next SmartPort STATUS
+    // reports "disk switched" so GS/OS re-reads the new volume.
+    if (ImGui::BeginMenu("3.5\" Drive")) {
+        if (disk35Menu.empty()) ImGui::TextDisabled("(no 3.5\" images found)");
+        for (const auto& d : disk35Menu) {
+            const bool current = (d.second == disk35Path);
+            if (ImGui::MenuItem(d.first.c_str(), nullptr, current, bool(onSwapDisk35))) {
+                if (onSwapDisk35(d.second)) { disk35Path = d.second; setStatus("Inserted: " + d.first); }
+                else                          setStatus("Insert failed: " + d.first, 4.0f);
+            }
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem("Insert other 3.5\" disk...", nullptr, false, bool(onSwapDisk35))) openLoad(3);
+        if (ImGui::MenuItem("Eject", nullptr, false, bool(onEjectDisk35))) {
+            onEjectDisk35(); disk35Path.clear(); setStatus("Ejected 3.5\" disk");
+        }
+        ImGui::EndMenu();
+    }
+
     if (ImGui::BeginMenu("Machine")) {
         if (ImGui::MenuItem(running ? "Pause" : "Run", "F6", false, romOk)) {
             running = !running;
@@ -76,6 +155,11 @@ void Ui::menuBar() {
         }
         ImGui::Separator();
         if (ImGui::MenuItem("Reset", "F5", false, romOk)) { doReset(); setStatus("Reset"); }
+        ImGui::Separator();
+        if (ImGui::MenuItem("Save State", "F7", false, bool(onSaveState)))
+            setStatus(onSaveState() ? "State saved" : "State save FAILED");
+        if (ImGui::MenuItem("Load State", "F8", false, bool(onLoadState)))
+            setStatus(onLoadState() ? "State loaded" : "State load FAILED (no save?)");
         ImGui::EndMenu();
     }
 
@@ -216,33 +300,77 @@ void Ui::dialogs() {
         ImGui::EndPopup();
     }
 
-    ImGui::SetNextWindowSize(ImVec2(560, 0), ImGuiCond_Appearing);
-    if (ImGui::BeginPopupModal("Load##dlg", nullptr, ImGuiWindowFlags_NoResize)) {
-        const char* label = loadKind_ == 0 ? "ROM image"
+    // ── Universal media browser ──────────────────────────────────────────
+    // Directory navigation (Places bar, Up, double-click), filtered by the
+    // media kind; a manual path field remains for exotic locations.
+    ImGui::SetNextWindowSize(ImVec2(640, 460), ImGuiCond_Appearing);
+    if (ImGui::BeginPopupModal("Load##dlg", nullptr, 0)) {
+        namespace fs = std::filesystem;
+        const char* label = loadKind_ == 0 ? "ROM image (.rom/.bin)"
                           : loadKind_ == 1 ? "Hard-disk image (.hdv/.po/.2mg)"
-                                           : "3.5\" disk image, slot 5 (.po/.2mg, 800K)";
-        ImGui::Text("%s path:", label);
+                          : loadKind_ == 3 ? "3.5\" disk to insert now (no reset)"
+                                           : "3.5\" boot disk, slot 5 (cold reset)";
+        ImGui::TextUnformatted(label);
+
+        // Places: quick jumps that exist on this machine.
+        struct Place { const char* name; const char* path; };
+        static const Place places[] = {
+            { "disks35",  "disks35" },
+            { "hdv",      "hdv" },
+            { "roms",     "roms" },
+            { "Games",    "/media/gistarcade/SHARE/roms/apple2gs" },
+            { "Home",     nullptr },
+        };
+        for (const auto& p : places) {
+            std::error_code ec;
+            std::string tgt = p.path ? p.path : std::string(std::getenv("HOME") ? std::getenv("HOME") : "/");
+            if (!fs::is_directory(tgt, ec)) continue;
+            if (ImGui::Button(p.name)) browseTo(tgt);
+            ImGui::SameLine();
+        }
+        if (ImGui::Button("Up")) {
+            fs::path parent = fs::path(browseDir_).parent_path();
+            if (!parent.empty()) browseTo(parent.string());
+        }
+        ImGui::TextDisabled("%s", browseDir_.c_str());
+        ImGui::Separator();
+
+        // Entry list: directories first; double-click enters/loads.
+        std::string accepted;
+        const float footer = ImGui::GetFrameHeightWithSpacing() * 2.4f;
+        if (ImGui::BeginChild("##files", ImVec2(0, -footer), true)) {
+            for (int i = 0; i < int(browseEntries_.size()); ++i) {
+                const auto& [isDir, name] = browseEntries_[size_t(i)];
+                std::string row = (isDir ? "[+] " : "     ") + name;
+                if (ImGui::Selectable(row.c_str(), browseSel_ == i,
+                                      ImGuiSelectableFlags_AllowDoubleClick)) {
+                    browseSel_ = i;
+                    if (!isDir)
+                        std::snprintf(pathBuf_, sizeof pathBuf_, "%s",
+                                      (fs::path(browseDir_) / name).string().c_str());
+                    if (ImGui::IsMouseDoubleClicked(0)) {
+                        if (isDir) { browseTo((fs::path(browseDir_) / name).string()); break; }
+                        accepted = (fs::path(browseDir_) / name).string();
+                    }
+                }
+            }
+            if (browseEntries_.empty()) ImGui::TextDisabled("(no matching media here)");
+        }
+        ImGui::EndChild();
+
+        // Manual path + buttons.
         ImGui::SetNextItemWidth(-1);
         const bool enter = ImGui::InputText("##path", pathBuf_, sizeof pathBuf_,
                                             ImGuiInputTextFlags_EnterReturnsTrue);
-        ImGui::Spacing();
         const bool go = ImGui::Button("Load", ImVec2(120, 0)) || enter;
         ImGui::SameLine();
         if (ImGui::Button("Cancel", ImVec2(120, 0))) ImGui::CloseCurrentPopup();
-        if (go) {
-            std::string path = pathBuf_;
-            bool ok = false;
-            if      (loadKind_ == 0 && onLoadRom)    ok = onLoadRom(path);
-            else if (loadKind_ == 1 && onLoadHdd)    ok = onLoadHdd(path);
-            else if (loadKind_ == 2 && onLoadDisk35) ok = onLoadDisk35(path);
-            if (ok) {
-                setStatus((loadKind_ == 0 ? "Loaded ROM: " : "Loaded disk: ") + path);
-                running = true;
-                ImGui::CloseCurrentPopup();
-            } else {
-                setStatus("Load failed: " + path, 4.0f);
-            }
+        if (go && pathBuf_[0]) {
+            std::error_code ec;
+            if (fs::is_directory(pathBuf_, ec)) browseTo(pathBuf_);   // typed a folder → navigate
+            else accepted = pathBuf_;
         }
+        if (!accepted.empty() && browseAccept(accepted)) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     }
 }

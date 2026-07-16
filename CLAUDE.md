@@ -86,7 +86,8 @@ file; `[new]` = IIgs-specific, built here.
 | SmartPort / 3.5" Sony stack | `[reuse: POM2 SmartPort*, Sony35Drive]` | reuse | — |
 | SCC 8530 serial (2 ports) | `Scc8530.h/.cpp` | new | MAME `scc8530.cpp` |
 | Slot bus + wire-OR IRQ | `[reuse: POM2 SlotBus, SlotPeripheral]` | reuse | — |
-| Snapshot + Rewind ring | `[reuse: POM2 MachineSnapshot, RewindBuffer]` | reuse | — |
+| Snapshot (save/load state, F7/F8) | `Snapshot.h/.cpp` + per-subsystem `saveState` | new (POM2 pattern) | gate: snapshot_test |
+| Rewind ring | `[reuse: POM2 RewindBuffer]` + delta compression (8 MB fast side) | todo | — |
 | UI (ImGui) | `MainWindow.*`, `*_ImGui.*` | new (fork POM2) | — |
 | Clock & threading | `EmulationController.h/.cpp` | new (fork POM2) | — |
 | System profiles (ROM 01 / ROM 03) | `SystemProfile.h/.cpp` | new (fork POM2) | — |
