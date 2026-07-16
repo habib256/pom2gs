@@ -219,19 +219,23 @@ void IIgsMemory::adbCommand(uint8_t v) {
         return;
     }
     adbCmd_ = v; adbParamCount_ = 0;
+    // Command param counts + responses per KEGS adb.c adb_write_c026 / do_adb_cmd.
+    // A wrong count desyncs the whole stream (Captain Blood's ADB init never
+    // completed → it never reached the $C024 mouse-autopoll read → frozen cursor).
     switch (v) {
-        case 0x00: case 0x01: case 0x02: case 0x03: break;         // abort / reset kbd / flush
-        case 0x04: case 0x05: case 0x11: adbParamsLeft_ = 1; break;// set/clear modes, send code
-        case 0x06: adbParamsLeft_ = 3; break;                      // set config
-        case 0x07: adbParamsLeft_ = (romBankBase_ == 0xFC) ? 8 : 4; break; // sync (ROM03: 8)
-        case 0x08: case 0x09: adbParamsLeft_ = 2; break;           // write/read RAM
-        case 0x0A: adbQueue(adbMode_); break;                      // read modes
-        case 0x0B: adbQueue(0); adbQueue(0); adbQueue(0); adbQueue(0); break; // read config
-        case 0x0D: adbQueue(0x06); break;                          // version byte (KEGS)
-        case 0x0E: adbQueue(0x01); adbQueue(0x00); break;          // read charsets
-        case 0x0F: adbQueue(0x01); adbQueue(0x00); break;          // read layouts
-        case 0x10: break;                                          // reset system (ignored)
-        default:   break;                                          // unknown: no params
+        case 0x01: case 0x02: case 0x03: break;                    // abort / flush kbd / flush data
+        case 0x04: case 0x05: adbParamsLeft_ = 1; break;           // set / clear modes
+        case 0x06: adbParamsLeft_ = 3; break;                      // set config (addrs, repeat)
+        case 0x07: adbParamsLeft_ = (romBankBase_ == 0xFC) ? 8 : 4; break; // sync (ROM03 8, ROM01 4)
+        case 0x08: adbParamsLeft_ = 2; break;                      // write µC RAM
+        case 0x09: adbParamsLeft_ = 2; break;                      // read µC RAM (response after params)
+        case 0x0A: adbQueue(adbMode_); break;                      // read modes byte
+        case 0x0B: adbQueue(uint8_t(0x82)); adbQueue(0x00);        // read config: 0x82|mouseaddr,
+                   adbQueue(0x00); adbQueue(0x00); break;          //   kbdaddr, charset, layout
+        case 0x0D: adbQueue(romBankBase_ == 0xFC ? 0x06 : 0x05); break; // version (ROM03 6 / ROM01 5)
+        default:                                                   // ADB-bus command ($2n Talk/Listen,
+            if (v >= 0x20) adbParamsLeft_ = 0;                     // $Bn device access): absorbed —
+            break;                                                 // no direct-device model (µC auto-polls)
     }
     updateAdbIrq();
 }

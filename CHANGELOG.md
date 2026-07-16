@@ -4,6 +4,21 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — ADB µC command param counts (Captain Blood's mouse was frozen)
+- **Captain Blood's arm-cursor was stuck top-left** (mouse deltas never reached it).
+  Unlike Battle Chess (native ADB-IRQ path) it does its ADB setup through the µC
+  **command stream on $C026** then reads the mouse via the ROM's `ReadMouse`
+  ($C024). Trace: my µC command machine had **wrong parameter counts and invented
+  commands** ($0E/$0F/$10/$11), so the setup stream desynced, `do_adb_cmd` never
+  completed, and the game never reached the $C024 autopoll read. Rewrote the table
+  to KEGS `adb.c` exactly (abort/flush 0, set/clear-modes 1, set-config 3, sync 8/4
+  by ROM, write/read-mem 2, read-modes/config/version responses; ADB-bus $2n/$Bn
+  bytes absorbed). Now the ADB init completes and `ReadMouse` (FE:B1EB) reads the
+  deltas correctly. Battle Chess / Arkanoid / the Finder mouse unaffected (Battle
+  Chess still 676 px cursor motion). Open: Captain Blood's "planet colours look
+  buggy" — NOT reproduced headless (title + planet-nav SHR render correctly, 2
+  per-scanline palettes applied); needs a user screenshot of the exact frame.
+
 ### Fixed — the video/wall-clock timebase counted CPU cycles (VBL at 164 Hz!)
 - **Game music ran ~2.8× fast and digitized samples stopped ~2.8× early** (Captain
   Blood, Transylvania III), while synthLAB's tempo was correct. Root cause: the
