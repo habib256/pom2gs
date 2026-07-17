@@ -1,7 +1,6 @@
-// VERHILLE Arnaud 2026
-
-// POM2 Apple II Emulator
-// Copyright (C) 2026
+// POMIIGS — Apple IIgs emulator
+// VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
+// Ported verbatim from POM2 (the Apple II-family sibling emulator).
 
 #include "DiskImage.h"
 #include "Logger.h"

@@ -180,16 +180,18 @@ uint8_t Iwm::access(uint8_t offset, bool isWrite, uint8_t writeVal, uint64_t cyc
         dataReg_ = writeVal;
         if (q7_ && q6_) {
             if (!motorOn_) mode_ = writeVal & 0x1F;             // write MODE register
-            else {
-                if (sel35_)                                     // write data → Sony head
-                    d35_[drive_ & 1].writeNibble(hdsel_ ? 1 : 0, writeVal); // (async, handshake below)
-                else if (drive_ == 0 && !enable2())             // write data → 5.25" head
-                    writeNibble525(writeVal);                   // (ENABLE2 = SmartPort chain packet)
-                // The write shifter drains one 8-bit nibble (~16 µs on the
-                // 3.5", ~32 µs on the 5.25"); the handshake's bit 6 stays
-                // high while it still holds data.
-                wrBusyUntil_ = cycle + 2 * 229;                 // buffer + shifter
+            else if (sel35_) {                                  // write data → Sony head
+                d35_[drive_ & 1].writeNibble(hdsel_ ? 1 : 0, writeVal); // (async, handshake below)
+                // The write shifter drains one 8-bit nibble; bit 6 of the
+                // handshake stays high while it holds data. Buffer + shifter
+                // ≈ 2 nibble times per family (3.5" 16 µs, 5.25" 32 µs).
+                wrBusyUntil_ = cycle + 2 * 229;
+            } else if (drive_ == 0 && !enable2()) {             // write data → 5.25" head
+                writeNibble525(writeVal);                       // (ENABLE2 = SmartPort chain packet)
+                wrBusyUntil_ = cycle + 2 * 8 * kTicksPerCell525;
             }
+            // Ignored writes (drive 1 / ENABLE2 packet) leave the handshake
+            // idle — no shifter ever held their byte.
         }
         return 0;
     }

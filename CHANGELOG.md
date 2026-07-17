@@ -4,6 +4,25 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — pass 10: disk-subsystem bug hunt (8 finder angles × adversarial verify over HEAD~2..HEAD)
+Multi-agent review of the two disk commits; ~40 candidates → 15 deduped → 2 confirmed + 8 plausible
+(guards held on the rest: endWrite div-by-zero, qt cache churn, motorOn() semantics, ENABLE2 stepper
+all REFUTED with cited evidence). Applied:
+- **$C031 DISKREG now clears on reset()** (real hardware behavior) + the 3.5" media-change one-shots
+  (`disk35Changed_`/`disk35SwitchIo_`) — previously a 3.5" session's 35SEL survived F5 and mis-routed
+  the phase lines until the ROM's disk-port probe rewrote $C031.
+- **onLoadDisk35 seeded `ui.hddPath` instead of `ui.disk35Path`** (copy-paste from the HDD lambda) —
+  the 3.5" file browser lost its sticky directory and the status bar showed the wrong slot.
+- **swapDisk35(path, drive)** — the second Sony drive is now hot-swappable through the API (was
+  load-time-config only); HLE mode still refuses drive 1 (single-unit model).
+- **Handshake bit-6 window per family** (3.5" 2×229 ticks, 5.25" 2×456) and no longer armed by
+  ignored writes (drive 1 / ENABLE2 probe packets) — the shifter never held those bytes.
+- **Ported-file headers rebranded** (DiskImage.h/.cpp, Logger.h, TwoImg.h): POMIIGS + GPLv3 marker +
+  "ported verbatim from POM2" provenance; include guards POM2_* → POMIIGS_*.
+Revalidated after the fixes: Choplifter gameplay, A.E. WOZ title, GS/OS Finder via IWM 3.5" — all
+green, suite 17/17. Deferred (documented): snapshot format version byte, shared GcrTables.h/TwoImg
+dedup, lazy media flush (currently one full-file write per post-write motor-off).
+
 ### Added — 5.25" write path + WOZ support (POM2 DiskImage port) — Choplifter boots, protected WOZ originals boot
 The minimal 5.25" nibble reader was replaced by **POM2's `DiskImage` ported verbatim**
 (.dsk/.do/.po/.nib/.d13/.2mg/**WOZ 1-2 + FLUX**, quarter-track bit-cell streams, flux splice, sector

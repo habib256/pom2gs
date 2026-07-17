@@ -185,8 +185,9 @@ public:
     // — GS/OS STATUS-polls the drive continuously, and firing $2E on STATUS lets that
     // poll consume the one-shot before the actual file access, so the swap goes
     // unnoticed. STATUS reports it as bit0 of the status byte instead. See smartportCall.
-    bool swapDisk35(const std::string& path) {
-        if (iwm35_) return iwm_.loadDisk35(path);   // Sony35 arms its own switched flag
+    bool swapDisk35(const std::string& path, int drive = 0) {
+        if (iwm35_) return iwm_.loadDisk35(path, drive);   // Sony35 arms its own switched flag
+        if (drive != 0) return false;                      // HLE models a single unit
         bool ok = disk35_.loadImage(path);
         disk35Changed_ = true; disk35SwitchIo_ = true;
         return ok;

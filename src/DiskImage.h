@@ -1,7 +1,6 @@
-// VERHILLE Arnaud 2026
-
-// POM2 Apple II Emulator
-// Copyright (C) 2026
+// POMIIGS — Apple IIgs emulator
+// VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
+// Ported verbatim from POM2 (the Apple II-family sibling emulator).
 //
 // DiskImage — loads a 143 360-byte Apple II floppy image (.dsk / .do
 // in DOS 3.3 logical sector order, or .po in ProDOS sector order) and
@@ -33,8 +32,8 @@
 //
 // Read-only for now: the buffer is regenerated only on insert.
 
-#ifndef POM2_DISK_IMAGE_H
-#define POM2_DISK_IMAGE_H
+#ifndef POMIIGS_DISKIMAGE_H
+#define POMIIGS_DISKIMAGE_H
 
 #include <array>
 #include <cstdint>
@@ -543,4 +542,4 @@ enum class DiskSlotClass {
 /// identically. Returns `Unknown` if the file is missing or unrecognised.
 DiskSlotClass classifyDiskForSlot(const std::string& path);
 
-#endif // POM2_DISK_IMAGE_H
+#endif // POMIIGS_DISKIMAGE_H

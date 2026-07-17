@@ -243,7 +243,7 @@ int main(int argc, char** argv) {
         std::string rp = findPath(p); if (rp.empty()) rp = p;
         if (!mem.loadDisk35(rp)) return false;
         mem.ejectHdd();
-        ui.hddPath = rp;
+        ui.disk35Path = rp;             // seed the 3.5" browser/menu, not the HDD slot
         mem.reset(); cpu.hardReset();
         return true;
     };

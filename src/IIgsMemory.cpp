@@ -599,6 +599,15 @@ void IIgsMemory::reset() {
     mouseDX_ = mouseDY_ = 0; mouseBtn_ = false; mouseDataFull_ = false;
     mouseReadY_ = false; keyMod_ = 0; kbdIntPending_ = false;
     slowPenMaster_ = 0;
+    // $C031 DISKREG clears on reset (real hardware): drop the 35SEL/HDSEL
+    // routing latched in the IWM, else a 5.25" boot after a 3.5" session
+    // mis-routes the phase lines until the ROM's disk-port probe rewrites
+    // $C031 (bug-hunt finding, July 2026).
+    diskReg_ = 0;
+    iwm_.setDiskReg(0);
+    // Media-change one-shots don't survive a reboot either — a fresh boot
+    // re-identifies volumes anyway; keep parity with loadState().
+    disk35Changed_ = false; disk35SwitchIo_ = false;
 }
 
 // Fast RAM cell, mirroring the top of the address space down if the machine

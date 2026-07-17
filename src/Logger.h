@@ -1,14 +1,13 @@
-// VERHILLE Arnaud 2026
-
-// POM2 Apple II Emulator
-// Copyright (C) 2026
+// POMIIGS — Apple IIgs emulator
+// VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
+// Ported verbatim from POM2 (the Apple II-family sibling emulator).
 //
 // Minimal levelled logger — thread-safe stderr sink with a tag per message.
 // Used everywhere a subsystem wants to log something:
 //   pom2::log().info("ROM", "Loaded apple2.rom");
 
-#ifndef POM2_LOGGER_H
-#define POM2_LOGGER_H
+#ifndef POMIIGS_LOGGER_H
+#define POMIIGS_LOGGER_H
 
 #include <cstdio>
 #include <mutex>
@@ -39,4 +38,4 @@ inline Logger& log() { static Logger g; return g; }
 
 } // namespace pom2
 
-#endif // POM2_LOGGER_H
+#endif // POMIIGS_LOGGER_H

@@ -1,6 +1,6 @@
-// VERHILLE Arnaud 2026
-
-// POM2 Apple II Emulator
+// POMIIGS — Apple IIgs emulator
+// VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
+// Ported verbatim from POM2 (the Apple II-family sibling emulator).
 //
 // 2IMG (.2mg) container — the ONE definition of the flags-word semantics,
 // shared by the three loaders (DiskImage 5.25", Disk35Image 800K,
@@ -18,8 +18,8 @@
 // volume field is declared (bit 8 clear) — with bit 8 set, bit 0 is just
 // the low bit of the volume number.
 
-#ifndef POM2_TWOIMG_H
-#define POM2_TWOIMG_H
+#ifndef POMIIGS_TWOIMG_H
+#define POMIIGS_TWOIMG_H
 
 #include <cstdint>
 
@@ -41,4 +41,4 @@ inline constexpr uint8_t twoImgVolume(uint32_t flags)
 
 } // namespace pom2
 
-#endif // POM2_TWOIMG_H
+#endif // POMIIGS_TWOIMG_H
