@@ -1029,8 +1029,6 @@ SmartPort driver) and rendering the desktop** (background pattern + Trash icon).
 - **40-column text is now white** (colour/RGB-monitor default), not green
   phosphor.
 
-## [Unreleased] — Milestone 0: foundation
-
 ### Added — ProDOS hard disk: boots Total Replay
 - `src/ProDosHdd.{h,cpp}` — a synthetic ProDOS block device (slot 7) for
   .hdv/.po/.2mg images. Slot ROM at $C700 advertises the ProDOS signature
@@ -1046,8 +1044,6 @@ SmartPort driver) and rendering the desktop** (background pattern + Trash icon).
   ("TOTAL REPLAY", 518 games, "Type to search") -- waiting for keyboard input.
   Booting without a disk still reaches "Check startup device". Disk images are
   git-ignored (bundled games are copyrighted).
-
-## [Unreleased] — Milestone 0: foundation
 
 ### Fixed — audit / bug-fix pass
 - **CPU: emulation-mode direct-page indexed wrap.** `ea_dpx`/`ea_dpy` now wrap
@@ -1072,8 +1068,6 @@ SmartPort driver) and rendering the desktop** (background pattern + Trash icon).
 - Verified NOT bugs (audit false positives, left unchanged): the 640-mode
   palette groups `{8,12,0,4}` (the documented Apple mapping), the IWM half-track
   stepper, `maybeShadow` using the physical bank, and the DOC end-of-wave test.
-
-## [Unreleased] — Milestone 0: foundation
 
 ### Added — Milestone 8 (WebAssembly build)
 - The whole emulator builds to WebAssembly via Emscripten: `./build_wasm.sh`

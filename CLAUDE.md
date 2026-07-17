@@ -61,38 +61,33 @@ cd build && cmake .. && make # → build/POMIIGS
 ```
 
 Master clock **14.31818 MHz**. Fast CPU **2.8 MHz** (÷5), slow-side **1.02 MHz**
-(÷14, the classic Apple II clock). ROMs are user-provided: **ROM 01** (256 KB)
-and **ROM 03** (128 KB) — probe order in [System profiles](#system-profiles).
+(÷14, the classic Apple II clock). ROMs are user-provided: **ROM 03** (256 KB,
+→ banks `$FC`-`$FF`) and **ROM 01** (128 KB, → `$FE`-`$FF`); probe order (rom03
+first) in [System profiles](#system-profiles). Char ROM 344s0047 (16 KB) →
+`roms/iigs-char.rom` for text.
 
 ## Subsystem map
 
-Detail lives in `DEV.md`. `[reuse: POM2]` = shared hardware, port/link POM2's
-file; `[new]` = IIgs-specific, built here.
+Detail lives in `DEV.md`. POMIIGS is a compact self-contained codebase (11
+subsystems), **not** a POM2 link-fork — it reuses POM2's *conventions* and ports
+its hardware logic into these files. 🟢 = working + pinned test.
 
 | Subsystem | Files | Status | Source |
 |---|---|---|---|
-| **65C816 CPU** (emul + native mode, 24-bit) | `CPU65816.h/.cpp` | new | MAME `g65816/`, WDC datasheet, Tom Harte 65816 |
-| 65C02 / 6502 (legacy-mode fallback) | `[reuse: POM2 M6502]` | reuse | — |
-| **MMU / FPI + Mega II** (24-bit space, shadow, speed) | `IIgsMemory.h/.cpp` | new | MAME `apple2gs.cpp` |
-| IIe paging / language card (slow-side) | `[reuse: POM2 Memory]` | reuse | — |
-| **VGC** — Super Hi-Res 320/640 + SCB/palettes + video IRQ | `VGC.h/.cpp` | new | MAME `apple2gs.cpp` VGC |
-| Legacy //e video (text/LORES/HGR/DHGR) + NTSC/CRT | `[reuse: POM2 Apple2Display, NtscPostProcessor, CrtEffectStack]` | reuse | — |
-| **Ensoniq 5503 DOC** — 32 osc, 64 KB sound RAM, Sound GLU | `Es5503.h/.cpp` | new | MAME `es5503.cpp`, Ensoniq datasheet |
-| Audio bus / speaker / Mockingboard / SSI263 | `[reuse: POM2 AudioDevice, SpeakerDevice, Mockingboard, Ssi263]` | reuse | — |
-| **ADB** — Apple Desktop Bus GLU (keyboard/mouse) | `Adb.h/.cpp` | new | MAME `apple2gs.cpp` ADB GLU |
-| **Battery RAM + RTC** (persisted Control Panel) | `IIgsClock.h/.cpp` | new | MAME `apple2gs.cpp` clock |
-| **IWM / SWIM** (5.25" + 3.5", ROM 01 IWM / ROM 03 SWIM) | `[reuse: POM2 IWMDevice]` + `Swim.h/.cpp` | reuse+new | MAME `iwm.cpp`, `swim.cpp` |
-| DiskImage / WOZ / 2mg / ProDOS blocks | `[reuse: POM2 DiskImage, Block512Backing]` | reuse | — |
-| SmartPort / 3.5" Sony stack | `[reuse: POM2 SmartPort*, Sony35Drive]` | reuse | — |
-| SCC 8530 serial (2 ports) | `Scc8530.h/.cpp` | new | MAME `scc8530.cpp` |
-| Slot bus + wire-OR IRQ | `[reuse: POM2 SlotBus, SlotPeripheral]` | reuse | — |
-| Snapshot (save/load state, F7/F8) | `Snapshot.h/.cpp` + per-subsystem `saveState` | new (POM2 pattern) | gate: snapshot_test |
-| Rewind ring | `[reuse: POM2 RewindBuffer]` + delta compression (8 MB fast side) | todo | — |
-| UI (ImGui) | `MainWindow.*`, `*_ImGui.*` | new (fork POM2) | — |
-| Clock & threading | `EmulationController.h/.cpp` | new (fork POM2) | — |
-| System profiles (ROM 01 / ROM 03) | `SystemProfile.h/.cpp` | new (fork POM2) | — |
-| CLI | `[reuse: POM2 CliDispatcher]` | reuse | — |
-| WebAssembly build | `build_wasm.sh` | reuse pattern | — |
+| **65C816 CPU** (emul + native, 24-bit, all opcodes) | `CPU65816.h/.cpp` | 🟢 384k Tom Harte vectors (64 families ×2 modes; MVN/MVP excluded) | MAME `g65816/`, WDC datasheet |
+| **MMU** — FPI + Mega II (16 MB banks, shadow, speed, //e main/aux redirect on `$00`+`$E0`, STATEREG, VBL/Mega II IRQ timing) | `IIgsMemory.h/.cpp` | 🟢 | MAME `apple2gs.cpp`, KEGS |
+| **ADB GLU** (keyboard/mouse/modifiers, HLE) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 IRQ kbd/mouse, ⌘-menu shortcuts (`adb_test`) | MAME `apple2gs.cpp` ADB GLU |
+| **Battery RAM + RTC** ($C033/$C034 serial) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 Control Panel shows host local time; BRAM r/w | KEGS clock.c, MAME |
+| **SmartPort / ProDOS HDD** (HLE via `WDM $42` trap; slot-7 block device) | `IIgsMemory.h/.cpp` + `ProDosHdd.h/.cpp` | 🟢 GS/OS installs+boots from HDD | KEGS, Apple SmartPort firmware |
+| **VGC** — Super Hi-Res 320/640 + SCB/palettes, **and** legacy 40/80-col text (char ROM 344s0047) + HGR/DHGR (NTSC-composite / RGB-clean) → 640×400 GL | `VGC.h/.cpp`, `VGCNtsc.h` | 🟢 SHR/text/HGR/DHGR render; scanline IRQ TODO | MAME `apple2gs.cpp` VGC |
+| **Ensoniq 5503 DOC** — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$F) | `Es5503.h/.cpp` | 🟢 MAME es5503 parity (`doc_test`) | MAME `es5503.cpp`, Ensoniq datasheet |
+| **Audio host** — miniaudio mono-f32 ring; speaker ($C030) + DOC mix | `Audio.h/.cpp` | 🟢 (native; WASM stub) | POM2 AudioDevice pattern |
+| **IWM** (5.25" read path) | `Iwm.h/.cpp` | 🟢 boots to "Check startup device". SWIM / 3.5" IWM 🔴 | MAME `iwm.cpp` |
+| **SCC 8530 serial** | `Scc8530.h/.cpp` | 🟢 loopback (`scc_test`) | MAME `scc8530.cpp` |
+| **Snapshot** (save/load state, F7/F8 → `states/quick.pgss`) | `Snapshot.h/.cpp` | 🟢 (`snapshot_test`) | POM2 pattern |
+| **UI** (ImGui desktop chrome, menus, file picker) | `Ui.h/.cpp` | 🟢 | — |
+| **Main loop / config / CLI** (GLFW+GL) | `main.cpp` | 🟢 `pomiigs.cfg` + flags | — |
+| **WebAssembly build** | `build_wasm.sh` | 🟡 builds; audio = stub | — |
 
 ## Memory map (24-bit, banked)
 
@@ -122,7 +117,7 @@ Slow-side I/O ($E0/E1 $Cnnn), also visible at $00/$01 $Cnnn via shadow:
   $C036        SPEED register (bit 7 = 2.8 MHz, bit 0-3 slot motor detect)
   $C037        DMA / (ROM 03) shadow-all
   $C038-$C03B  SCC 8530 serial (command/data, ports A/B)
-  $C03C-$C03F  Sound GLU: $C03C ctrl, $C03D data, $C03E/F addr ptr (→ DOC)
+  $C03C-$C03F  Sound GLU: $C03C ctrl, $C03D data (auto-inc), $C03E/F addr (→ DOC)
   $C041-$C047  Mega II interrupt (IRQ) registers + mouse
   $C044-$C047  (mouse delta on some maps)
   $C058-$C05F  Annunciators / (IIgs) DHIRES + softswitch mirrors
@@ -150,6 +145,16 @@ cold boot clears fast RAM with the `00 FF` pattern and re-seeds BRAM defaults.
 
 ## Status
 
-**Milestone 0 — foundation (in progress).** Build system, docs, and subsystem
-map established. Next: 65C816 core gated by Tom Harte `SingleStepTests/65816`,
-then the FPI/Mega II MMU. See `TODO.md` for the milestone roadmap.
+**Broadly working — GS/OS boots.** Nine differential bug-sweep passes brought
+POMIIGS to broad KEGS/MAME/GSSquared parity:
+
+- 65C816 🟢 (384k Tom Harte vectors), FPI/Mega II MMU 🟢 (shadow, speed,
+  //e main/aux redirect, STATEREG, VBL + Mega II quarter-second IRQ).
+- VGC 🟢 Super Hi-Res + SCB/palettes, legacy text (authentic char ROM),
+  HGR/DHGR (NTSC + RGB). Ensoniq DOC 🟢 (synthLAB music validated).
+- ADB 🟢 (IRQ kbd/mouse, ⌘-menu shortcuts), BRAM/RTC 🟢, SCC 🟢.
+- IWM 5.25" read path 🟢; **SmartPort HLE 🟢 — GS/OS 6.0.1 installs and boots
+  from HDD to the full Finder desktop**; games run; save/load state (F7/F8) 🟢.
+
+Open: SWIM / 3.5" IWM (🔴), VGC scanline IRQ, rewind ring, WASM audio, full ADB
+µC command model. See `TODO.md` for the parity dashboard + backlog.

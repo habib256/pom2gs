@@ -14,18 +14,20 @@ pinned test**. This file grows one section per subsystem as milestones land
 - [ADB](#adb)
 - [Clock / Battery RAM](#clock--battery-ram)
 - [Disk — IWM / SWIM](#disk--iwm--swim)
+- [Serial — SCC 8530](#serial--scc-8530)
 - [Clock & threading](#clock--threading)
 
 ---
 
 ## CPU — 65C816
 
-*(Milestone 1 — core complete. All 256 opcodes implemented in `CPU65816.cpp`.
-Validated against Tom Harte SingleStepTests/65816 at **100% (registers + RAM +
-cycle count)** across 64 opcode families spanning every addressing mode, in
-both emulation and native mode — 384 000 vectors. The remaining M1 work is
-extending the downloaded corpus to the full 256 opcodes and the ROM
-self-diagnostic once the MMU (M2) exists.)*
+*(Core complete. All 256 opcodes in `CPU65816.cpp`, gated by the Tom Harte
+SingleStepTests/65816 corpus (registers + RAM + cycle count) — see the pinned
+`tomharte_65816` test — minus the two deliberate exclusions below. The suite is
+re-run as a differential oracle each bug-sweep pass; it caught real defects
+static review missed: the WAI/STP cycle count (+3) and the (dp,X) emulation-mode
+pointer wrap fixed below (validated 160000/160000 across all 8 (dp,X) opcodes,
+both modes).)*
 
 **Known gate exclusion — MVN/MVP (`$54`/`$44`).** Tom Harte caps block-move
 vectors at 100 cycles, i.e. it captures a *partial* execution (14 iterations)
@@ -42,6 +44,13 @@ of `step()`. The *old* 6502 stack ops (PH*/PL*/JSR/RTS/RTI/BRK) keep the
 page-1 wrap. PEI additionally reads its DP pointer as full 16-bit (no page-0
 wrap). All three were surfaced by the vectors.
 
+**(dp,X) emulation-mode pointer wrap.** When DL=0 (direct page page-aligned)
+and the `dp+X` offset wraps to `$FF`, the pointer high byte is read at `ptr+1`
+**without** a page-0 wrap (real silicon crosses into the next page), unlike the
+DL≠0 branch. This is the opposite of the naive fix and was pinned by the
+empirical oracle: 160 000/160 000 across all 8 `(dp,X)` opcodes
+(`01/21/41/61/81/A1/C1/E1`, both modes).
+
 **Implementation shape.** `step()` fetches one opcode from `PBR:PC` and
 dispatches a switch; `this`-capturing lambdas provide width-aware (8/16-bit)
 memory access and the full addressing-mode → 24-bit EA set. Hardware register
@@ -52,8 +61,9 @@ non-stack/non-index opcodes).
 
 **Cycle model.** `rd`/`wr` each count one bus cycle; a static table adds the
 *internal* (non-bus) cycles the datasheet spends — implied/accumulator ops +1,
-pushes +1, pulls +2, XBA +2, REP/SEP/BRL/PER/PEI +1. Control-flow internal
-cycles (JSR/RTS/RTL/JSL/RTI/BRK/COP) are **not yet exact** — tracked WIP.
+pushes +1, pulls +2, XBA +2, REP/SEP/BRL/PER/PEI +1. Control-flow internal cycles
+(JSR/RTS/RTL/JSL/RTI/BRK/COP) match the datasheet; WAI/STP consume 4
+(3 internal + fetch), not 1.
 
 **Test.** `tomharte_65816 <dir>` (harness in `tests/`, fetch via
 `tests/fetch_tomharte_65816.sh`). Each vector's `e` field selects the mode; P
@@ -97,14 +107,12 @@ E-mode and native vectors), reusing POM2's hand-rolled JSON scanner harness
 
 ## Memory — FPI + Mega II
 
-*(Milestone 2 — MMU boots a real ROM. `IIgsMemory` implements the 24-bit banked
-space: ROM at `$FC-$FF` (256 KB) / `$FE-$FF` (128 KB), fast RAM `$00-$7F`,
-Mega II slow RAM `$E0/$E1` (128 KB), the `$C0xx` register file, the language
-card, and shadow write-through. Both a real **ROM 01** and **ROM 03** reset
-from the ROM vector, switch to native mode, and execute ~340-420 distinct ROM
-addresses of self-diagnostic before parking in the CPU speed-calibration loop
-at `$FF:FCDC` (`SBC #1 / BNE`, writing `$C036`) — which needs a VBL/timer
-reference to converge, i.e. M3+ hardware. Verify with `boot_trace <rom>`.)*
+*(Complete — `IIgsMemory` boots both **ROM 01** and **ROM 03** through the
+self-diagnostic and into GS/OS from an HDD. Implements the 24-bit banked space:
+ROM `$FC-$FF` (256 KB) / `$FE-$FF` (128 KB), fast RAM `$00-$7F`, Mega II slow
+RAM `$E0/$E1` (128 KB), the `$C0xx` register file, language card, shadow
+write-through, VBL/timer and Mega II IRQs. Traces: `boot_trace <rom>`,
+`gsos_trace`, `hdd_trace`; gates `slowside_test`, `speed_test`, `irq_test`.)*
 
 **IOLC shadow gates the boot.** `SHAD_IOLC` (`$C035` bit 6) = 0 at reset means
 banks `$00/$01` `$C000-$FFFF` behave as the //e machine — `$C0xx` I/O, and the
@@ -112,10 +120,13 @@ language card at `$D000-$FFFF` with `!lcRamRead` showing the `$FF`-bank ROM
 through. That is why the reset vector at `$00:FFFC` reads the ROM. Cited: MAME
 apple2gs.cpp:556-558, :235-241 (shadow bits).
 
-**Still staged in:** //e main/aux (bank `$00`↔`$01`) redirection under
-RAMRD/RAMWRT/80STORE/PAGE2; the second LC `$D000` bank uses the `$Cxxx` RAM
-window (approximate); `$C100-$CFFF` slot/internal ROM; VBL/timer status. These
-land as the boot trace demands them (next: VBL for the speed loop).
+**//e main/aux redirection (`physBank01`).** Bank `$00` **and** bank `$E0`
+accesses below `$D000` route through `physBank01(off, writing)`, which consults
+ALTZP (ZP/stack), RAMRD/RAMWRT (`$0200-$BFFF`) and 80STORE/PAGE2 (display
+pages) to pick main vs aux — the Mega II slow side is a full //e (`$E0` main,
+`$E1` aux), and legacy 8-bit / ProDOS-8 / GS-OS code running in `$E0` under aux
+switches must hit the right image (KEGS `moremem.c` fixups over `$00` **and**
+`$E0`; MAME `auxbank_update`). The ROM runs its stack in aux under ALTZP.
 
 The IIgs is two machines bolted together by two custom chips:
 
@@ -132,11 +143,24 @@ Key registers (all in `$C0xx`, cited to `apple2gs.cpp` when implemented):
   down into the slow-side `$E0`/`$E1` (text page 1/2, HGR page 1/2, SHR, aux-HGR,
   I/O+LC, and ROM 03's shadow-all). This is *the* mechanism that keeps the fast
   CPU's writes visible to the slow-side video generator.
-- **`$C036` SPEED** — bit 7 selects 2.8 MHz; low nibble = disk-II motor-on
-  detect (forces 1 MHz during 5.25" I/O).
+- **`$C036` SPEED** — bit 7 (`SPEED_HIGH`) selects 2.8 MHz; bits 3-0 are
+  per-slot Disk II motor-detect enables (`SL4/5/6/7`). `speedFast()` =
+  `bit7 && !(SPEED_DISKIISL6 && iwm_.motorOn())`: a detect-enabled slot with its
+  motor spinning **overrides** bit 7 back to 1 MHz (how the IIgs auto-slows for
+  timing-sensitive 5.25" software), mirroring MAME `update_speed()`. Slot 6 =
+  on-board IWM.
 - **`$C068` STATEREG** — packs the classic MMU softswitches (ALTZP, PAGE2,
   RAMRD, RAMWRT, RDROM, LCBNK2, INTCXROM) into one byte for GS/OS.
 - **`$C037` DMA/shadow-all** (ROM 03).
+- **`$C031` DISKREG** — on the IIgs this is the disk register (`diskReg_` b7 =
+  3.5" drive select, b6 = head select), **not** a speaker mirror. The classic
+  Apple II's partial `$C030-$C03F` decode toggled the speaker on `$C031` too;
+  on the IIgs only `$C030` toggles the speaker, and mirroring it onto `$C031`
+  put a beep's toggles in the same cycle → the "random cracks" bug. Only
+  `$C030` toggles; `$C031` is a readable/writable DISKREG.
+- **Extended BRAM** (256-byte battery RAM) two-byte address decodes as
+  `(cmd&7)<<5 | (data>>2)&0x1F` (3+5 bits), not 2+6 — corroborated by KEGS
+  `clock.c`, GSSquared `RTC.hpp`, MAME `macrtc`.
 
 POMIIGS folds POM2's `Memory` IIe-paging + language-card logic into the
 slow-side of `IIgsMemory`; the fast side is a flat banked array with the
@@ -146,10 +170,12 @@ shadow write-through applied on store.
 
 ## Video — VGC + legacy
 
-*(Milestone 3 — Super Hi-Res renders; 40-col text renders from the authentic
-char ROM. `VGC` renders `IIgsMemory`'s slow-side video RAM to a 640×400 RGBA
-framebuffer, displayed in the app via a GL texture. Verified by `vgc_test`
-(the M3 gate: a 320/640 SHR colour-bar pattern) and the `screenshot` tool.)*
+*(Complete — `VGC` renders `IIgsMemory`'s slow-side video RAM to a 640×400 RGBA
+framebuffer (GL texture in the app). All modes dispatched in `render()`:
+`renderSHR`, `renderText`/`renderText80`, `renderHGR`, `renderDHGR`,
+`renderLores`, and `renderTextBand` for the mixed-mode text window. NTSC
+composite decode in `VGCNtsc.h`. Gates: `vgc_test`, `shr_test`, `dhgr_test`,
+`dhgr_page_test`, `text80_test`; `screenshot` tool for eyeballing.)*
 
 **Super Hi-Res** (`renderSHR`). Reads `$E1:2000-9CFF` (200 × 160 bytes), the
 per-line **SCB** at `$E1:9D00` (bit 7 = 640 mode, bits 0-3 = palette), and the
@@ -160,13 +186,15 @@ indices/byte; 640 mode = 4 × 2-bit with the column-offset palette groups
 **Text.** 40-column from `$E0:0400` (//e interleaved) using the **authentic
 Apple IIgs Mega II character ROM** (`roms/iigs-char.rom` = `344s0047.bin`,
 16 KB — user-provided like the main ROM; **no public font is bundled**). Text
-is skipped until the char ROM is present. 80-col text, DHGR, and the NTSC
-composite / CRT stack — legacy **HGR (280×192 mono) and LORES (40×48)** now render, dispatched by the //e mode switches ($C050-$C05F); 80-col + DHGR + NTSC colour reuse POM2 `Apple2Display`, `NtscPostProcessor`,
-`CrtEffectStack`) are staged in next.
+is skipped until the char ROM is present.
 
-*Original plan:* legacy text/LORES/HGR/DHGR + the NTSC composite and CRT effect
-stack are **reused verbatim from POM2** (`Apple2Display`, `NtscPostProcessor`,
-`CrtEffectStack`), driven from the slow-side bank `$E0`/`$E1` image.
+**Legacy //e graphics.** HGR (280×192), DHGR (140×192, 16 colour) and LORES
+(40×48) all render, dispatched by the //e mode switches (`$C050-$C05F`); NTSC
+composite artifact decode lives in `VGCNtsc.h`. **DHGR chroma phase gotcha:**
+the composite decoder is shared with HGR and must be told which chroma phase to
+use — HGR = bias 0, DHGR = bias 1 (80-column → `absX + 1`, MAME
+`apple2video.cpp render_line_artifact_color`, POM2 `Apple2Display.cpp:2084`).
+Getting it wrong rotates every DHGR hue 90° (blue↔orange, green↔magenta).
 
 New: the **VGC (Video Graphics Controller)** Super Hi-Res —
 `$E1/2000-9FFF` (32 KB): 200 lines × 160 bytes of pixel data + 256 bytes of
@@ -181,7 +209,10 @@ softswitch event log so mid-frame SCB/palette writes land on the right line.
 
 ## Sound — Ensoniq 5503 DOC
 
-*(Milestone 6 — core done. `src/Es5503` renders a tone; gate `doc_test`.)*
+*(Complete — `src/Es5503` drives real GS/OS audio (validated against synthLAB
+playback). Reset also resets the DOC + SCC so no stale oscillator or IRQ
+survives a machine reset. Output is AC-coupled (one-pole DC blocker) and
+saturating-clamped to [-1,1] before the float32 backend. Gate: `doc_test`.)*
 
 The **Ensoniq 5503 DOC** is a 32-oscillator wavetable chip with its own
 dedicated **64 KB sound RAM** (not CPU-mapped — reached through the **Sound
@@ -195,7 +226,9 @@ bus, cycle-stamped like every other POM2 audio source. **MAME reference**:
 
 ## ADB
 
-*(Milestone 4 — HLE. The ROM boots to the "Apple IIgs / ROM Version 3" banner.)*
+*(Complete — register-level HLE. Keyboard, command-key menu shortcuts, and the
+mouse all reach the GS/OS Finder; in-game µC-driven mice work (Battle Chess /
+Captain Blood). Gate: `adb_test`.)*
 
 The **Apple Desktop Bus** GLU (`$C024` mouse, `$C025` modifiers, `$C026`
 command/data, `$C027` status) is modelled at the register level (HLE), not the
@@ -271,30 +304,40 @@ boot trace):
 
 ## Clock / Battery RAM
 
-*(planned — Milestone 4)*
+*(Implemented — the clock/BRAM state machine handles `$C033` data / `$C034`
+control and the 256-byte extended BRAM. POMIIGS passes the host clock through
+for the RTC time-of-day (always shows correct real time); Control-Panel
+time-set writes are dropped by design.)*
 
-256 bytes of battery-backed **BRAM** (Control Panel settings) + a hardware
-**RTC**, reached through the clock/BRAM interface shared with the ADB GLU
-(`$C033` data, `$C034` control). BRAM/RTC persist across all resets and to a
-host file. **MAME reference**: clock/BRAM state machine in `apple2gs.cpp`.
+256 bytes of battery-backed **BRAM** (Control Panel settings), reached through
+the clock/BRAM interface shared with the ADB GLU. **Extended-BRAM address
+decode:** `(cmd&7)<<5 | (data>>2)&0x1F` (3+5 bits) — see the Memory section.
+BRAM persists across all resets and to a host file. **MAME reference**:
+clock/BRAM state machine in `apple2gs.cpp` / `macrtc`.
 
 ---
 
 ## Disk — IWM / SWIM
 
-*(Milestone 5 — 5.25" read path. With no disk, the ROM boots all the way to the
-authentic **"Check startup device!"** screen; the IWM soft switches, mode
-register, and write-protect sense are modelled. `src/Iwm` nibblises a 143 360-B
-.dsk/.do/.po (6-and-2 GCR, DOS 3.3 / ProDOS interleave) into per-track streams
-and delivers nibbles timed by CPU cycles at $C0E0-$C0EF (slot 6). Getting a
-real disk to boot GS/OS needs read-timing tuning + a boot image; SWIM (ROM 03
-MFM) and 3.5"/SmartPort are next.)*
+*(GS/OS boots from a hard disk. `src/Iwm` nibblises a 143 360-B .dsk/.do/.po
+(6-and-2 GCR, DOS 3.3 / ProDOS interleave) into per-track streams timed by CPU
+cycles at `$C0E0-$C0EF` (slot 6). The 3.5" / block path is a SmartPort HLE
+(`src/ProDosHdd`, `smartportTrap`): the slot-5 ROM's `$Cn50` ProDOS-block and
+`$Cn53` SmartPort dispatch entries are WDM traps handled in C++. Gates:
+`disk35_test`, `smartport_test`, `hdd_test`; trace `hdd_trace`.)*
 
 ROM 01 uses the **IWM** (reuse POM2 `IWMDevice` — same chip, already
 cycle-faithful for 5.25"/3.5"). ROM 03 uses the **SWIM** (Super Woz Integrated
 Machine): IWM-superset adding MFM; new `Swim` wraps the IWM path and adds the
-SWIM mode register. DiskImage/WOZ/2mg/SmartPort all reuse POM2. **MAME
-reference**: `machine/iwm.cpp`, `machine/swim.cpp`.
+SWIM mode register. **MAME reference**: `machine/iwm.cpp`, `machine/swim.cpp`.
+
+**SmartPort dispatch gotcha.** The `$Cn53` entry serves both the classic
+(`DFB cmd` / `DW paramList`, 2-byte bank-0 pointer) and the GS/OS **extended**
+(`DFB cmd` / `DC I4'paramList'`, 4-byte bank-qualified 24-bit pointer) forms —
+reading the extended pointer as a 2-byte bank-0 pointer fetches the wrong
+param list. The extended STATUS for an **offline** block device returns `$80`
+(is-block, bit 7) not `$00`. The trap PRESERVES the carry on return (GS/OS's
+emulation-mode SmartPort trampolines stash it). Diagnosed with `hdd_trace`.
 
 ---
 
@@ -310,9 +353,9 @@ Source of truth: MAME `machine/z80scc.cpp`.
 
 ## Clock & threading
 
-*(planned — fork POM2 `EmulationController`)*
-
-Master clock **14.31818 MHz**. Fast CPU budget = 2.8 MHz; the worker converts
-architectural cycles → wall-clock using the *current* speed register, and adds
-the slow-side penalty per access. Single `stateMutex` guards CPU + Memory, as
-in POM2. `emuCycles` stamps every CPU→audio/UI event.
+The emulation worker + ImGui UI live in `src/Ui.cpp` / `src/main.cpp` (no
+separate `EmulationController` class was forked). Master clock
+**14.31818 MHz**; fast CPU budget = 2.8 MHz. `IIgsMemory` converts
+architectural cycles → master ticks using the *current* speed register
+(fast = ×5, slow = ×14) and adds the slow-side penalty per access
+(`chargeSlow`). `emuCycles` stamps every CPU→audio/UI event.
