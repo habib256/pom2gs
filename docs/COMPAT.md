@@ -19,14 +19,14 @@ page) · `CRASH_MON` (fell into the ROM monitor) · `HANG` (PC frozen) ·
 
 ## GS 3.5" — 341 images (ROM 03, HLE SmartPort)
 
-| Class | All 341 | After the slot-7 AppleTalk fix | After the SmartPort DIB/CONTROL fixes |
-|---|---|---|---|
-| OK_GFX | 114 | 144 (+30) | **149 (+5)** |
-| CRASH_BRK | 34 | 3 (−31) | 3 |
-| TEXT | 26 | 24 | 25 |
-| CRASH_MON | 10 | 13 | 12 |
-| CRASH_ZP | 7 | 7 | **2 (−5)** |
-| HANG | 150 | 150 | 150 |
+| Class | All 341 | After the slot-7 AppleTalk fix | After the SmartPort DIB/CONTROL fixes | After the hybrid Sony mount |
+|---|---|---|---|---|
+| OK_GFX | 114 | 144 (+30) | 149 (+5) | **151 (+2)** |
+| CRASH_BRK | 34 | 3 (−31) | 3 | 3 |
+| TEXT | 26 | 24 | 25 | 21 |
+| CRASH_MON | 10 | 13 | 12 | 14 |
+| CRASH_ZP | 7 | 7 | 2 (−5) | 2 |
+| HANG | 150 | 150 | 150 | 150 |
 
 **+30 real games** unblocked by one fix (see below): of the ~180 genuinely
 bootable disks, **~80% now reach graphics**. Wins include Winter Games,
@@ -103,12 +103,44 @@ Pirates!, Silent Service, Reader Rabbit, Wheel of Fortune, Ancient Legends
 legitimately run code from zero page with a live SHR screen (a real runaway
 lands on `$00` = BRK and is already caught by CRASH_BRK).
 
+### Hybrid Sony mount + I/O-hook protocol findings (July 2026)
+
+Splitting the residual crashes by **HLE vs LLE** (`--iwm35`) exposed two
+loader families that bypass the SmartPort:
+
+- **Direct-IWM loaders** (Sensei, Space Cluster — same boot block, extended
+  SmartPort reads from `$00:0954`, then raw `$C0Ex` access): they boot via
+  the HLE but then poll the 3.5" drive **through the IWM**, and died with
+  "Fatal Disk Error : DEAD" (their own `SysFailMgr $DEAD` timeout exit).
+  **Fix: hybrid mount** — an HLE-mounted 3.5" image is also inserted
+  READ-ONLY into the real Sony/IWM drive, so both paths reach the same
+  medium exactly like real hardware. Both titles now boot; GS/OS boots
+  (HDD + 3.5" HLE + 3.5" LLE) are unaffected.
+- **I/O-hook protections** (Marble Madness; the Cinemaware loader family —
+  Defender of the Crown, Mean 18, King of Chicago, Aesop's Fables,
+  Impossible Mission II, Mini Putt, JSR site `$00:8213`): ctl `$05`
+  installs a RAM routine into the firmware's E1-RAM vector table
+  (`$E1:0F77`), called during in-window READs with the drive spinning
+  (traced under LLE: A=1, X=Y=0, P=$B4 native, DBR=$E1); ctl `$06`
+  restores the vector. Re-creating that call in the HLE (per-READ or at
+  `$06`, hybrid drive armed on the read track) satisfied only Marble
+  Madness and crashed the Cinemaware family — their hooks need the
+  firmware's exact in-read stack context. Kept behavior: `$05` = silent
+  success, `$06` = `$21` BADCTL → Marble Madness and the whole Cinemaware
+  family boot through their no-protection fallbacks. Only **Defender of
+  the Crown** insists ("Put Master Disk…" prompt) — it boots under
+  `iwm35 = 1`, where the genuine firmware runs the real protocol.
+
 ## Next fix (highest ROI)
 
-The remaining crashes are few and heterogeneous (3 CRASH_BRK, 12 CRASH_MON,
-2 CRASH_ZP) — no single dominant signature. Known non-bugs: Rastan boots to
-a Computist crack prompt waiting for keyboard input (TEXT = correct);
-"Dungeon Master v2.0 Original" fails its own protection even under the LLE
-real drive ("game disk damaged" — the .2mg conversion lost the protection
-data); Silpheed correctly waits for its Disk 2. The 150 HANGs remain
-non-bootable images (no PRODOS system file — correct behavior, not bugs).
+The remaining crashes are few and heterogeneous (3 CRASH_BRK, 14 CRASH_MON,
+2 CRASH_ZP) — no single dominant signature. Both-paths crashers worth a
+look: Wolfenstein 3D, Alien Mind, Skate or Die, Ancient Land of Ys,
+Solitaire & Cribbage, Tomahawk. Known non-bugs: Rastan boots to a Computist
+crack prompt waiting for keyboard input (TEXT = correct); Star Saga One is
+a working text-mode RPG (TEXT = correct); "Dungeon Master v2.0 Original"
+fails its own protection even under the LLE real drive ("game disk
+damaged" — the flat .2mg lost the protection data); Silpheed correctly
+waits for its Disk 2; Defender of the Crown needs `iwm35 = 1` (above). The
+150 HANGs remain non-bootable images (no PRODOS system file — correct
+behavior, not bugs).

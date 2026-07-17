@@ -164,13 +164,23 @@ public:
     // the SmartPort HLE models a single unit).
     bool loadDisk35(const std::string& path, int drive = 0) {
         if (iwm35_) return iwm_.loadDisk35(path, drive);
-        return drive == 0 && disk35_.loadImage(path);
+        if (drive != 0 || !disk35_.loadImage(path)) return false;
+        // Hybrid mount: also insert a READ-ONLY copy into the real Sony/IWM
+        // drive. Some protection loaders (Sensei, Space Cluster — the same
+        // boot-block family) boot through the SmartPort HLE but then talk to
+        // the 3.5" drive directly through the IWM ($C0Ex); on real hardware
+        // both paths reach the same medium. Read-only so this shadow copy
+        // never flushes over the HLE's write-through backing file. >800K
+        // images simply don't fit the Sony (loadImage refuses) — HLE only.
+        iwm_.loadDisk35(path, 0, /*readOnly=*/true);
+        return true;
     }
     void ejectHdd() { hdd_.eject(); }        // clear slot 7 so a slot-5 3.5" disk boots
     void ejectDisk35(int drive = 0) {
         if (iwm35_) { iwm_.ejectDisk35(drive); return; }
         if (drive != 0) return;
         disk35_.eject(); disk35Changed_ = true; disk35SwitchIo_ = true;
+        iwm_.ejectDisk35(0);                               // drop the hybrid shadow copy
     }
     // Route 3.5" media to the real IWM Sony drive (vs SmartPort HLE).
     void setIwm35(bool on) { iwm35_ = on; }
@@ -190,6 +200,7 @@ public:
         if (drive != 0) return false;                      // HLE models a single unit
         bool ok = disk35_.loadImage(path);
         disk35Changed_ = true; disk35SwitchIo_ = true;
+        if (ok) iwm_.loadDisk35(path, 0, /*readOnly=*/true);   // keep the hybrid shadow in sync
         return ok;
     }
     Iwm& iwm() { return iwm_; }

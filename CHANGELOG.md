@@ -4,6 +4,31 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — hybrid 3.5" mount: HLE-mounted disks are also visible to the IWM/Sony drive (Sensei, Space Cluster boot)
+An HLE-mounted 3.5" image (`loadDisk35`, `swapDisk35`) now also inserts a **read-only** copy into the
+real Sony/IWM drive. Rationale: on real hardware there is one medium reachable both through the
+SmartPort firmware and through direct IWM access — some loaders boot via SmartPort then talk to the
+drive **directly through `$C0Ex`**. Sensei and Space Cluster (same boot-block family) polled the IWM,
+timed out and exited via `SysFailMgr` with code `$DEAD` ("Fatal Disk Error : DEAD"); with the hybrid
+mount both boot to gameplay. Read-only so the shadow copy never flushes over the HLE's write-through
+backing file (`Sony35::setWriteProtect`); >800K volumes simply don't fit the Sony and stay HLE-only.
+Eject/swap keep both sides in sync. Non-regression pinned: GS/OS boots to the Finder on all three
+paths (HDD, 3.5" HLE, 3.5" LLE) with the disk now visible to the boot ROM's IWM scan; suite 17/17;
+full 341-image triage has **0 playable regressions** (5 already-broken titles moved between two stuck
+classifications — Strip Poker II data disks, the "Acs SmartBoot" DM v2.0 crack, Mini Prix).
+
+Also documented (in `smartportCall`) the **real ctl $05/$06 semantics**, traced under the LLE genuine
+firmware: $05 patches a RAM routine pointer (list = count, type `$82`, ptr24) into the firmware's
+E1-RAM vector table (`$E1:0F77`, a JSL slot amid JML defaults), which the firmware calls during
+in-window READs (A=1, X=Y=0, P=$B4 native 8-bit, DBR=$E1, drive spinning on the read track — the
+hook streams raw nibbles from `$C0EC`); $06 restores the vector. A reconstructed hook call in the
+HLE (tried per-READ and once-at-$06, with the hybrid Sony armed on the right track via stack
+surgery + a `WDM $C7` return trampoline) satisfied only Marble Madness — which also boots via the
+`$21` fallback — and crashed the stack-sensitive Cinemaware-loader family (Defender of the Crown,
+Mean 18, King of Chicago, Aesop's Fables, Impossible Mission II, Mini Putt; JSR site `$00:8213`),
+so it was removed: `$05` stays a silent success, `$06` stays `$21`. Defender of the Crown remains
+the one title that insists on the real hook ("Put Master Disk…") — it boots under `iwm35 = 1`.
+
 ### Fixed — SmartPort HLE identity bytes + CONTROL semantics: Dungeon Master, Silent Service, Marble Madness boot; CRASH_ZP false positives
 Three distinct slot-5 **HLE SmartPort** bugs, found by chasing the post-AppleTalk-fix crash clusters
 (each verified with a targeted trace harness; suite 17/17, GS/OS Finder boots — HDD, 3.5" HLE, 3.5"

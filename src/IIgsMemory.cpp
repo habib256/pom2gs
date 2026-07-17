@@ -507,20 +507,54 @@ void IIgsMemory::smartportCall() {
         const uint8_t ctlCode = ext ? pRd(6) : pRd(4);
         if (unit != 1) err = 0x28;
         else if (ctlCode == 0x04) { disk35_.eject(); disk35Changed_ = true; disk35SwitchIo_ = true; }
-        else if (ctlCode == 0x06) err = 0x21;         // BADCTL — see below.
+        // ── ctl $05/$06: the protection I/O-hook protocol. Real semantics
+        // (traced under the LLE genuine firmware): $05's list = count(2),
+        // type $82, RAM routine ptr(24) — the firmware patches the pointer
+        // into an E1-RAM vector table slot ($E1:0F77, a JSL amid JML
+        // defaults) and calls it during in-window READs (A=1, X=Y=0, P=$B4
+        // native 8-bit, DBR=$E1, drive spinning on the read track — the hook
+        // streams raw nibbles from $C0EC); $06 restores the default vector.
+        // The HLE deliberately does NOT run the hook: a reconstructed call
+        // (tried both per-READ and once-at-$06, with the hybrid Sony armed
+        // on the right track) satisfied only Marble Madness and crashed the
+        // Cinemaware-loader family (Defender of the Crown, Mean 18, King of
+        // Chicago, Aesop's Fables, Impossible Mission II, Mini Putt — same
+        // loader, JSR site $00:8213, stack-sensitive hooks that need the
+        // firmware's exact in-read stack context). Instead: $05 = silent
+        // success (Silent Service only error-checks it), $06 = $21 BADCTL —
+        // Marble Madness then takes its clean no-protection fallback and
+        // boots; the Cinemaware titles boot identically. Hook-faithful
+        // protections run under the LLE path (iwm35 = 1).
+        else if (ctlCode == 0x06) err = 0x21;
         // Every other control code succeeds as a no-op — a shared loader family
         // (Qix, Life & Death, Jack Nicklaus, 2088, …: JSR from $00:AE15) sends
-        // $0A and dies on any error, and Silent Service's $05 (install I/O
-        // hook: list = count(2), $82, RAM routine ptr) is likewise only
-        // error-checked. The ONE exception is $06: Marble Madness's protection
-        // installs a hook ($05), then uses $06 to make the hook patch a
-        // vector; on a silent no-op it jumps through the never-initialized
-        // vector into an unloaded segment (BRK). The $21 on $06 sends it down
-        // its clean no-protection fallback and it boots. Real-drive
-        // protections need the LLE path (iwm35 = 1), where the genuine slot-5
-        // firmware runs the real protocol.
+        // $0A and dies on any error.
     } else {
         err = 0x01;                                   // unsupported SmartPort command
+    }
+    // Dev trace (POMSP_LOG=1): one line per dispatch call. This has root-caused
+    // four game-loader bugs already — keep it.
+    static const bool spLog = getenv("POMSP_LOG") != nullptr;
+    if (spLog) {
+        uint32_t arg = 0, bp = 0;
+        if (base == 0x01 || base == 0x02) {
+            arg = ext ? (uint32_t(pRd(6)) | (pRd(7) << 8) | (pRd(8) << 16))
+                      : (uint32_t(pRd(4)) | (pRd(5) << 8) | (pRd(6) << 16));
+            bp  = ext ? (uint32_t(pRd(2)) | (pRd(3) << 8) | (pRd(4) << 16) | (uint32_t(pRd(5)) << 24))
+                      : uint32_t(pRd(2) | (pRd(3) << 8));
+        }
+        else if (base == 0x00) arg = ext ? pRd(6) : pRd(4);   // status code
+        else if (base == 0x04) {                              // control code + list head
+            arg = ext ? pRd(6) : pRd(4);
+            uint32_t cl = ext ? (uint32_t(pRd(2)) | (pRd(3) << 8) | (pRd(4) << 16) | (uint32_t(pRd(5)) << 24))
+                              : uint32_t(pRd(2) | (pRd(3) << 8));
+            bp = cl;
+            fprintf(stderr, "  ctl list @%06X:", cl);
+            for (int i = 0; i < 8; ++i) fprintf(stderr, " %02X", read8((cl + i) & kAddrMask));
+            fprintf(stderr, "\n");
+        }
+        fprintf(stderr, "SP #%u pc=%02X:%04X cmd=%02X unit=%u arg=%u buf=%06X err=%02X\n",
+                sp5Calls_, pbr, ret, cmd, unit, arg, bp, err);
     }
     spReturn(cpu_, err);
     // Skip the inline bytes: RTS returns to (stacked+1); we want cmdAddr+inlineLen.

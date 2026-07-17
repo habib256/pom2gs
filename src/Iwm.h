@@ -49,7 +49,11 @@ public:
     bool motorOn() const { return motorOn_ && !sel35_; }
 
     // 3.5" Sony drives (internal port, both drives — $C0EA/$C0EB select).
-    bool loadDisk35(const std::string& path, int drive = 0) { return d35_[drive & 1].loadImage(path); }
+    bool loadDisk35(const std::string& path, int drive = 0, bool readOnly = false) {
+        if (!d35_[drive & 1].loadImage(path)) return false;
+        if (readOnly) d35_[drive & 1].setWriteProtect(true);
+        return true;
+    }
     void ejectDisk35(int drive = 0) { d35_[drive & 1].eject(); }
     bool hasDisk35(int drive = 0) const { return d35_[drive & 1].loaded(); }
     void flushDisk35() { d35_[0].flush(); d35_[1].flush(); }

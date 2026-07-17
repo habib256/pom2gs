@@ -47,6 +47,9 @@ public:
     // compare against the loaded image — pins the codec as self-inverse.
     bool checkNibblization();
     bool writeProtected() const { return writeProt_; }
+    // Force write-protect (hybrid HLE mount: the SmartPort HLE owns the
+    // backing file; this read-only Sony copy must never flush over it).
+    void setWriteProtect(bool wp) { writeProt_ = wp; }
     const std::string& path() const { return path_; }
     bool motorOn() const { return motorOn_; }
 
