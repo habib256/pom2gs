@@ -65,6 +65,8 @@ hdd    = hdv/GSOS.hdv
 #iwm35 = 1     # 3.5" on the REAL IWM/Sony drive (genuine slot-5 ROM firmware,
                # realistic seek/read speed) instead of the fast SmartPort HLE
 #disk35b = …   # second internal 3.5" drive (needs iwm35 = 1)
+#disk525 = …   # 5.25" on the slot-6 IWM (.dsk/.do/.po/.nib/.d13/.2mg/.woz —
+               # boots via the $C600 PROM; writes persist to the image)
 ```
 
 Edit it, or override per-run on the CLI (CLI > config > built-in):

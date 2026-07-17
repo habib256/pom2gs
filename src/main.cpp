@@ -78,7 +78,7 @@ static std::string findPath(const std::string& rel) {
 // disk35, iwm35 (0/1: 3.5" media on the real IWM Sony drive instead of the
 // SmartPort HLE). Sits next to run_emulator.sh (repo root). CLI args/flags
 // override it.
-struct Config { std::string boot, rom, hdd, disk35, disk35b; bool iwm35 = false; };
+struct Config { std::string boot, rom, hdd, disk35, disk35b, disk525; bool iwm35 = false; };
 static std::string trim(std::string s) {
     size_t a = s.find_first_not_of(" \t\r\n"), b = s.find_last_not_of(" \t\r\n");
     return a == std::string::npos ? std::string() : s.substr(a, b - a + 1);
@@ -96,6 +96,7 @@ static Config readConfig(std::string& usedPath) {
         else if (k == "rom")    c.rom    = v;
         else if (k == "hdd")    c.hdd    = v;
         else if (k == "disk35")  c.disk35 = v;
+        else if (k == "disk525") c.disk525 = v;
         else if (k == "disk35b") c.disk35b = v;   // second Sony drive (needs iwm35)
         else if (k == "iwm35")   c.iwm35  = (v == "1" || v == "true" || v == "yes");
     }
@@ -134,6 +135,11 @@ int main(int argc, char** argv) {
     }
     mem.setIwm35(cfg.iwm35);   // before any loadDisk35 below
     if (cfg.iwm35) std::printf("3.5\" drive: real IWM/Sony (internal ROM firmware)\n");
+    if (!cfg.disk525.empty()) {
+        std::string rp = findPath(cfg.disk525);
+        if (!rp.empty() && mem.loadDisk525(rp)) std::printf("5.25\" drive (slot 6): %s\n", rp.c_str());
+        else std::fprintf(stderr, "5.25\" drive: cannot load '%s'\n", cfg.disk525.c_str());
+    }
     if (cfg.iwm35 && !cfg.disk35b.empty()) {
         std::string rp = findPath(cfg.disk35b);
         if (!rp.empty() && mem.loadDisk35(rp, 1))
@@ -247,6 +253,18 @@ int main(int argc, char** argv) {
         return mem.swapDisk35(rp);
     };
     ui.onEjectDisk35 = [&]() { mem.ejectDisk35(); };
+    // Load a 5.25" disk on the slot-6 IWM (.dsk/.do/.po/.nib/.d13/.2mg/.woz).
+    // Eject the HDD + 3.5" so the ROM's boot scan reaches slot 6, then
+    // cold-reset. Writes persist back to the image (DiskImage::saveDirty).
+    ui.onLoadDisk525 = [&](const std::string& p) -> bool {
+        std::string rp = findPath(p); if (rp.empty()) rp = p;
+        if (!mem.loadDisk525(rp)) return false;
+        mem.ejectHdd(); mem.ejectDisk35();
+        ui.disk525Path = rp;
+        mem.reset(); cpu.hardReset();
+        return true;
+    };
+    ui.onEjectDisk525 = [&]() { mem.ejectDisk525(); };
     // Quick save/load state (F7/F8) → states/quick.pgss next to the config.
     ui.onSaveState = [&]() -> bool {
         std::error_code ec; std::filesystem::create_directories("states", ec);
@@ -460,6 +478,7 @@ int main(int argc, char** argv) {
 #else
     while (!glfwWindowShouldClose(window)) frame(&ctx);
     mem.iwm().flushDisk35();    // commit pending 3.5" sector writes (real-IWM path)
+    mem.iwm().flushDisk525();   // commit pending 5.25" writes (DiskImage::saveDirty)
     glDeleteTextures(1, &screenTex);
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

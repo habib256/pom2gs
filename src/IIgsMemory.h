@@ -150,10 +150,10 @@ public:
     uint64_t audioCycles() const { return videoCycles_; }
     Es5503& docChip() { return doc_; }
 
-    // Disk: mount a 5.25" image into the on-board IWM (slot 6).
-    bool loadDisk525(const std::vector<uint8_t>& img, bool prodosOrder) {
-        return iwm_.loadDisk525(img, prodosOrder);
-    }
+    // Disk: mount a 5.25" image into the on-board IWM (slot 6). Path-based
+    // (POM2 DiskImage: .dsk/.do/.po/.nib/.d13/.2mg/.woz, write-back).
+    bool loadDisk525(const std::string& path) { return iwm_.loadDisk525(path); }
+    void ejectDisk525() { iwm_.eject(); }
     // Mount a ProDOS hard-disk image (.hdv/.po/.2mg) on the slot-7 HDD card.
     bool loadHdd(const std::string& path) { return hdd_.loadImage(path); }
     // Mount an 800K 3.5" image (.po/.2mg). Default = slot-5 SmartPort HLE

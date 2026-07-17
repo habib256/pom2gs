@@ -9,14 +9,18 @@
 // address bit + head select). MAME apple2gs.cpp:268-269 & devsel_w
 // (3684-3721); KEGS iwm.c iwm_get_dsk (395-409).
 //
-// 5.25": GCR nibble stream per track; the CPU's boot code reads nibbles
-// looking for the D5 AA 96 address prologue (M5 read path — .dsk/.do/.po
-// nibblised 6-and-2, .nib pass-through, 1 bit ≈ 4 CPU cycles).
+// 5.25": bit-cell read/write over a POM2 `DiskImage` (.dsk/.do/.po/.nib/
+// .d13/.2mg/.woz incl. WOZ2 FLUX) — the latch assembles one nibble at a
+// time from the quarter-track bit stream (leading zero cells slip the byte
+// boundary exactly like the real LSS, so 10-cell sync $FFs re-align data
+// prologues), paced at ~4 µs/cell with elastic delivery (the discipline
+// proven on the 3.5" path). Writes collect in a session and splice back as
+// flux (DiskImage::writeFlux); dirty media persists via saveDirty().
 // 3.5": Sony35 drive model — status/commands via phases+SEL+LSTRB, 800K GCR
 // zoned tracks, read AND write (nibble-level; see Sony35.h).
 // With no disk, the data line reads weak bits so the ROM's sync search fails
 // and it falls through to "Check startup device".
-// Source of truth: MAME machine/iwm.cpp; Beneath Apple DOS (GCR); WOZ spec.
+// Source of truth: MAME machine/iwm.cpp; POM2 IWMDevice/DiskImage; KEGS.
 
 #ifndef POMIIGS_IWM_H
 #define POMIIGS_IWM_H
@@ -25,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include "DiskImage.h"
 #include "Sony35.h"
 
 class Iwm
@@ -32,11 +37,13 @@ class Iwm
 public:
     Iwm();
 
-    // Load a 5.25" image (143 360-byte .dsk/.do/.po → nibblised, or raw .nib
-    // 232 960 B). Returns false on unrecognised size.
-    bool loadDisk525(const std::vector<uint8_t>& img, bool prodosOrder);
-    bool hasDisk() const { return diskPresent_; }
-    void eject() { diskPresent_ = false; }
+    // Mount a 5.25" image by path (.dsk/.do/.po/.nib/.d13/.2mg/.woz —
+    // POM2 DiskImage detector). Drive 1 of the internal port.
+    bool loadDisk525(const std::string& path);
+    bool hasDisk() const { return disk525_.isLoaded(); }
+    void eject();                        // flush pending writes, drop media
+    void flushDisk525();                 // end write session + saveDirty()
+    const std::string& disk525Path() const { return disk525_.getPath(); }
     // $C036 disk-motor-detect coupling senses the 5.25" (slot 6) motor only:
     // with 35SEL set the ENABLE line is routed to the 3.5" drive instead.
     bool motorOn() const { return motorOn_ && !sel35_; }
@@ -54,42 +61,63 @@ public:
 
     // $C0E0-$C0EF access (offset 0..15). Read returns the data/status latch;
     // write latches the data register. `cycle` is the absolute master-clock
-    // tick (14.318 MHz) so the nibble streams advance with time.
+    // tick (14.318 MHz) so the bit/nibble streams advance with time.
     uint8_t access(uint8_t offset, bool isWrite, uint8_t writeVal, uint64_t cycle);
 
 private:
-    // 35 tracks × nibble stream (5.25").
-    std::vector<std::vector<uint8_t>> track_;   // nibblised tracks
-    bool diskPresent_ = false;
-    bool writeProtect_ = false;
+    // ── 5.25" drive (Disk II mechanism over POM2 DiskImage) ──────────────
+    DiskImage disk525_;
 
     // Mechanical / controller state.
     int  phase_[4] = {0, 0, 0, 0};   // stepper phases (5.25) / CA0-2+LSTRB (3.5)
-    int  halfTrack_ = 0;             // 0..69 (quarter tracks folded to half)
+    int  halfTrack_ = 0;             // 0..69 head position in half tracks
     bool motorOn_ = false;           // ENABLE line ($C0E8/9)
-    int  drive_ = 0;                 // selected drive ($C0EA/B; only drive 0 modelled)
+    int  drive_ = 0;                 // selected drive ($C0EA/B)
     bool q6_ = false, q7_ = false;   // latch state
     uint8_t dataReg_ = 0;
     uint8_t mode_ = 0;               // IWM mode register (written when Q7·Q6·!enable)
+
+    // Read latch (bit-cell walk, elastic ~4 µs/cell pacing).
+    size_t   bitPos525_ = 0;         // bit index within the current quarter-track
+    uint64_t nibClock525_ = 0;       // master tick of the last assembled nibble
+    bool     latchValid525_ = false;
+    uint8_t  latch525_ = 0;
+
+    // Write session: bytes collected from data writes, spliced as flux on
+    // session close (Q7/ENABLE fall, read, step, eject) — Sony35 pattern.
+    std::vector<uint8_t> wr525_;
+    size_t wr525StartBit_ = 0;
+    int    wr525Qt_ = 0;
+    bool   wr525Active_ = false;
 
     // $C031 routing + the Sony drives.
     bool sel35_ = false;             // DISKREG b6: phases → 3.5" register protocol
     bool hdsel_ = false;             // DISKREG b7: Sony SEL line / head select
     Sony35 d35_[2];
 
-    // Read-stream position (5.25").
-    uint64_t lastCycle_ = 0;
-    size_t   bitPos_ = 0;
     uint64_t wrBusyUntil_ = 0;       // handshake bit6 window after a data write
 
     // Sony register index {CA2,CA1,CA0,SEL} from the current phase lines +
     // HDSEL (Neil Parker's addressing; GSSquared Floppy35_woz ordering).
     int sonyIdx() const { return (phase_[2] << 3) | (phase_[1] << 2) | (phase_[0] << 1) | (hdsel_ ? 1 : 0); }
 
+    // ENABLE2 — PH1+PH3 both energised addresses the EXTERNAL SmartPort
+    // chain (UniDisk protocol), not the dumb drive (KEGS iwm.c:494-505).
+    // The ROM's disk-port probe WRITES command packets in this state; without
+    // the gate they landed on the 5.25" surface and wiped sector 0's address
+    // field on every boot.
+    bool enable2() const { return !sel35_ && phase_[1] && phase_[3]; }
+
+    // Quarter-track for the head: whole tracks land on TMAP's 4t entries,
+    // half-track positions on 4t+2 (usually unformatted in WOZ — matching
+    // the real head sitting between tracks). True quarter stepping
+    // (adjacent-phase pairs) is a follow-up.
+    int qt525() const { int qt = halfTrack_ * 2; return qt < DiskImage::kQuarterTracks ? qt : DiskImage::kQuarterTracks - 1; }
+
     void stepPhase(int magnet, bool on);
-    int  curTrack() const { return halfTrack_ / 2; }
-    void advance(uint64_t cycle);
-    void nibblise(const std::vector<uint8_t>& img, bool prodosOrder);
+    uint8_t readNibble525(uint64_t cycle);
+    void    writeNibble525(uint8_t v);
+    void    endWrite525();
 };
 
 #endif // POMIIGS_IWM_H

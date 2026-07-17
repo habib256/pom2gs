@@ -46,6 +46,7 @@ set(SOURCES
     src/CPU65816.cpp      # M1
     src/IIgsMemory.cpp    # M2
     src/Iwm.cpp
+    src/DiskImage.cpp     # POM2 port: 5.25" media container (dsk/po/nib/WOZ+FLUX)
     src/Sony35.cpp        # M5 3.5" Sony drive + 800K GCR codec
     src/Es5503.cpp        # M6
     src/Scc8530.cpp       # M7
@@ -114,7 +115,7 @@ endif()
 option(POMIIGS_TESTS "Build the test targets" ON)
 if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     enable_testing()
-    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(tomharte_65816 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     set(POMIIGS_TOMHARTE_DIR "" CACHE PATH "Directory of SingleStepTests/65816 .json vectors")
     # MVN/MVP ($54/$44) are excluded: Tom Harte caps block moves at 100 cycles
@@ -124,21 +125,21 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
              COMMAND tomharte_65816 "${POMIIGS_TOMHARTE_DIR}" --skip 44,54)
 
     # Dev tool (not a gate): load a real ROM and trace how far it boots.
-    add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(boot_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
     # Dev tool (not a gate): boot an 800K GS/OS disk from slot 5 and trace the
     # toolbox dispatch / SHR timeline / hang detection. Used to pin the ROM
     # interrupt-vector fix (see CHANGELOG "GS toolbox / interrupt vectors").
-    add_executable(gsos_trace tests/gsos_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    add_executable(gsos_trace tests/gsos_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(gsos_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
     # GS/OS + hard-disk derail microscope (boots 3.5" with a HDD mounted).
-    add_executable(hdd_trace tests/hdd_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    add_executable(hdd_trace tests/hdd_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(hdd_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
     # VGC Super Hi-Res render smoke test (M3 gate).
-    add_executable(vgc_test tests/vgc_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(vgc_test tests/vgc_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(vgc_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME vgc_test COMMAND vgc_test)
 
@@ -158,67 +159,73 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_test(NAME dhgr_test COMMAND dhgr_test)
 
     # 80STORE display-page quirk regression (Total Replay DHGR fade fix).
-    add_executable(dhgr_page_test tests/dhgr_page_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(dhgr_page_test tests/dhgr_page_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(dhgr_page_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME dhgr_page_test COMMAND dhgr_page_test)
 
     # 80-column text: aux/main interleave + $C022 text colour.
-    add_executable(text80_test tests/text80_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(text80_test tests/text80_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(text80_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME text80_test COMMAND text80_test)
 
     # SPEED register ($C036) → per-frame CPU cycle budget (//e slow-mode fix).
-    add_executable(speed_test tests/speed_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(speed_test tests/speed_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(speed_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME speed_test COMMAND speed_test)
 
     # Per-access slow-side penalty (Mega II stretched to 1 MHz in fast mode).
-    add_executable(slowside_test tests/slowside_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(slowside_test tests/slowside_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(slowside_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME slowside_test COMMAND slowside_test)
 
     # Interrupt set: ¼-sec / 1-sec / scan-line / DOC (assert / mask / clear).
-    add_executable(irq_test tests/irq_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(irq_test tests/irq_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(irq_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME irq_test COMMAND irq_test)
 
     # ADB GLU mouse + keyboard-modifier register protocol ($C024/$C025/$C027).
-    add_executable(adb_test tests/adb_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(adb_test tests/adb_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(adb_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME adb_test COMMAND adb_test)
 
     # Super Hi-Res color-fill (SCB bit5) + $C034 border colour.
-    add_executable(shr_test tests/shr_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(shr_test tests/shr_test.cpp src/VGC.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(shr_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME shr_test COMMAND shr_test)
 
     # Slot-5 3.5" SmartPort/block device (ROM signature + block streaming).
-    add_executable(disk35_test tests/disk35_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(disk35_test tests/disk35_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(disk35_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME disk35_test COMMAND disk35_test)
 
     # Real IWM 3.5" Sony drive (LLE): GCR codec round-trip, Sony register
     # protocol, address-field reads, firmware-style sector write.
-    add_executable(iwm35_test tests/iwm35_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(iwm35_test tests/iwm35_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(iwm35_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME iwm35_test COMMAND iwm35_test)
 
+    # 5.25" IWM over the POM2 DiskImage port: bit-cell reads, RWTS-style
+    # sector write + flush, seek, WOZ prologue streaming (soft).
+    add_executable(iwm525_test tests/iwm525_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(iwm525_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME iwm525_test COMMAND iwm525_test)
+
     # SmartPort extended dispatch (READBLOCK / STATUS via the WDM-trap ROM).
-    add_executable(smartport_test tests/smartport_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(smartport_test tests/smartport_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(smartport_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME smartport_test COMMAND smartport_test)
 
     # Hard-disk boot fixes: emulation-mode ROM vector pull + slot-7 chain +
     # block-write persistence (GS/OS boots to the Finder with a HDD mounted).
-    add_executable(hdd_test tests/hdd_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(hdd_test tests/hdd_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(hdd_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME hdd_test COMMAND hdd_test)
 
-    add_executable(snapshot_test tests/snapshot_test.cpp src/Snapshot.cpp src/IIgsMemory.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    add_executable(snapshot_test tests/snapshot_test.cpp src/Snapshot.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(snapshot_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME snapshot_test COMMAND snapshot_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Headless PNG screenshot of a booting ROM (dev tool).
-    add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()

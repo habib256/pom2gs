@@ -34,6 +34,8 @@ public:
     std::function<bool(const std::string&)> onLoadDisk35;   // 800K 3.5" on slot 5 (cold-boot)
     std::function<bool(const std::string&)> onSwapDisk35;   // hot-swap 3.5" (no reset)
     std::function<void()>                   onEjectDisk35;
+    std::function<bool(const std::string&)> onLoadDisk525;  // 5.25" on the slot-6 IWM
+    std::function<void()>                   onEjectDisk525;
     std::function<bool()>                   onSaveState;    // quick save state (F7)
     std::function<bool()>                   onLoadState;    // quick load state (F8)
 
@@ -42,6 +44,7 @@ public:
     // an install without typing a path.
     std::vector<std::pair<std::string, std::string>> disk35Menu;
     std::string disk35Path;                                 // currently-inserted 3.5"
+    std::string disk525Path;                                // currently-inserted 5.25"
 
     // Shared with the host loop.
     bool running = false;          // emulation gate (Machine ▸ Run/Pause, F6)

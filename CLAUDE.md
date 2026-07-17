@@ -82,7 +82,7 @@ its hardware logic into these files. 🟢 = working + pinned test.
 | **VGC** — Super Hi-Res 320/640 + SCB/palettes, **and** legacy 40/80-col text (char ROM 344s0047) + HGR/DHGR (NTSC-composite / RGB-clean) → 640×400 GL | `VGC.h/.cpp`, `VGCNtsc.h` | 🟢 SHR/text/HGR/DHGR render; scanline IRQ TODO | MAME `apple2gs.cpp` VGC |
 | **Ensoniq 5503 DOC** — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$F) | `Es5503.h/.cpp` | 🟢 MAME es5503 parity (`doc_test`) | MAME `es5503.cpp`, Ensoniq datasheet |
 | **Audio host** — miniaudio mono-f32 ring; speaker ($C030) + DOC mix | `Audio.h/.cpp` | 🟢 (native; WASM stub) | POM2 AudioDevice pattern |
-| **IWM** (5.25" read path + **3.5" Sony LLE**) | `Iwm.h/.cpp`, `Sony35.h/.cpp` | 🟢 5.25" boots to "Check startup device"; `iwm35 = 1` → real Sony drive + 800K GCR codec, **GS/OS boots to the Finder via the genuine slot-5 ROM firmware** (`iwm35_test`) | MAME `iwm.cpp`+`floppy.cpp`, KEGS `iwm.c` |
+| **IWM** — 5.25" bit-cell read/**write** + **WOZ** (POM2 `DiskImage` port) + **3.5" Sony LLE** | `Iwm.h/.cpp`, `DiskImage.h/.cpp`, `Sony35.h/.cpp` | 🟢 5.25": .dsk/.po/.nib/.d13/.2mg/.woz via the $C600 PROM — **Choplifter boots to gameplay, protected WOZ originals (A.E.) boot**; writes persist (`iwm525_test`). 3.5": `iwm35 = 1` → real Sony drive, **GS/OS boots to the Finder via the genuine slot-5 ROM firmware** (`iwm35_test`) | POM2 `DiskImage`, MAME `iwm.cpp`+`floppy.cpp`, KEGS `iwm.c` |
 | **SCC 8530 serial** | `Scc8530.h/.cpp` | 🟢 loopback (`scc_test`) | MAME `scc8530.cpp` |
 | **Snapshot** (save/load state, F7/F8 → `states/quick.pgss`) | `Snapshot.h/.cpp` | 🟢 (`snapshot_test`) | POM2 pattern |
 | **UI** (ImGui desktop chrome, menus, file picker) | `Ui.h/.cpp` | 🟢 | — |
@@ -153,8 +153,11 @@ POMIIGS to broad KEGS/MAME/GSSquared parity:
 - VGC 🟢 Super Hi-Res + SCB/palettes, legacy text (authentic char ROM),
   HGR/DHGR (NTSC + RGB). Ensoniq DOC 🟢 (synthLAB music validated).
 - ADB 🟢 (IRQ kbd/mouse, ⌘-menu shortcuts), BRAM/RTC 🟢, SCC 🟢.
-- IWM 5.25" read path 🟢; **SmartPort HLE 🟢 — GS/OS 6.0.1 installs and boots
-  from HDD to the full Finder desktop**; games run; save/load state (F7/F8) 🟢.
+- IWM 5.25" **read+write, WOZ 1/2+FLUX** 🟢 (POM2 `DiskImage` port):
+  **Choplifter boots to gameplay, protected WOZ originals (A.E.) boot** via
+  the genuine $C600 PROM; writes persist. **SmartPort HLE 🟢 — GS/OS 6.0.1
+  installs and boots from HDD to the full Finder desktop**; games run;
+  save/load state (F7/F8) 🟢.
 - **Real IWM 3.5" Sony LLE 🟢** (`Sony35`, `iwm35 = 1`): the genuine slot-5 ROM
   firmware drives the drive nibble-by-nibble — **GS/OS boots to the Finder**.
 

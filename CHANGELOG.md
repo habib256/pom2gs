@@ -4,6 +4,27 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — 5.25" write path + WOZ support (POM2 DiskImage port) — Choplifter boots, protected WOZ originals boot
+The minimal 5.25" nibble reader was replaced by **POM2's `DiskImage` ported verbatim**
+(.dsk/.do/.po/.nib/.d13/.2mg/**WOZ 1-2 + FLUX**, quarter-track bit-cell streams, flux splice, sector
+de-nibblise + file write-back). `Iwm` now reads bit-by-bit (latch assembles nibbles from the bit
+stream — 10-cell sync $FFs slip the byte boundary like the real LSS — elastic 32 µs pacing) and
+writes via flux-spliced sessions with the computeCellWidths sync rule applied on emission. Validated:
+**Choplifter (.dsk) boots to gameplay; A.E. (1982), a copy-protected WOZ original, boots to its title
+screen** — both via the genuine internal $C600 PROM. RWTS-style sector write + persisted write-back
+pinned by the new `iwm525_test` gate. Mount: `disk525 =` in pomiigs.cfg, File ▸ Load 5.25" Disk, or
+`--disk525` on the screenshot harness; UI gains Load/Eject 5.25" entries.
+Two non-obvious hardware behaviours the boot ROM depends on (root-caused by instruction-tracing the
+$C600 PROM — write-ups in DEV.md § Disk):
+- **PH1 forces the 5.25" sense line high** (drive-detection trick, MAME floppy.cpp:799-805) — the
+  internal driver polls status with PH1 on at $FF:581C and hangs without it.
+- **ENABLE2 (PH1+PH3) addresses the external SmartPort chain** (KEGS iwm.c:494-505) — the ROM's
+  disk-port probe writes UniDisk command packets in that state; ungated, those bytes landed on the
+  disk surface and wiped sector 0's address field on every boot (the write-back pre-fill kept files
+  intact). ENABLE2 now swallows writes, reads $FF, senses 1.
+Known limits: half-track-granular quarter stepping, $00 (not the shifting register) between nibble
+deliveries, layout-inferred write pacing — Spiradisc-class bit-banging protections may object.
+
 ### Added — real IWM 3.5" Sony drive LLE (`Sony35`) — GS/OS boots via the genuine ROM firmware
 `iwm35 = 1` (or `--iwm35`) mounts 800K media on a low-level Sony 3.5" drive on the IWM instead of the
 slot-5 SmartPort HLE; slot 5 then serves the **internal ROM firmware** at $C500, which talks to

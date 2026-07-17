@@ -38,6 +38,8 @@ static bool mediaMatch(int kind, std::string ext) {
     for (auto& c : ext) c = char(std::tolower((unsigned char)c));
     if (kind == 0) return ext == ".rom" || ext == ".bin";
     if (kind == 1) return ext == ".hdv" || ext == ".po" || ext == ".2mg";
+    if (kind == 4) return ext == ".dsk" || ext == ".do" || ext == ".po" ||
+                          ext == ".nib" || ext == ".d13" || ext == ".2mg" || ext == ".woz";  // 5.25"
     return ext == ".2mg" || ext == ".po" || ext == ".dsk";      // 3.5" load / hot-swap
 }
 
@@ -68,6 +70,7 @@ bool Ui::browseAccept(const std::string& path) {
     else if (loadKind_ == 1 && onLoadHdd)    ok = onLoadHdd(path);
     else if (loadKind_ == 2 && onLoadDisk35) ok = onLoadDisk35(path);
     else if (loadKind_ == 3 && onSwapDisk35) { ok = onSwapDisk35(path); if (ok) disk35Path = path; }
+    else if (loadKind_ == 4 && onLoadDisk525) { ok = onLoadDisk525(path); if (ok) disk525Path = path; }
     if (ok) {
         setStatus((loadKind_ == 0 ? "Loaded ROM: " : loadKind_ == 3 ? "Inserted: " : "Loaded disk: ") + path);
         running = true;
@@ -123,6 +126,10 @@ void Ui::menuBar() {
         if (ImGui::MenuItem("Load ROM...", nullptr, false, bool(onLoadRom)))        openLoad(0);
         if (ImGui::MenuItem("Load Hard Disk...", nullptr, false, bool(onLoadHdd)))  openLoad(1);
         if (ImGui::MenuItem("Load 3.5\" Disk...", nullptr, false, bool(onLoadDisk35))) openLoad(2);
+        if (ImGui::MenuItem("Load 5.25\" Disk...", nullptr, false, bool(onLoadDisk525))) openLoad(4);
+        if (ImGui::MenuItem("Eject 5.25\" Disk", nullptr, false, bool(onEjectDisk525))) {
+            onEjectDisk525(); disk525Path.clear(); setStatus("Ejected 5.25\" disk");
+        }
         ImGui::Separator();
         if (ImGui::MenuItem("Quit", "Ctrl+Q")) quitRequested = true;
         ImGui::EndMenu();

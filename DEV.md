@@ -412,8 +412,47 @@ each); drive 2 mounts via `disk35b =` in `pomiigs.cfg` (or `--disk35b` on the
 screenshot harness). All pinned in `iwm35_test`.
 
 Open: end-to-end Finder "Initialize" pass (mechanics pinned by the full-track
-rewrite test), 5.25" write path. (SWIM: out of scope — Mark Twain prototype
-only.)
+rewrite test). (SWIM: out of scope — Mark Twain prototype only.)
+
+### 5.25" bit-cell path — POM2 DiskImage port (read + write + WOZ)
+
+The minimal nibble-stream 5.25" reader was replaced by **POM2's `DiskImage`
+ported verbatim** (`src/DiskImage.{h,cpp}` + `TwoImg.h`/`Logger.h` — content
+detector for .dsk/.do/.po/.nib/.d13/.2mg and **WOZ 1/2 incl. FLUX**, 160
+quarter-track bit-cell streams, sync-aware expansion, flux splice, sector
+de-nibblise + save-back). `Iwm` reads it bit-by-bit: the latch assembles one
+nibble at a time from `bitAt()`, skipping leading zero cells while the MSB is
+clear — 10-cell sync $FFs slip the byte boundary exactly like the real LSS —
+paced at 8×~57 master ticks (32 µs) with elastic delivery (the 3.5"
+discipline). Writes collect in a session (closed by Q7/ENABLE fall, read,
+step, eject) and splice back as flux with the `computeCellWidths` sync rule
+applied on emission (a $FF run ≥ 5 gets 10 cells — without this every written
+gap $FF drifted the splice 2 cells). Validated end-to-end: **Choplifter
+(.dsk) boots to gameplay and A.E. — a protected WOZ original — boots to its
+title screen** via the internal $C600 PROM; RWTS-style sector write + file
+write-back pinned by `iwm525_test` (gate) — mount via `disk525 =` /
+File ▸ Load 5.25" Disk / `--disk525`.
+
+**Two hardware behaviours the boot ROM depends on (root-caused by tracing
+the $C600 PROM instruction flow):**
+
+1. **PH1 forces the sense line high** — the 5.25" status bit 7 is
+   write-protect OR phase-1-energised (MAME floppy.cpp:799-805): the
+   internal driver's drive-detect probe at `$FF:581C` polls status with PH1
+   on and hangs unless the line answers.
+2. **ENABLE2 (PH1+PH3 energised) addresses the external SmartPort chain**,
+   not the dumb drive (KEGS iwm.c:494-505). The ROM's disk-port probe WRITES
+   UniDisk command packets in this state; without the gate those bytes
+   landed on the disk surface at the head position — wiping sector 0's
+   address field on every boot (sectors 1-15 kept decoding, so the file
+   itself survived via saveDirty's pre-fill). ENABLE2 now swallows writes,
+   reads $FF, senses 1 (no chain device).
+
+Limitations (documented, not blocking): quarter-track stepping is half-track
+granular (qt = ht×2; adjacent-phase-pair positions = follow-up), partial-nibble
+latch reads return $00 rather than the shifting register (bit-banging
+protections like Spiradisc may object), write pacing is layout-inferred rather
+than cycle-true.
 
 **SmartPort dispatch gotcha.** The `$Cn53` entry serves both the classic
 (`DFB cmd` / `DW paramList`, 2-byte bank-0 pointer) and the GS/OS **extended**

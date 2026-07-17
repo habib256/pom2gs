@@ -29,13 +29,15 @@ int main(int argc, char** argv) {
     const char* romPath = argv[1];
     const char* outPath = argv[2];
     long frames = 120; const char* charPath = "roms/iigs-char.rom"; const char* hddPath = nullptr;
-    const char* disk35Path = nullptr; const char* disk35bPath = nullptr; bool iwm35 = false;
+    const char* disk35Path = nullptr; const char* disk35bPath = nullptr;
+    const char* disk525Path = nullptr; bool iwm35 = false;
     for (int i = 3; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--frames") && i + 1 < argc) frames = std::strtol(argv[++i], nullptr, 10);
         else if (!std::strcmp(argv[i], "--char") && i + 1 < argc) charPath = argv[++i];
         else if (!std::strcmp(argv[i], "--hdd") && i + 1 < argc) hddPath = argv[++i];
         else if (!std::strcmp(argv[i], "--disk35") && i + 1 < argc) disk35Path = argv[++i];
         else if (!std::strcmp(argv[i], "--disk35b") && i + 1 < argc) disk35bPath = argv[++i];
+        else if (!std::strcmp(argv[i], "--disk525") && i + 1 < argc) disk525Path = argv[++i];
         else if (!std::strcmp(argv[i], "--iwm35")) iwm35 = true;
     }
 
@@ -47,6 +49,8 @@ int main(int argc, char** argv) {
     // scenario: blank HDD on slot 7 as target, boot chains to the slot-5 disk).
     if (disk35Path) { mem.loadDisk35(disk35Path); if (!hddPath) mem.ejectHdd(); }
     if (disk35bPath) mem.loadDisk35(disk35bPath, 1);
+    // --disk525 alone → boot the 5.25" from slot 6 (clear the higher slots).
+    if (disk525Path) { mem.loadDisk525(disk525Path); if (!hddPath) mem.ejectHdd(); }
     cpu.hardReset();
     std::vector<uint8_t> chr = readFile(charPath);
     bool chrOk = !chr.empty() && vgc.setCharRom(chr);
