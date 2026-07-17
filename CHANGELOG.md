@@ -4,6 +4,24 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — slot-7 AppleTalk false-positive: +30 ProDOS-8 games boot (Block Out, Beyond Zork, King's Quest IV, …)
+`IIgsMemory::slotRomRead` served the system ROM's internal `$FF:C7xx` image for an empty slot 7 (HDD
+ejected) — but that image is the **AppleTalk firmware** (signature "ATLK" = $41 54 4C 4B at $C7F9). A
+cracked-disk loader shared by ~30 ProDOS-8 titles scans `$00:C7F9` for "ATLK"; finding it (POMIIGS)
+made it take its "AppleTalk present" branch, which calls a tool that returns C=1 (error) → `RTS` to
+`$0000` → zero page → `BRK`. Real hardware and KEGS only show the AppleTalk firmware when slot 7 is set
+to AppleTalk in the Control Panel; by default `$C7F9` reads `$00`. **Fix:** an empty slot 7 reads `$00`,
+not the internal AppleTalk firmware.
+
+Root-caused with a **KEGS golden-trace diff**: built KEGS headless (`vars_x86linux`, `make xkegs`, run
+under Xvfb with ROM 03 + the disk), added a per-instruction trace hook, and diffed against POMIIGS
+line-by-line to the first divergence — `$00:3B40 LDA ($FE),Y` read `$00` in KEGS but `$4B` in POMIIGS,
+pointing straight at `$C7F9`. Impact (full 341-image triage via the new `tests/triage`): OK_GFX
+114 → **144 (+30)**, CRASH_BRK 34 → 3; no working title regressed; GS/OS boots (HDD Finder + 3.5")
+unaffected; suite 17/17. The long-standing Block Out / Beyond Zork "BRK after old-loader splash"
+failures (in the project notes since the first triage) are resolved. Method + reusable harnesses
+recorded in the memory note `toolbox-loader-crash`.
+
 ### Added — VGC per-line scanline interrupt (real beam timing)
 The frame-level approximation ("any SCB bit 6 → one status latch per frame" in frameTick) was replaced
 by the real model: the tick() beam walk fires on EVERY display line the beam enters — an SHR SCB with

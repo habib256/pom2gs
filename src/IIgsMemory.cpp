@@ -764,6 +764,19 @@ uint8_t IIgsMemory::slotRomRead(uint16_t off) {
         // drives the Sony via $C0E0-$C0EF + $C031 exactly like hardware.
         if (slot == disk35_.slot() && !iwm35_)              // $C5xx → 3.5" SmartPort HLE
             return disk35_.romRead(uint8_t(off & 0xFF));
+        // Slot 7 with no HDD card = an EMPTY slot. The system ROM's internal
+        // $FF:C7xx image is the **AppleTalk** firmware (signature "ATLK" at
+        // $C7F9), which only appears on real hardware when slot 7 is set to
+        // AppleTalk in the Control Panel. POMIIGS models no AppleTalk and the
+        // reference (KEGS) reads $00 here in the default config — returning
+        // the ATLK bytes made ProDOS-8 games that probe $C7F9 for AppleTalk
+        // (World Tour Golf, Block Out, Beyond Zork, Police Quest, King's
+        // Quest IV, … ~30 titles: a shared loader scans slot 7 and, on a
+        // false-positive, takes a path that returns C=1 from a tool call →
+        // RTS to $0000 → BRK). Empty slot 7 = $00 (golden-trace-verified
+        // against KEGS).
+        if (slot == hdd_.slot())                            // $C7xx, HDD ejected
+            return 0x00;
     }
     uint32_t romTop = uint32_t(rom_.size()) - 0x10000;      // bank $FF image
     return rom_.empty() ? 0 : rom_[romTop + off];

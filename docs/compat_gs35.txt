@@ -1,341 +1,341 @@
-STATUS=OK_GFX mode=SHR pc=03:9857 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Life & Death (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=01:F821 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Jack Nicklaus Greatest 18 Holes of Major Championship Golf (USA) (Disk 1) (Game).2mg
-STATUS=OK_GFX mode=SHR pc=00:F139 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Captain Blood (USA).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 4) (Data 3).2mg
+STATUS=OK_GFX mode=SHR pc=FE:0101 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FC:CF51 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Life & Death (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=00:F137 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Captain Blood (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Shufflepuck Cafe (USA) (Proto).2mg
-STATUS=OK_GFX mode=SHR pc=FC:82DA hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Leisure Suit Larry In The Land of The Lounge Wizard (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Orbizone (USA) (Disk 3) (Templates 2) (Unl).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 4) (Data 3).2mg
+STATUS=OK_GFX mode=SHR pc=01:F821 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Jack Nicklaus Greatest 18 Holes of Major Championship Golf (USA) (Disk 1) (Game).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 9).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Orbizone (USA) (Disk 3) (Templates 2) (Unl).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gnarly Golf (USA) (Disk 2).2mg
 STATUS=TEXT mode=text pc=00:0851 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gate, The (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=E1:0068 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Marbleaire (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FC:0D70 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Reach For The Stars (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Windwalker (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=FC:0D72 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Reach For The Stars (USA).2mg
 STATUS=OK_GFX mode=SHR pc=00:BFDE hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Windwalker (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FD:630B hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Marbleaire (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bouncing Bluster II (USA) (Disk 2).2mg
 STATUS=OK_GFX mode=SHR pc=01:233F hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Black Cauldron, The (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission (USA) (Disk 4).2mg
-STATUS=OK_GFX mode=SHR pc=02:D49E hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Hostage (USA).2mg
 STATUS=OK_GFX mode=SHR pc=01:F816 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Revolution '76 (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 3).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Where in the USA is Carmen Sandiego (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Columns (USA) (Unl).2mg
-STATUS=OK_GFX mode=SHR pc=FE:00EA hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Magical Myths (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:09C4 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Plotting (USA) (Unl).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Deja Vu II (USA).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission (USA) (Disk 4).2mg
+STATUS=OK_GFX mode=SHR pc=02:2D2F hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=02:D4B5 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Hostage (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Where in the USA is Carmen Sandiego (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Full Metal Planete (France).2mg
+STATUS=HANG mode=text pc=00:09C4 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Plotting (USA) (Unl).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/One Arm Battle (USA) (Unl).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 3).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Deja Vu II (USA).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Magical Myths (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Police Quest (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Blockade GS (USA) (Unl).2mg
+STATUS=OK_GFX mode=SHR pc=FE:B1A4 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Battle Chess (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bouncing Bluster (USA) (Disk 2) (Unl).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mighty Marvel Vs The Forces of E.V.I.L. (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Panzer Battles (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=FE:B2A6 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Battle Chess (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mighty Marvel Vs The Forces of E.V.I.L. (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Questmaster I - The Prism of Heheutotol (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Revolution '76 (USA) (Disk 3).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 5).2mg
-STATUS=OK_GFX mode=SHR pc=05:10AF hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Lemmings (1996) (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Revolution '76 (USA) (Disk 3).2mg
 STATUS=TEXT mode=text pc=00:095E hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mini Prix (France) (Unl).2mg
+STATUS=OK_GFX mode=SHR pc=05:10BE hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Lemmings (1996) (USA).2mg
 STATUS=OK_GFX mode=SHR pc=00:BFA1 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Kaleidokubes (USA).2mg
-STATUS=OK_GFX mode=SHR pc=01:F724 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Dungeon Master (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FE:FCD5 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Shanghai (USA).2mg
-STATUS=HANG mode=text pc=00:092B hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Shadowgate (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CFAE hang=0 zp=1318 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Winter Games (USA).2mg
+STATUS=OK_GFX mode=SHR pc=01:E498 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Dungeon Master (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:E705 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Shanghai (USA).2mg
 STATUS=OK_GFX mode=SHR pc=01:2689 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest II - Romancing The Throne (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dark Castle (USA) (Disk 1).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CF58 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Triango (USA).2mg
-STATUS=CRASH_MON mode=text pc=FF:A5F4 hang=0 zp=1021 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Cluster (USA) (Unl).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Cogito (USA) (Unl).2mg
+STATUS=OK_GFX mode=SHR pc=FE:0122 hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Winter Games (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Shanghai II - Dragon's Eye (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:092B hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Shadowgate (USA).2mg
+STATUS=CRASH_MON mode=text pc=FF:A5F6 hang=0 zp=1021 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Cluster (USA) (Unl).2mg
 STATUS=OK_GFX mode=SHR pc=00:1CCA hang=0 zp=540 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Gnarly Golf (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=01:1D87 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Triango (USA).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Cogito (USA) (Unl).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Spirit of Excalibur (USA) (Disk 3).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Downhill Challenge (USA).2mg
-STATUS=CRASH_ZP mode=SHR pc=00:D630 hang=0 zp=57374 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Pirates! (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FE:E5B3 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Volcanoes Deluxe (USA).2mg
-STATUS=OK_GFX mode=SHR pc=00:F132 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Magical Myths (USA) (Disk 1).2mg
-STATUS=CRASH_MON mode=text pc=FF:A5F9 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Rastan (USA) (US) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 4).2mg
+STATUS=CRASH_MON mode=text pc=FF:A5F9 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Rastan (USA) (US) (Disk 2).2mg
+STATUS=CRASH_ZP mode=SHR pc=00:D62A hang=0 zp=57376 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Pirates! (USA).2mg
+STATUS=OK_GFX mode=SHR pc=01:DF0C hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Volcanoes Deluxe (USA).2mg
+STATUS=OK_GFX mode=SHR pc=00:F132 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Magical Myths (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Downhill Challenge (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 6).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dream Zone (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=FE:00E1 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Airball (USA).2mg
 STATUS=OK_GFX mode=SHR pc=01:F728 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Omega (USA).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Animal Kingdom (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Transylvania III (USA) (Disk 2).2mg
-STATUS=TEXT mode=text pc=03:1DFB hang=0 zp=540 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Immortal, The (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Tribe, The (USA) (Disk 3).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CF95 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Questron II (USA).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Sinbad And The Throne of The Falcon (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=FE:FCC9 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Monte Carlo (USA).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Transylvania III (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Animal Kingdom (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=FD:2208 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Airball (USA).2mg
+STATUS=TEXT mode=text pc=03:1DFB hang=0 zp=540 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Immortal, The (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mixed Up Mother Goose (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=FE:EA2A hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Monte Carlo (USA).2mg
+STATUS=OK_GFX mode=SHR pc=03:A909 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Questron II (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest III - To Heir is Human (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=FF:BD15 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Adventures of Sinbad (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Sinbad And The Throne of The Falcon (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=FF:BCF8 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Adventures of Sinbad (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FE:EBED hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Solitaire Royale (USA).2mg
+STATUS=TEXT mode=text pc=00:0925 hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bard's Tale II - The Destiny Knight, The (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Land of the Unicorn (USA) (Disk 4).2mg
-STATUS=TEXT mode=text pc=00:08EE hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bard's Tale II - The Destiny Knight, The (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=FD:6321 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Solitaire Royale (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FE:E5ED hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Word Master (USA).2mg
-STATUS=OK_GFX mode=SHR pc=02:C7C3 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Read & Rhyme (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=02:987C hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Chess Master 2100 (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Secrets of Bahras, The (USA) (Disk 3).2mg
+STATUS=OK_GFX mode=SHR pc=01:64C5 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Word Master (USA).2mg
+STATUS=OK_GFX mode=SHR pc=02:C7C1 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Read & Rhyme (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=02:9863 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Chess Master 2100 (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mean 18 (USA) (Disk 2) (Famous Courses Volume 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Secrets of Bahras, The (USA) (Disk 3).2mg
+STATUS=CRASH_MON mode=text pc=FF:A5F1 hang=0 zp=1021 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Sensei (USA) (Unl).2mg
 STATUS=CRASH_BRK mode=text pc=FF:CF42 hang=0 zp=511 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Shark (USA).2mg
-STATUS=CRASH_MON mode=text pc=FF:A5F4 hang=0 zp=1021 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Sensei (USA) (Unl).2mg
-STATUS=OK_GFX mode=SHR pc=02:C43E hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Arkanoid (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Arabian Nights (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=02:C43A hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Arkanoid (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission (USA) (Disk 3).2mg
-STATUS=OK_GFX mode=SHR pc=FE:E63F hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Animal Kingdom (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=00:A795 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Paperboy (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CF03 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tunnels of Armageddon (USA).2mg
 STATUS=TEXT mode=text pc=00:08AD hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gate, The (USA) (Disk 2).2mg
 STATUS=TEXT mode=text pc=00:2169 hang=0 zp=540 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Street Sports Soccer (USA).2mg
+STATUS=OK_GFX mode=SHR pc=00:AE1B hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Paperboy (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:EA15 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Animal Kingdom (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=01:2DC8 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Tunnels of Armageddon (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Land of Ys (USA) (Disk 2) (Program).2mg
-STATUS=OK_GFX mode=SHR pc=00:BFA1 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Quest for the Hoard (USA) (Unl).2mg
+STATUS=TEXT mode=text pc=01:DEC0 hang=0 zp=1316 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/World Games (USA).2mg
+STATUS=OK_GFX mode=SHR pc=00:BF97 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Quest for the Hoard (USA) (Unl).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Test Drive II - The Duel (USA) (Disk 2) (Super Cars).2mg
-STATUS=CRASH_BRK mode=text pc=FE:010E hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 2).2mg
-STATUS=TEXT mode=text pc=01:E4E7 hang=0 zp=1316 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/World Games (USA).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Subversion (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 8).2mg
-STATUS=OK_GFX mode=SHR pc=01:2689 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest III - To Heir is Human (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FE:EBBB hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Subversion (USA).2mg
+STATUS=OK_GFX mode=SHR pc=01:26B1 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest III - To Heir is Human (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Where in the World is Carmen Sandiego (USA).2mg
-STATUS=OK_GFX mode=SHR pc=02:0B8A hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Firepower (USA).2mg
-STATUS=OK_GFX mode=SHR pc=02:5C91 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mad Match (USA).2mg
-STATUS=TEXT mode=text pc=00:CAA5 hang=0 zp=1330 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 2) (Data 1).2mg
+STATUS=OK_GFX mode=SHR pc=02:0B81 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Firepower (USA).2mg
+STATUS=TEXT mode=text pc=00:C38F hang=0 zp=1330 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 2) (Data 1).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Revolution '76 (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=01:1759 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Fast Break (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:1DF4 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mad Match (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Immortal, The (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=FF:BF0D hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/King of Chicago, The (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=00:1351 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Tass Times In Tonetown (USA).2mg
-STATUS=CRASH_ZP mode=text pc=FC:CEBB hang=0 zp=17914 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tomahawk (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mean 18 (USA) (Disk 4) (Famous Courses Volume 4).2mg
+STATUS=OK_GFX mode=SHR pc=00:C075 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Fast Break (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gate, The (USA) (Disk 3) (Save).2mg
-STATUS=OK_GFX mode=SHR pc=02:9CE2 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Vegas Craps (USA).2mg
-STATUS=CRASH_MON mode=text pc=FE:B1B6 hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Star Saga Two - The Clathran Menance (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FE:FBE4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest IV - The Perils of Rosella (USA) (Disk 1).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E2 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/MathTalk Fractions (USA).2mg
+STATUS=CRASH_ZP mode=text pc=FC:CEB7 hang=0 zp=17914 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tomahawk (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FF:BF0D hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/King of Chicago, The (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=00:14E2 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Tass Times In Tonetown (USA).2mg
+STATUS=CRASH_MON mode=text pc=FE:B11B hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Star Saga Two - The Clathran Menance (USA).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mean 18 (USA) (Disk 4) (Famous Courses Volume 4).2mg
+STATUS=OK_GFX mode=SHR pc=02:BAB3 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Vegas Craps (USA).2mg
+STATUS=OK_GFX mode=SHR pc=01:247F hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest IV - The Perils of Rosella (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FD:20A8 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/MathTalk Fractions (USA).2mg
+STATUS=OK_GFX mode=SHR pc=02:8740 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 1).2mg
 STATUS=OK_GFX mode=SHR pc=00:A917 hang=0 zp=540 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Gauntlet (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Cribbage King & Gin King (USA).2mg
-STATUS=OK_GFX mode=SHR pc=02:53B0 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/4th & Inches (USA) (Disk 2) (Team Construction Disk).2mg
-STATUS=OK_GFX mode=SHR pc=02:8741 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=02:53AC hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/4th & Inches (USA) (Disk 2) (Team Construction Disk).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Whales (USA) (Disk 2).2mg
-STATUS=TEXT mode=text pc=00:102D hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Rastan (USA) (US) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=02:48E7 hang=0 zp=540 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Marble Madness (USA).2mg
+STATUS=OK_GFX mode=SHR pc=02:483C hang=0 zp=540 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Marble Madness (USA).2mg
+STATUS=TEXT mode=text pc=00:102A hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Rastan (USA) (US) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Silpheed (USA) (Disk 2).2mg
 STATUS=OK_GFX mode=SHR pc=FC:D5E2 hang=0 zp=541 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Transylvania III (USA) (Disk 1).2mg
 STATUS=OK_GFX mode=SHR pc=03:1807 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Hover Blade (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bard's Tale II - The Destiny Knight, The (USA) (Disk 2) (Character).2mg
+STATUS=OK_GFX mode=SHR pc=FE:E5DC hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/MathTalk (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Chess Master 2100 (USA) (Disk 2).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E2 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/MathTalk (USA).2mg
-STATUS=OK_GFX mode=SHR pc=01:26AD hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mixed Up Mother Goose (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gold Rush (USA) (Disk 4).2mg
+STATUS=OK_GFX mode=SHR pc=01:26A0 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mixed Up Mother Goose (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=01:B06D hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Last Ninja, The (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Task Force (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=01:B077 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Last Ninja, The (USA).2mg
-STATUS=OK_GFX mode=SHR pc=03:6FBB hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Land of the Unicorn (USA) (Disk 2).2mg
-STATUS=TEXT mode=text pc=01:DFCA hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Rocket Ranger (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=FE:3D4F hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Sea Strike (USA).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Third Courier, The (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Read & Rhyme (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bard's Tale II - The Destiny Knight, The (USA) (Disk 2) (Character).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/DuelTris (USA) (Unl).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Third Courier, The (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=03:6FC5 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Land of the Unicorn (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission (USA) (Disk 2).2mg
+STATUS=TEXT mode=text pc=01:DEDF hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Rocket Ranger (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FE:3D55 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Sea Strike (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Read & Rhyme (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Grizzly Bears (USA) (Disk 2).2mg
-STATUS=CRASH_BRK mode=text pc=FE:011A hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Math and Me (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Spirit of Excalibur (USA) (Disk 2).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CF38 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Leisure Suit Larry In The Land of The Lounge Wizard (USA) (Disk 1).2mg
-STATUS=CRASH_MON mode=text pc=FE:0105 hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Land of Ys (USA) (Disk 1) (Program).2mg
+STATUS=OK_GFX mode=SHR pc=01:2685 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Leisure Suit Larry In The Land of The Lounge Wizard (USA) (Disk 1).2mg
 STATUS=OK_GFX mode=SHR pc=01:2FB7 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Superstar Ice Hockey (USA).2mg
+STATUS=OK_GFX mode=SHR pc=03:091D hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Math and Me (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Quest II - Vohaul's Revenge (USA) (Disk 2).2mg
 STATUS=TEXT mode=text pc=00:094D hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Jack Nicklaus Greatest 18 Holes of Major Championship Golf (USA) (Disk 4) (Course 3).2mg
-STATUS=OK_GFX mode=SHR pc=01:DEEE hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Keef The Thief (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest IV - The Perils of Rosella (USA) (Disk 3).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 7).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Out of This World (USA) (Disk 2).2mg
-STATUS=TEXT mode=text pc=00:0E70 hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/John Elway's Quarterback (USA).2mg
+STATUS=CRASH_MON mode=text pc=FE:FCBE hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Land of Ys (USA) (Disk 1) (Program).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Alien Mind (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:090E hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Uninvited (USA).2mg
-STATUS=TEXT mode=text pc=02:6E8C hang=0 zp=1018 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/As the Link Turns (USA) (Unl).2mg
+STATUS=OK_GFX mode=SHR pc=01:DEE1 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Keef The Thief (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Out of This World (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 7).2mg
+STATUS=TEXT mode=text pc=00:0E70 hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/John Elway's Quarterback (USA).2mg
 STATUS=HANG mode=text pc=00:090E hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Kinderama (USA) (Disk 1).2mg
+STATUS=TEXT mode=text pc=02:6E90 hang=0 zp=1018 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/As the Link Turns (USA) (Unl).2mg
+STATUS=HANG mode=text pc=00:090E hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Uninvited (USA).2mg
+STATUS=OK_GFX mode=SHR pc=02:C04C hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Tetris (USA).2mg
 STATUS=OK_GFX mode=SHR pc=01:FEEF hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Serve & Volley (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FF:BDCA hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Tetris (USA).2mg
-STATUS=OK_GFX mode=SHR pc=02:0E79 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/California Games (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dream Zone (USA) (Disk 1).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 5).2mg
+STATUS=OK_GFX mode=SHR pc=FE:EC78 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Dream Zone (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=02:426C hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Test Drive II - The Duel (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FE:FCDE hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 5).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gold Rush (USA) (Disk 3).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Halls of Montezuma (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=02:426B hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Test Drive II - The Duel (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=01:8A38 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Zany Golf (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bridge 6.0 - Your Bid For Entertainment (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FE:EBC0 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Grizzly Bears (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=02:0E79 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/California Games (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:FCCC hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Bridge 6.0 - Your Bid For Entertainment (USA).2mg
+STATUS=OK_GFX mode=SHR pc=01:8891 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Zany Golf (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Test Drive II - The Duel (USA) (Disk 5) (California Scenario).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Secrets of Bahras, The (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Adventures of Sinbad (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Halls of Montezuma (USA) (Disk 2).2mg
 STATUS=OK_GFX mode=SHR pc=FE:B1E4 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Blackjack Academy (USA).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Plunder (USA) (Unl).2mg
 STATUS=TEXT mode=text pc=00:C511 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Vindicators (USA) (Proto).2mg
+STATUS=OK_GFX mode=SHR pc=FE:00E5 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Grizzly Bears (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Adventures of Sinbad (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Plunder (USA) (Unl).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Black Cauldron, The (USA) (Disk 2).2mg
-STATUS=TEXT mode=text pc=00:CF73 hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Defender of The Crown (USA) (Disk 1).2mg
+STATUS=CRASH_ZP mode=SHR pc=00:0D83 hang=0 zp=1556220 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Silent Service (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tinies, The (USA) (Unl).2mg
-STATUS=CRASH_ZP mode=SHR pc=00:0A47 hang=0 zp=1556260 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Silent Service (USA).2mg
-STATUS=CRASH_ZP mode=HGR pc=00:D590 hang=0 zp=2835288 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Legends - 800k version.2mg
+STATUS=CRASH_MON mode=text pc=FE:00F5 hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Defender of The Crown (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=00:4DEA hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Geographic Jigsaw (USA).2mg
+STATUS=CRASH_ZP mode=HGR pc=00:D8C5 hang=0 zp=2835273 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Legends - 800k version.2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Test Drive II - The Duel (USA) (Disk 3) (Muscle Cars).2mg
-STATUS=OK_GFX mode=SHR pc=00:4DE5 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Geographic Jigsaw (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FE:16F8 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Magic Johnson's Basketball (USA) (Proto).2mg
 STATUS=OK_GFX mode=SHR pc=00:0E56 hang=0 zp=540 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Hunt For Red October (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:16F8 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Magic Johnson's Basketball (USA) (Proto).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tout a disparu_fr.2mg
-STATUS=OK_GFX mode=SHR pc=04:3D6E hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/TheTinies (Brutal Deluxe Software).2mg
-STATUS=CRASH_BRK mode=text pc=FE:FBE3 hang=0 zp=1022 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Beyond Zork (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 6) (Data 5).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Cosmocade - The Arcade of Tomorrow (USA) (Disk 2) (Unl).2mg
-STATUS=OK_GFX mode=SHR pc=01:0A1E hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Aaargh! (USA).2mg
-STATUS=CRASH_ZP mode=SHR pc=00:96DD hang=0 zp=333490 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Wheel of Fortune (USA) (Unl).2mg
+STATUS=OK_GFX mode=SHR pc=FE:0119 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Beyond Zork (USA).2mg
+STATUS=CRASH_ZP mode=SHR pc=00:96E9 hang=0 zp=333490 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Wheel of Fortune (USA) (Unl).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 3).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Shanghai II - Dragon's Eye (USA) (Disk 2).2mg
-STATUS=CRASH_BRK mode=text pc=FE:0101 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Quest II - Vohaul's Revenge (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=01:0A1E hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Aaargh! (USA).2mg
+STATUS=OK_GFX mode=SHR pc=04:3BDC hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/TheTinies (Brutal Deluxe Software).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=00:24A3 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Great Western Shootout (USA).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Shanghai II - Dragon's Eye (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=01:2559 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Space Quest II - Vohaul's Revenge (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Solarian (USA) (Unl).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CF3F hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gold Rush (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=00:24B0 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Great Western Shootout (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CC50 hang=0 zp=516 brk=8 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Alien Mind (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=01:247F hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Gold Rush (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Aesop's Fables (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest II - Romancing The Throne (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=01:F875 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Spirit of Excalibur (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gold Of The Americas (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FD:6C19 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Where in the USA is Carmen Sandiego (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=03:061D hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Qix (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Manhunter - New York (USA) (Disk 3).2mg
+STATUS=CRASH_BRK mode=text pc=FF:CC50 hang=0 zp=516 brk=8 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Alien Mind (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gold Of The Americas (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FD:8F9D hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Where in the USA is Carmen Sandiego (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=01:F875 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Spirit of Excalibur (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=03:061D hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Qix (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:FCB4 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Laser Force (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Keef The Thief (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=FE:EC75 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Laser Force (USA).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Deja Vu (USA).2mg
+STATUS=OK_GFX mode=SHR pc=01:2681 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest - Quest for the Crown (USA) (Disk 1).2mg
 STATUS=OK_GFX mode=SHR pc=02:9B98 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Pipe Dream (USA).2mg
-STATUS=OK_GFX mode=SHR pc=01:255A hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest - Quest for the Crown (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=03:648A hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Grand Prix Circuit (USA).2mg
-STATUS=OK_GFX mode=SHR pc=04:5968 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Puzznic (USA) (Proto).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Alien Mind (USA) (Disk 4) (Save).2mg
+STATUS=OK_GFX mode=SHR pc=03:6487 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Grand Prix Circuit (USA).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Deja Vu (USA).2mg
+STATUS=OK_GFX mode=SHR pc=04:5966 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Puzznic (USA) (Proto).2mg
 STATUS=OK_GFX mode=SHR pc=03:970F hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Futureshock (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Tribe, The (USA) (Disk 1).2mg
 STATUS=OK_GFX mode=SHR pc=01:E70D hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Third Courier, The (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Test Drive II - The Duel (USA) (Disk 4) (European Scenario).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Math Wizard (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=02:ABCD hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Three Stooges, The (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Pick'n Pile (USA).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest - Quest for the Crown (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Alien Mind (USA) (Disk 4) (Save).2mg
+STATUS=OK_GFX mode=SHR pc=02:ABB6 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Three Stooges, The (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Test Drive II - The Duel (USA) (Disk 4) (European Scenario).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Defender of The Crown (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=03:1CD9 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission - The Second Scenario (USA) (Disk 1) (System).2mg
-STATUS=CRASH_BRK mode=text pc=FE:E5B3 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dueling Questions (USA).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King of Chicago, The (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=01:2EC5 hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Bubble Ghost (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest - Quest for the Crown (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=03:1C31 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission - The Second Scenario (USA) (Disk 1) (System).2mg
+STATUS=OK_GFX mode=SHR pc=FE:0123 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Dueling Questions (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Tribe, The (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=04:18F8 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Cogito2 (Brutal Deluxe Software).2mg
-STATUS=OK_GFX mode=SHR pc=01:342A hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Thexder (USA).2mg
-STATUS=TEXT mode=text pc=00:C8C5 hang=0 zp=1330 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 3) (Data 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King of Chicago, The (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=04:1942 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Cogito2 (Brutal Deluxe Software).2mg
+STATUS=OK_GFX mode=SHR pc=01:333D hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Thexder (USA).2mg
+STATUS=OK_GFX mode=SHR pc=01:7806 hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Bubble Ghost (USA).2mg
+STATUS=CRASH_MON mode=text pc=FE:B206 hang=0 zp=1330 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 3) (Data 2).2mg
 STATUS=OK_GFX mode=SHR pc=00:C4A6 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mancala (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 3).2mg
-STATUS=OK_GFX mode=SHR pc=FE:00EA hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Vegas Gambler (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:E70C hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 3).2mg
 STATUS=OK_GFX mode=SHR pc=04:1416 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/War In Middle Earth (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Glory (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=02:2C44 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Xenocide (USA).2mg
+STATUS=OK_GFX mode=SHR pc=02:99C6 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Vegas Gambler (USA).2mg
+STATUS=OK_GFX mode=SHR pc=02:2C5A hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Xenocide (USA).2mg
 STATUS=TEXT mode=text pc=00:3DC9 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Star Wizard (USA).2mg
-STATUS=OK_GFX mode=SHR pc=08:4B00 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Bouncing Bluster (USA) (Disk 1) (Unl).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dragon Wars (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00D8 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/World Tour Golf (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:0107 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/World Tour Golf (USA).2mg
+STATUS=OK_GFX mode=SHR pc=08:4B00 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Bouncing Bluster (USA) (Disk 1) (Unl).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Glory (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/King's Quest IV - The Perils of Rosella (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=03:68A8 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Land of the Unicorn (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=03:6857 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Land of the Unicorn (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Pangea's 24 Hour Games (USA) (Unl).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 2).2mg
 STATUS=TEXT mode=text pc=E0:D703 hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Club Backgammon (USA).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Quest I - The Sarien Encounter (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 6).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Senseless Violence 1 & 2 (USA) (Unl).2mg
-STATUS=OK_GFX mode=SHR pc=00:1832 hang=0 zp=929 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/GBA Championship Basketball - Two-On-Two (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Quest I - The Sarien Encounter (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=00:182F hang=0 zp=929 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/GBA Championship Basketball - Two-On-Two (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Halls of Montezuma (USA) (Disk 1).2mg
-STATUS=TEXT mode=text pc=00:0825 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dungeon Master for Apple IIGS v2.0 (English).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CF37 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Police Quest (USA) (Disk 1).2mg
-STATUS=TEXT mode=text pc=00:2CF9 hang=0 zp=540 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Task Force (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Milestones 2000 (USA) (Unl).2mg
+STATUS=TEXT mode=text pc=00:2CF9 hang=0 zp=540 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Task Force (USA) (Disk 1).2mg
+STATUS=TEXT mode=text pc=00:0825 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dungeon Master for Apple IIGS v2.0 (English).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Land of Ys (USA) (Disk 3) (User).2mg
+STATUS=OK_GFX mode=SHR pc=01:2681 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Police Quest (USA) (Disk 1).2mg
 STATUS=OK_GFX mode=SHR pc=01:24CB hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Space Quest I - The Sarien Encounter (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=01:2338 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Manhunter - New York (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Orbizone (USA) (Disk 2) (Templates 1) (Unl).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Manhunter - New York (USA) (Disk 1).2mg
-STATUS=TEXT mode=text pc=00:08F6 hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bard's Tale - Tales of the Unknown, The (USA) (Disk 1).2mg
 STATUS=TEXT mode=text pc=00:080E hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Jack Nicklaus Greatest 18 Holes of Major Championship Golf (USA) (Disk 2) (Course 1).2mg
-STATUS=OK_GFX mode=SHR pc=FC:092B hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Sub Battle Simulator (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CF9F hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Block Out (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 4).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 4).2mg
-STATUS=OK_GFX mode=SHR pc=FE:EC78 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Impossible Mission II (USA).2mg
+STATUS=TEXT mode=text pc=00:08AD hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bard's Tale - Tales of the Unknown, The (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FC:01A3 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Sub Battle Simulator (USA).2mg
+STATUS=OK_GFX mode=SHR pc=02:7D33 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Block Out (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:E5F2 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 4).2mg
+STATUS=OK_GFX mode=SHR pc=FE:EBFE hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Impossible Mission II (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bouncing Bluster II (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=02:D242 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Cosmocade - The Arcade of Tomorrow (USA) (Disk 1) (Unl).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Alien Mind (USA) (Disk 3).2mg
-STATUS=OK_GFX mode=SHR pc=04:319A hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Sinbad And The Throne of The Falcon (USA) (Disk 1).2mg
 STATUS=CRASH_MON mode=text pc=FF:A5F4 hang=0 zp=1018 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dungeon Master for Apple IIGS v2.0 (English) Original.2mg
+STATUS=OK_GFX mode=SHR pc=04:317A hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Sinbad And The Throne of The Falcon (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=02:D242 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Cosmocade - The Arcade of Tomorrow (USA) (Disk 1) (Unl).2mg
 STATUS=OK_GFX mode=SHR pc=02:5216 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/4th & Inches (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission - The Second Scenario (USA) (Disk 2) (Program).2mg
 STATUS=TEXT mode=text pc=00:6B1A hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Pitch Dark 20200427.2mg
+STATUS=OK_GFX mode=SHR pc=FE:F113 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Roadwar 2000 (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Alien Mind (USA) (Disk 3).2mg
+STATUS=CRASH_MON mode=text pc=FE:00FF hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Star Saga One - Beyond the Boundary (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:B8A4 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mini Putt - The Ultimate Challenge (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dark Castle (USA) (Disk 2).2mg
-STATUS=CRASH_BRK mode=text pc=FE:0117 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mini Putt - The Ultimate Challenge (USA).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CF3D hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Roadwar 2000 (USA).2mg
 STATUS=OK_GFX mode=SHR pc=02:881B hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Ancient Glory (USA) (Disk 1).2mg
-STATUS=CRASH_MON mode=text pc=FE:B10F hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Star Saga One - Beyond the Boundary (USA).2mg
-STATUS=OK_GFX mode=SHR pc=02:7F3C hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Aesop's Fables (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=FF:BD5F hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Math Blaster Plus (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FC:01E1 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Math Blaster Plus (USA).2mg
+STATUS=OK_GFX mode=SHR pc=02:7F20 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Aesop's Fables (USA) (Disk 1).2mg
 STATUS=OK_GFX mode=SHR pc=FF:77E0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Kinderama (USA) (Disk 2).2mg
-STATUS=CRASH_MON mode=text pc=FF:A5F1 hang=0 zp=1018 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tower of Myraglen, The (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Pinball Wizard (USA) (Proto).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 1).2mg
-STATUS=CRASH_BRK mode=text pc=FE:0114 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tower of Myraglen, The (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=01:937B hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Final Assault (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Pinball Wizard (USA) (Proto).2mg
+STATUS=CRASH_MON mode=text pc=FF:A5F1 hang=0 zp=1018 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tower of Myraglen, The (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=01:9386 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Final Assault (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Jigsaw (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=FE:FCD5 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Tower of Myraglen, The (USA) (Disk 1).2mg
 STATUS=TEXT mode=text pc=00:8060 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Teenage Queen (USA) (Proto).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gold Rush (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Ace (USA) (Disk 7).2mg
-STATUS=CRASH_MON mode=text pc=FC:CF4F hang=0 zp=1316 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Skate Or Die (USA).2mg
-STATUS=OK_GFX mode=SHR pc=02:B65D hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Arabian Nights (USA) (Disk 1).2mg
-STATUS=CRASH_BRK mode=text pc=FF:CFA6 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Warlock (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FE:FCDB hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Crown & Anchor (USA) (Unl).2mg
+STATUS=CRASH_MON mode=text pc=FC:CF55 hang=0 zp=1316 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Skate Or Die (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Gold Rush (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=02:DECF hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Arabian Nights (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FD:6893 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Crown & Anchor (USA) (Unl).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Balance of Power - The 1990 Edition (USA).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dungeon Master for Apple IIGS v2.0 (English) Savedisk.2mg
+STATUS=OK_GFX mode=SHR pc=01:593C hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Warlock (USA).2mg
 STATUS=CRASH_ZP mode=DHGR pc=FF:CF94 hang=0 zp=56789 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Reader Rabbit (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Life & Death (USA) (Disk 2).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tomahawk (USA) (Disk 2).2mg
 STATUS=OK_GFX mode=SHR pc=02:0BD7 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Secrets of Bahras, The (USA) (Disk 1).2mg
-STATUS=CRASH_BRK mode=text pc=00:CF38 hang=0 zp=1018 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Wolfenstein 3D (USA) (Unl).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Tomahawk (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Dungeon Master for Apple IIGS v2.0 (English) Savedisk.2mg
+STATUS=CRASH_BRK mode=text pc=FE:FCE3 hang=0 zp=1018 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Wolfenstein 3D (USA) (Unl).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/2088 - The Cryllan Mission - The Second Scenario (USA) (Disk 3) (Outdoor).2mg
+STATUS=OK_GFX mode=SHR pc=FE:BBD2 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mighty Marvel Vs The Forces of E.V.I.L. (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Questmaster I - The Prism of Heheutotol (USA) (Disk 3).2mg
-STATUS=OK_GFX mode=SHR pc=FE:BC1B hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mighty Marvel Vs The Forces of E.V.I.L. (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mazer II (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:E6CC hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bard's Tale - Tales of the Unknown, The (USA) (Disk 2) (Character).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Global Express Atlas (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=03:4234 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Whales (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FE:AFE7 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Whales (USA) (Disk 1).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Lost Treasures of Infocom (USA) (Disk 5).2mg
 STATUS=OK_GFX mode=SHR pc=00:110B hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Arkanoid II - Revenge of Doh (USA).2mg
-STATUS=TEXT mode=text pc=00:C8C5 hang=0 zp=1330 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 5) (Data 4).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/War In Middle Earth (USA) (Disk 2).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mazer II (USA).2mg
+STATUS=TEXT mode=text pc=00:0C48 hang=0 zp=1330 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Strip Poker II (USA) (Disk 5) (Data 4).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Out of This World (USA) (Disk 1).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Hover Blade (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=02:05FD hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Destroyer (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/War In Middle Earth (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Rocket Ranger (USA) (Disk 2).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E5 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Silpheed (USA) (Disk 1).2mg
+STATUS=CRASH_MON mode=text pc=FE:FCD7 hang=0 zp=1299 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Silpheed (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Hover Blade (USA) (Disk 2).2mg
+STATUS=OK_GFX mode=SHR pc=02:05F9 hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Destroyer (USA).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Jack Nicklaus Greatest 18 Holes of Major Championship Golf (USA) (Disk 3) (Course 2).2mg
-STATUS=OK_GFX mode=SHR pc=FE:9321 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Space Shuttle Word Problems (USA).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Manhunter - New York (USA) (Disk 2).2mg
-STATUS=OK_GFX mode=SHR pc=00:4970 hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/GeoPuzzle (USA).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mean 18 (USA) (Disk 3) (Famous Courses Volume 3).2mg
-STATUS=CRASH_ZP mode=text pc=00:00B7 hang=0 zp=678411 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Solitaire & Cribbage (USA).2mg
+STATUS=OK_GFX mode=SHR pc=03:6EB3 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Space Shuttle Word Problems (USA).2mg
+STATUS=OK_GFX mode=SHR pc=00:496B hang=0 zp=557 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/GeoPuzzle (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Jigsaw (USA) (Disk 1).2mg
+STATUS=CRASH_ZP mode=text pc=00:E880 hang=0 zp=678407 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Solitaire & Cribbage (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Manhunter - New York (USA) (Disk 2).2mg
 STATUS=CRASH_MON mode=text pc=FF:CC4E hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bouncin' Ferno (USA) (Unl).2mg
-STATUS=OK_GFX mode=SHR pc=02:072A hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Math Wizard (USA) (Disk 1).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Mean 18 (USA) (Disk 3) (Famous Courses Volume 3).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/GeoQuiz (USA).2mg
-STATUS=OK_GFX mode=SHR pc=00:2C42 hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Hardball! (USA).2mg
-STATUS=OK_GFX mode=SHR pc=02:5549 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mean 18 (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FE:00DC hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Math Wizard (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=02:554B hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Mean 18 (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=00:2C3C hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Hardball! (USA).2mg
 STATUS=TEXT mode=text pc=00:080D hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Bille Art (USA) (Unl).2mg
-STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Panzer Battles (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=FC:7DE0 hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Hacker II (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FC:DC96 hang=0 zp=1316 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Hacker II (USA).2mg
+STATUS=OK_GFX mode=SHR pc=00:106A hang=0 zp=548 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Neuromancer (USA).2mg
 STATUS=OK_GFX mode=SHR pc=02:DBD8 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Orbizone (USA) (Disk 1) (Unl).2mg
-STATUS=OK_GFX mode=SHR pc=03:E0C0 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Land of the Unicorn (USA) (Disk 3).2mg
-STATUS=OK_GFX mode=SHR pc=02:241A hang=0 zp=548 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Neuromancer (USA).2mg
-STATUS=OK_GFX mode=SHR pc=FE:0138 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Carte Primus Card Games (USA) (Unl).2mg
-STATUS=CRASH_BRK mode=text pc=FE:00E4 hang=0 zp=1301 brk=1 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Cavern Cobra (USA).2mg
+STATUS=OK_GFX mode=SHR pc=FE:011D hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Land of the Unicorn (USA) (Disk 3).2mg
+STATUS=OK_GFX mode=SHR pc=FE:FCC9 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Carte Primus Card Games (USA) (Unl).2mg
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Panzer Battles (USA) (Disk 1).2mg
+STATUS=OK_GFX mode=SHR pc=FE:FCC6 hang=0 zp=1299 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Cavern Cobra (USA).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Space Fox (USA).2mg
-STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Three Stooges, The (USA) (Disk 2).2mg
 STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Manhunter - New York (USA) (Disk 4).2mg
 STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Questmaster I - The Prism of Heheutotol (USA) (Disk 1).2mg
-STATUS=OK_GFX mode=SHR pc=03:11AE hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Crystal Quest (USA).2mg
+STATUS=OK_GFX mode=SHR pc=03:11B4 hang=0 zp=1018 brk=0 rom=0 gfx=1 text=0 | /media/gistarcade/SHARE/roms/apple2gs/Crystal Quest (USA).2mg
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /media/gistarcade/SHARE/roms/apple2gs/Three Stooges, The (USA) (Disk 2).2mg

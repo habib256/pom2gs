@@ -117,13 +117,17 @@ First 8-game headless triage (`screenshot --disk35 <game> --frames 700`):
 | Blackjack Academy | ✅ SHR title perfect |
 | Airball | ✅ boots to its bundled desktop (game = double-click) |
 | Aaargh! | ⚠️ black SHR at 700 frames, code running in bank $01 — maybe still loading; retest longer |
-| Block Out | ❌ "PRODOS 16 v1.3 / Loader v1.3" splash → **BRK @ 00/0003** |
-| Beyond Zork | ❌ "ROM Version 3" splash → **BRK @ 00/0006** |
+| Block Out | ✅ SHR title (was ❌ BRK @ 00/0003 — **fixed**, see below) |
+| Beyond Zork | ✅ boots (was ❌ BRK @ 00/0006 — **fixed**) |
 
-**5/8 clean on the first ever run.** The two crashes share a signature: an OLD
-boot path (ProDOS 16 v1.3 / a ProDOS-8 Infocom loader) BRKs into the monitor at
-zero page right after its splash — same silent-BRK family as the earlier LC/slot
-firmware gaps. Diagnose with a P8LOG-style BRK ring trace on Block Out first.
+**Full 341-image triage now runs** via `tests/triage` (see `docs/COMPAT.md`):
+of ~180 genuinely-bootable GS disks, ~80% reach graphics. The Block Out /
+Beyond Zork BRK — and ~28 more titles with the identical crash — were a
+**slot-7 AppleTalk false-positive**: a shared cracked loader scans `$00:C7F9`
+for "ATLK"; POMIIGS served the internal AppleTalk firmware there where an
+empty slot 7 should read `$00`. One fix (`slotRomRead`) → OK_GFX 114→144.
+Root-caused with a KEGS golden-trace diff (method in the `toolbox-loader-crash`
+memory note). The 150 HANGs are non-bootable images (no PRODOS file — correct).
 Interactive play test (sound + mouse): File → "Load 3.5\" Disk..." boots the
 game disk directly (ejects the HDD + cold reset).
 
