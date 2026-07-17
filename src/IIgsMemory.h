@@ -44,7 +44,8 @@ public:
         SHAD_IOLC       = 0x40,   // inhibit I/O + language card in banks $00/$01
     };
     // Speed register ($C036) bits — MAME apple2gs.cpp:242-248.
-    enum Speed : uint8_t { SPEED_HIGH = 0x80, SPEED_POWERON = 0x40, SPEED_ALLBANKS = 0x10 };
+    enum Speed : uint8_t { SPEED_HIGH = 0x80, SPEED_POWERON = 0x40, SPEED_ALLBANKS = 0x10,
+                           SPEED_DISKIISL4 = 0x01, SPEED_DISKIISL5 = 0x02, SPEED_DISKIISL6 = 0x04, SPEED_DISKIISL7 = 0x08 };
 
     IIgsMemory();
 
@@ -71,9 +72,17 @@ public:
     // Cited: MAME apple2gs.cpp SPEED ($C036 bit7 = 2.8 MHz).
     int frameCycleBudget() const {
         const int slow = kLineCycles * kLines;                   // 17030 @ 1.02 MHz
-        return (speed_ & SPEED_HIGH) ? (slow * 14 / 5) : slow;   // 47684 : 17030
+        return speedFast() ? (slow * 14 / 5) : slow;             // 47684 : 17030
     }
-    bool speedFast() const { return (speed_ & SPEED_HIGH) != 0; }
+    // Fast only if $C036 bit7 is set AND no motor-detect slot with its bit set has a
+    // spinning drive: the FPI drops to 1 MHz during 5.25" Disk II access so copy-
+    // protected/timing-sensitive titles bit-cell correctly. MAME apple2gs update_speed()
+    // `(m_speed & SPEED_HIGH) && !(m_speed & m_motors_active)`. Slot 6 = on-board IWM.
+    bool speedFast() const {
+        if (!(speed_ & SPEED_HIGH)) return false;
+        if ((speed_ & SPEED_DISKIISL6) && iwm_.motorOn()) return false;
+        return true;
+    }
     // Master-clock (14.318 MHz) ticks per 60 Hz video frame = one Mega II frame
     // (kLines × kLineCycles slow cycles × 14 master). The host loop runs CPU
     // steps — each costing 5 master (fast) or 14 (slow), plus the slow-side
@@ -113,6 +122,10 @@ public:
     // IRQ; the $C010 strobe-clear consumes the event. See keyEvent()/DEV § ADB.
     void keyDown(uint8_t ascii) { keyEvent(uint8_t(ascii | 0x80)); }
     void keyEvent(uint8_t latch);
+    // Live any-key-down state → $C010 (KBDSTRB) bit7. The host loop sets it each
+    // frame from the physical key state (edge-based char events can't model a held
+    // key). Matches MAME apple2gs.cpp $C010 = GLU_ANY_KEY_DOWN bit7.
+    void setAnyKeyDown(bool d) { anyKeyDown_ = d; }
     void setKbdIntStatus(uint8_t s) { kbdIntStatus_ = s; }   // dev: tune the $C026 keycode byte
 
     // Host keyboard modifiers → ADB KEYMODREG ($C025). Bit layout (Apple IIgs
@@ -245,6 +258,7 @@ private:
     bool lcRamRead_ = false, lcRamWrite_ = true, lcBank2_ = true, lcPreWrite_ = false;
     // Keyboard latch.
     uint8_t kbdLatch_ = 0;
+    bool    anyKeyDown_ = false;           // live physical key-held state → $C010 bit7
     // Joystick / paddles.
     uint8_t  paddle_[4] = {128, 128, 128, 128};
     bool     button_[3] = {false, false, false};

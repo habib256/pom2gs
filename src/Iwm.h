@@ -30,6 +30,7 @@ public:
     bool loadDisk525(const std::vector<uint8_t>& img, bool prodosOrder);
     bool hasDisk() const { return diskPresent_; }
     void eject() { diskPresent_ = false; }
+    bool motorOn() const { return motorOn_; }   // for the $C036 disk-motor-detect speed coupling
 
     // $C0E0-$C0EF access (offset 0..15). Read returns the data/status latch;
     // write latches the data register. `cycle` is the absolute CPU cycle so

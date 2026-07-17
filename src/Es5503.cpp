@@ -44,7 +44,7 @@ void Es5503::reset() {
 // software does a dummy read first (the $E0 IRQ-ack ISRs depend on this).
 uint8_t Es5503::gluRead(uint8_t reg) {
     switch (reg & 0x0F) {
-        case 0xC: return uint8_t(ctl_ & 0x7F);       // bit7 busy = 0
+        case 0xC: return uint8_t((ctl_ & 0x7F) | 0x1F);  // bit7 busy = 0; write-only volume bits 0-4 read as 1 (MAME m_sndglu_ctrl | 0x1f)
         case 0xD: {                                  // SOUNDDATA (latched)
             const uint8_t v = readLatch_;
             readLatch_ = (ctl_ & 0x40) ? sndRam_[addr_] : regRead(uint8_t(addr_ & 0xFF));
@@ -89,6 +89,7 @@ uint8_t Es5503::regRead(uint8_t r) {
         }
         return uint8_t(v | 0x41);
     }
+    if (r == 0xE1) return uint8_t((oscEnabled() - 1) << 1);   // osc-enable readback (MAME es5503 case 0xe1: (oscsenabled-1)<<1)
     if (r >= 0x60 && r <= 0x7F) return lastData_[r - 0x60];   // data reg: last byte fetched
     return reg_[r];
 }

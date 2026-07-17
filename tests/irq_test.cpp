@@ -35,7 +35,9 @@ int main() {
     // ── ¼-second (Mega II) ───────────────────────────────────────────────
     mem.reset(); cpu.hardReset();
     mem.write8(io(0x41), 0x10);                       // INTEN: ¼-sec enable
-    for (int i = 0; i < 15; ++i) mem.frameTick();     // 15 frames → ¼-sec
+    for (int i = 0; i < 15; ++i) mem.frameTick();     // 15 frames: not yet (fires on the 16th, MAME/KEGS)
+    check("quarter not yet at 15", (mem.read8(io(0x46)) & 0x10) == 0);
+    mem.frameTick();                                  // 16th frame → ¼-sec
     check("quarter INTFLAG bit4", (mem.read8(io(0x46)) & 0x10) != 0);
     check("quarter IRQ line",     line(MEGA2));
     mem.write8(io(0x47), 0);                          // CLRVBLINT
@@ -43,7 +45,7 @@ int main() {
 
     // masked: flag sets but line stays low without the enable
     mem.reset(); cpu.hardReset();
-    for (int i = 0; i < 15; ++i) mem.frameTick();
+    for (int i = 0; i < 16; ++i) mem.frameTick();
     check("quarter masked flag",  (mem.read8(io(0x46)) & 0x10) != 0);
     check("quarter masked line",  !line(MEGA2));
 

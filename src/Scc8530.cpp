@@ -15,7 +15,7 @@ void Scc8530::reset() {
 // RR0 status: bit0 = Rx char available, bit2 = Tx buffer empty (always, since
 // we transmit instantly), bit5 = CTS, bit3 = DCD. Minimal set.
 uint8_t Scc8530::rr0(const Channel& c) const {
-    uint8_t s = 0x04;                      // Tx buffer empty
+    uint8_t s = 0x2C;                      // Tx empty (0x04) + CTS (0x20) + DCD (0x08) asserted (KEGS scc.c seeds 0x60/CTS)
     if (!c.rx.empty()) s |= 0x01;          // Rx char available
     return s;
 }
@@ -25,7 +25,8 @@ uint8_t Scc8530::cmdRead(int ch) {
     uint8_t p = c.regPtr;
     c.regPtr = 0;
     if (p == 0) return rr0(c);
-    if (p == 1) return 0x01;               // RR1: all sent
+    if (p == 1) return 0x07;               // RR1: residue-code bits 0x06 + ALL_SENT 0x01 (KEGS/MAME reset value)
+    if (p == 3) return 0x00;               // RR3: interrupt-pending — none modelled (ch B always 0; ch A no IP)
     // Other RRn mostly mirror WRn defaults for our purposes.
     return c.wr[p & 0x0F];
 }
@@ -38,8 +39,17 @@ void Scc8530::cmdWrite(int ch, uint8_t v) {
         c.regPtr = v & 0x0F;
         return;
     }
-    c.wr[c.regPtr] = v;
+    const uint8_t wrIdx = c.regPtr;
+    c.wr[wrIdx] = v;
     c.regPtr = 0;
+    if (wrIdx == 9) {                          // WR9 bits7-6 = reset command (KEGS scc.c / MAME z80scc do_sccreg_wr9)
+        auto clr = [](Channel& ch) { for (auto& r : ch.wr) r = 0; ch.regPtr = 0; ch.rx.clear(); ch.tx.clear(); };
+        switch (v & 0xC0) {
+            case 0x80: clr(chan_[1]); break;   // channel A reset
+            case 0x40: clr(chan_[0]); break;   // channel B reset
+            case 0xC0: clr(chan_[0]); clr(chan_[1]); break;   // hardware reset (both)
+        }
+    }
 }
 
 uint8_t Scc8530::dataRead(int ch) {

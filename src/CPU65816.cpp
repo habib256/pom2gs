@@ -166,10 +166,10 @@ void CPU65816::step() {
         uint8_t o = fetch(); if ((d_ & 0xFF) != 0) ++cycles_;
         uint16_t xx = eX ? (x_ & 0xFF) : x_;
         uint8_t lo, hi;
-        if (emulation_ && (d_ & 0xFF) == 0) {           // wrap within page 0
-            uint8_t off = uint8_t(o + xx);
-            lo = rd(uint16_t((d_ & 0xFF00) | off));
-            hi = rd(uint16_t((d_ & 0xFF00) | uint8_t(off + 1)));
+        if (emulation_ && (d_ & 0xFF) == 0) {           // DL=0: dp+X offset wraps to 8 bits...
+            uint16_t ploc = uint16_t((d_ & 0xFF00) | uint8_t(o + xx));
+            lo = rd(ploc);
+            hi = rd(uint16_t(ploc + 1));                // ...but the pointer hi byte is at ploc+1, NOT page-wrapped (Tom Harte)
         } else {
             uint16_t ptr = uint16_t(d_ + o + xx);
             lo = rd(ptr); hi = rd(uint16_t(ptr + 1));
@@ -684,8 +684,8 @@ void CPU65816::step() {
             // ROM here would send GS/OS's COP calls to the ROM monitor and hang.
             pc_ = emulation_ ? uint16_t(m.read8(vec) | (m.read8(uint16_t(vec+1))<<8))
                              : uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec+1))<<8)); } break; // COP
-        case 0xCB: /* WAI */ break;
-        case 0xDB: /* STP */ running_ = false; break;
+        case 0xCB: /* WAI */ cycles_ += 3; break;              // 3 cycles then wait (Tom Harte: 4 incl. fetch)
+        case 0xDB: /* STP */ running_ = false; cycles_ += 3; break; // 3 cycles then stop
 
         default: break;   // remaining opcodes land here until implemented
     }
