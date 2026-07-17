@@ -318,7 +318,12 @@ void IIgsMemory::saveState(std::ostream& os) const {
     doc_.saveState(os);
     scc_.saveState(os);
     putStr(os, hdd_.path());
-    putStr(os, disk35_.path());
+    // 3.5" media: whichever drive holds it (HLE SmartPort or real IWM Sony).
+    // The IWM drive's pending writes are committed first so the re-mount on
+    // load sees the current sector data.
+    if (iwm35_) const_cast<Iwm&>(iwm_).flushDisk35();   // media commit, not machine state
+    putStr(os, iwm35_ ? iwm_.disk35Path() : disk35_.path());
+    putStr(os, iwm35_ ? iwm_.disk35Path(1) : std::string());   // second Sony drive
 }
 
 bool IIgsMemory::loadState(std::istream& is) {
@@ -332,6 +337,7 @@ bool IIgsMemory::loadState(std::istream& is) {
     get(is, eightyCol_); get(is, altchar_); get(is, textMode_); get(is, mixed_); get(is, dhgr_);
     get(is, lcRamRead_); get(is, lcRamWrite_); get(is, lcBank2_); get(is, lcPreWrite_);
     get(is, kbdLatch_); get(is, diskReg_);
+    iwm_.setDiskReg(diskReg_);                  // re-sync the IWM 35SEL/HDSEL routing
     is.read((char*)paddle_, sizeof paddle_);
     is.read((char*)button_, sizeof button_);
     get(is, adbDataReady_); get(is, adbResponse_);
@@ -351,7 +357,17 @@ bool IIgsMemory::loadState(std::istream& is) {
     if (!is.good()) return false;
     // Remount media if it differs from what's in the drives right now.
     if (hddPath != hdd_.path())     { if (hddPath.empty()) hdd_.eject();     else hdd_.loadImage(hddPath); }
-    if (d35Path != disk35_.path())  { if (d35Path.empty()) disk35_.eject();  else disk35_.loadImage(d35Path); }
+    const std::string& cur35 = iwm35_ ? iwm_.disk35Path() : disk35_.path();
+    if (d35Path != cur35) {
+        if (d35Path.empty()) ejectDisk35();
+        else if (iwm35_)     iwm_.loadDisk35(d35Path);
+        else                 disk35_.loadImage(d35Path);
+    }
+    const std::string d35bPath = getStr(is);           // second Sony drive
+    if (iwm35_ && d35bPath != iwm_.disk35Path(1)) {
+        if (d35bPath.empty()) iwm_.ejectDisk35(1);
+        else                  iwm_.loadDisk35(d35bPath, 1);
+    }
     // Host-side transients reset; re-derive the shared IRQ lines from the
     // restored register state.
     spkEvents_.clear(); slowPenMaster_ = 0; slowPenSeen_ = 0;
@@ -718,7 +734,10 @@ uint8_t IIgsMemory::slotRomRead(uint16_t off) {
         // IWM 3.5" model) and never polled our HLE drive — menu inserts were
         // invisible (sp5=0/s in the POMDBG trace). STATUS reports "no disk"
         // (status byte 0, bit4 clear) until an image is inserted.
-        if (slot == disk35_.slot())                         // $C5xx → 3.5" SmartPort
+        // With the real IWM 3.5" active there is no HLE card: slot 5 serves
+        // the INTERNAL SmartPort firmware from the system ROM (below), which
+        // drives the Sony via $C0E0-$C0EF + $C031 exactly like hardware.
+        if (slot == disk35_.slot() && !iwm35_)              // $C5xx → 3.5" SmartPort HLE
             return disk35_.romRead(uint8_t(off & 0xFF));
     }
     uint32_t romTop = uint32_t(rom_.size()) - 0x10000;      // bank $FF image
@@ -808,7 +827,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             // (the long-standing "random cracks").
             if (spkEvents_.size() < 65536) spkEvents_.push_back(videoCycles_);
             return 0;
-        case 0x31: return diskReg_;                         // DISKREG (b7 = 3.5" sel, b6 = head)
+        case 0x31: return diskReg_;                         // DISKREG (b6 = 35SEL, b7 = HDSEL)
         case 0x38: case 0x39: case 0x3A: case 0x3B: return scc_.read(r);    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: {                       // Sound GLU
             uint8_t v = doc_.gluRead(r);
@@ -916,7 +935,10 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x30:                                          // SPKR: toggle 1-bit speaker
             if (spkEvents_.size() < 65536) spkEvents_.push_back(videoCycles_);
             return;
-        case 0x31: diskReg_ = v; return;                    // DISKREG (see ioRead; no IWM 3.5" yet)
+        case 0x31:                                          // DISKREG: b6 = 35SEL, b7 = HDSEL
+            diskReg_ = v & 0xC0;                            // only b7:6 stored (MAME apple2gs.cpp:1995-2006)
+            iwm_.setDiskReg(diskReg_);                      // routes the IWM port to the Sony 3.5"
+            return;
         case 0x38: case 0x39: case 0x3A: case 0x3B: scc_.write(r, v); return;    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: doc_.gluWrite(r, v); return; // Sound GLU
         case 0x22: txtColor_ = v; return;                   // SCREENCOLOR (text fg/bg)

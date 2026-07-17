@@ -105,28 +105,54 @@ uint8_t Iwm::access(uint8_t offset, bool isWrite, uint8_t writeVal, uint64_t cyc
     // $C0E0-$C0EF: even/odd pairs toggle a line low/high.
     switch (offset) {
         case 0x0: case 0x1: case 0x2: case 0x3:
-        case 0x4: case 0x5: case 0x6: case 0x7:
-            stepPhase(offset >> 1, offset & 1); break;
-        case 0x8: motorOn_ = false; break;
+        case 0x4: case 0x5: case 0x6: case 0x7: {
+            const int magnet = offset >> 1;
+            const bool on = offset & 1;
+            phase_[magnet] = on ? 1 : 0;
+            if (sel35_) {
+                // Phases are the Sony register address; PH3 is LSTRB — a
+                // rising edge with the drive enabled fires a command (KEGS
+                // iwm.c:494-499 iwm_do_action35 gate; MAME seek_phase_w).
+                if (magnet == 3 && on && motorOn_)
+                    d35_[drive_ & 1].command(sonyIdx());
+            } else {
+                stepPhase(magnet, on);        // 5.25" head stepper
+            }
+            break;
+        }
+        case 0x8: motorOn_ = false; if (sel35_) { d35_[0].flush(); d35_[1].flush(); } break;
         case 0x9: motorOn_ = true;  break;
-        case 0xA: drive_ = 0; break;
-        case 0xB: drive_ = 1; break;
+        case 0xA: if (drive_ != 0) d35_[1].endWrite(); drive_ = 0; break;
+        case 0xB: if (drive_ != 1) d35_[0].endWrite(); drive_ = 1; break;
         case 0xC: q6_ = false; break;
         case 0xD: q6_ = true;  break;
-        case 0xE: q7_ = false; break;
+        case 0xE:                                     // Q7 falling closes a write session
+            if (q7_ && sel35_) d35_[drive_ & 1].endWrite();
+            q7_ = false; break;
         case 0xF: q7_ = true;  break;
     }
-    advance(cycle);
+    if (!sel35_) advance(cycle);
 
     if (isWrite) {
         dataReg_ = writeVal;
-        if (q7_ && q6_ && !motorOn_) mode_ = writeVal & 0x1F;   // write MODE register
+        if (q7_ && q6_) {
+            if (!motorOn_) mode_ = writeVal & 0x1F;             // write MODE register
+            else {
+                if (sel35_)                                     // write data → Sony head
+                    d35_[drive_ & 1].writeNibble(hdsel_ ? 1 : 0, writeVal); // (async, handshake below)
+                // The write shifter drains one 8-bit nibble (~16 µs); the
+                // handshake's bit 6 stays high while it still holds data.
+                wrBusyUntil_ = cycle + 2 * 229;                 // buffer + shifter
+            }
+        }
         return 0;
     }
 
     // Read: the returned latch depends on Q7:Q6.
     if (!q7_ && !q6_) {                       // read data
-        if (!motorOn_) return 0xFF;           // motor off → floating-high bus (MAME iwm.cpp / KEGS)
+        if (!motorOn_) return 0xFF;           // enable off → floating-high bus (MAME iwm.cpp / KEGS)
+        if (sel35_)                           // Sony head data (latch-paced)
+            return d35_[drive_ & 1].readNibble(hdsel_ ? 1 : 0, cycle);
         if (!diskPresent_)                    // empty drive: spinning weak bits
             return uint8_t(0x80 | (cycle >> 5));
         const auto& tk = track_[curTrack()];
@@ -139,11 +165,23 @@ uint8_t Iwm::access(uint8_t offset, bool isWrite, uint8_t writeVal, uint64_t cyc
     }
     if (!q7_ && q6_) {                        // read status: low 5 = mode, hi = sense
         uint8_t st = mode_ & 0x1F;
-        // bit7 = sense line (write-protect). An empty drive reads protected.
-        if (writeProtect_ || !diskPresent_) st |= 0x80;
-        if (motorOn_) st |= 0x20;             // bit5 = motor on
+        if (sel35_) {
+            // bit7 = Sony SENSE, addressed by {CA2,CA1,CA0,SEL}; both
+            // internal drives are installed ($C0EA/$C0EB select).
+            if (d35_[drive_ & 1].sense(sonyIdx(), cycle)) st |= 0x80;
+        } else {
+            // bit7 = sense line (write-protect). An empty drive reads protected.
+            if (writeProtect_ || !diskPresent_) st |= 0x80;
+        }
+        if (motorOn_) st |= 0x20;             // bit5 = enable on
         return st;
     }
-    if (q7_ && !q6_) return 0xC0;             // read handshake: ready (bit7) + no write underrun (bit6) (MAME m_whd=0xC0)
+    if (q7_ && !q6_)                          // read handshake
+        // bit7 = register ready (we accept every byte instantly); bit6 = the
+        // shifter still holds data. The ROM's write-flush loop at $FF:57B7
+        // (LDA $C0EC / AND #$40 / BNE) waits for bit6 to DROP after the last
+        // byte — KEGS parity: bit6 set only within ~8 bit-times of the last
+        // write (iwm.c:1147-1162), not MAME's constant 0xC0.
+        return uint8_t(0x80 | (cycle < wrBusyUntil_ ? 0x40 : 0x00));
     return dataReg_;
 }

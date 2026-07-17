@@ -62,6 +62,9 @@ in `hdv/GSOS.hdv`), with the configured 3.5" disk mounted alongside:
 boot   = hdd                                        # hdd → slot-7 HDD; gsos|finder → Finder from 3.5"
 disk35 = disks35/System 6.0.1/Disk 6 of 7 synthLAB.2mg
 hdd    = hdv/GSOS.hdv
+#iwm35 = 1     # 3.5" on the REAL IWM/Sony drive (genuine slot-5 ROM firmware,
+               # realistic seek/read speed) instead of the fast SmartPort HLE
+#disk35b = …   # second internal 3.5" drive (needs iwm35 = 1)
 ```
 
 Edit it, or override per-run on the CLI (CLI > config > built-in):

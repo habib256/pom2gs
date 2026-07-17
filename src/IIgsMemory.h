@@ -156,11 +156,25 @@ public:
     }
     // Mount a ProDOS hard-disk image (.hdv/.po/.2mg) on the slot-7 HDD card.
     bool loadHdd(const std::string& path) { return hdd_.loadImage(path); }
-    // Mount an 800K 3.5" image (.po/.2mg) on the slot-5 SmartPort/3.5" drive
-    // (block-level, the IIgs 3.5" convention). See ProDosHdd + POM2 SmartPortCard.
-    bool loadDisk35(const std::string& path) { return disk35_.loadImage(path); }
+    // Mount an 800K 3.5" image (.po/.2mg). Default = slot-5 SmartPort HLE
+    // (block-level, ProDosHdd WDM-trap ROM). With setIwm35(true) the image
+    // goes to the REAL IWM Sony 3.5" drive instead and the genuine internal
+    // ROM firmware at $C500 drives it (KEGS/MAME LLE path).
+    // `drive` 0/1 = the two internal Sony drives (drive 1 needs iwm35_ —
+    // the SmartPort HLE models a single unit).
+    bool loadDisk35(const std::string& path, int drive = 0) {
+        if (iwm35_) return iwm_.loadDisk35(path, drive);
+        return drive == 0 && disk35_.loadImage(path);
+    }
     void ejectHdd() { hdd_.eject(); }        // clear slot 7 so a slot-5 3.5" disk boots
-    void ejectDisk35() { disk35_.eject(); disk35Changed_ = true; disk35SwitchIo_ = true; }
+    void ejectDisk35(int drive = 0) {
+        if (iwm35_) { iwm_.ejectDisk35(drive); return; }
+        if (drive != 0) return;
+        disk35_.eject(); disk35Changed_ = true; disk35SwitchIo_ = true;
+    }
+    // Route 3.5" media to the real IWM Sony drive (vs SmartPort HLE).
+    void setIwm35(bool on) { iwm35_ = on; }
+    bool iwm35() const { return iwm35_; }
     bool hddLoaded() const { return hdd_.loaded(); }
     bool hddBootable() const { return hdd_.bootable(); }   // block-0 byte 0 == $01
     // Hot-swap the 3.5" without a reset (Installer disk swaps): change the image and
@@ -172,6 +186,7 @@ public:
     // poll consume the one-shot before the actual file access, so the swap goes
     // unnoticed. STATUS reports it as bit0 of the status byte instead. See smartportCall.
     bool swapDisk35(const std::string& path) {
+        if (iwm35_) return iwm_.loadDisk35(path);   // Sony35 arms its own switched flag
         bool ok = disk35_.loadImage(path);
         disk35Changed_ = true; disk35SwitchIo_ = true;
         return ok;
@@ -270,7 +285,8 @@ private:
     long slowPenSeen_ = 0;    // high-water for tick()'s per-instruction penalty delta (DOC timing)
     bool docIrqLast_ = false; // last DOC IRQ level mirrored to the CPU (edge-only updates)
     uint32_t sp5Calls_ = 0;   // slot-5 device-call counter (diagnostics)
-    uint8_t  diskReg_ = 0;    // $C031 DISKREG (b7 = 3.5" select, b6 = head select)
+    uint8_t  diskReg_ = 0;    // $C031 DISKREG (b6 = 35SEL, b7 = HDSEL) — mirrored into iwm_
+    bool     iwm35_   = false; // 3.5" media on the real IWM Sony drive (vs SmartPort HLE)
     // Single edge-tracked mirror of the DOC IRQ line — EVERY path that can change
     // the pend state must go through this (a direct setIrqLine call elsewhere would
     // desync docIrqLast_ and a later re-assert would be skipped).

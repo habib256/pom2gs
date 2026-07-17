@@ -13,7 +13,7 @@ pinned test**. This file grows one section per subsystem as milestones land
 - [Sound — Ensoniq 5503 DOC](#sound--ensoniq-5503-doc)
 - [ADB](#adb)
 - [Clock / Battery RAM](#clock--battery-ram)
-- [Disk — IWM / SWIM](#disk--iwm--swim)
+- [Disk — IWM](#disk--iwm--swim)
 - [Serial — SCC 8530](#serial--scc-8530)
 - [Clock & threading](#clock--threading)
 
@@ -317,7 +317,7 @@ clock/BRAM state machine in `apple2gs.cpp` / `macrtc`.
 
 ---
 
-## Disk — IWM / SWIM
+## Disk — IWM
 
 *(GS/OS boots from a hard disk. `src/Iwm` nibblises a 143 360-B .dsk/.do/.po
 (6-and-2 GCR, DOS 3.3 / ProDOS interleave) into per-track streams timed by CPU
@@ -326,10 +326,94 @@ cycles at `$C0E0-$C0EF` (slot 6). The 3.5" / block path is a SmartPort HLE
 `$Cn53` SmartPort dispatch entries are WDM traps handled in C++. Gates:
 `disk35_test`, `smartport_test`, `hdd_test`; trace `hdd_trace`.)*
 
-ROM 01 uses the **IWM** (reuse POM2 `IWMDevice` — same chip, already
-cycle-faithful for 5.25"/3.5"). ROM 03 uses the **SWIM** (Super Woz Integrated
-Machine): IWM-superset adding MFM; new `Swim` wraps the IWM path and adds the
-SWIM mode register. **MAME reference**: `machine/iwm.cpp`, `machine/swim.cpp`.
+**Every production IIgs — ROM 01 and ROM 03 — uses the IWM.** The SWIM
+(Super Woz Integrated Machine, IWM-superset adding MFM/1.44M) only ever
+appeared on the unreleased 1991 **"Mark Twain" prototype** (SWIM1 344S0061,
+15.6672 MHz — MAME `apple2gs.cpp:15, 3891-3896`, machine `apple2gsmt`,
+`MACHINE_NOT_WORKING`, its own 512K ROM). Earlier docs here claimed "ROM 03
+uses the SWIM" — a common misconception, now corrected; SWIM is out of scope.
+**MAME reference**: `machine/iwm.cpp` (+ `swim1.cpp` for the prototype only).
+
+### Real IWM 3.5" — Sony drive LLE (`src/Sony35`, `iwm35 = 1`)
+
+The SmartPort HLE above stays the default, but `iwm35 = 1` in `pomiigs.cfg`
+(or `--iwm35`) mounts 800K media on a **low-level Sony 3.5" drive model**
+instead: slot 5 then serves the **genuine internal ROM firmware** at `$C500`
+(no WDM traps), which drives the IWM at `$C0E0-$C0EF` + `$C031` DISKREG
+nibble-by-nibble exactly like hardware. Gate: `iwm35_test` (codec round-trip
+on all 160 tracks, Sony status/command protocol, address-field decode through
+the data latch, firmware-style sector write). Validated end-to-end: **GS/OS
+6.0.1 boots from the 3.5" System Disk to the full Finder desktop** via this
+path (`screenshot --iwm35`, ~6000 frames — reads pace at realistic speed).
+
+Model (all cited in the sources):
+
+- **$C031 DISKREG** — bit 6 (35SEL) reroutes the IWM phase/enable lines from
+  the 5.25" stepper to the Sony register protocol; bit 7 (HDSEL) is the Sony
+  SEL line (register-address bit + head/side select). MAME
+  `apple2gs.cpp:268-269, 1995-2006, 3684-3721`. NB: `Iwm::motorOn()` (the
+  $C036 disk-motor-detect speed coupling) reports the 5.25" motor only —
+  with 35SEL set the ENABLE line belongs to the 3.5" drive.
+- **Sony register protocol** — 4-bit index `{CA2,CA1,CA0,SEL}` (CA0-2 = IWM
+  phases 0-2, LSTRB = phase 3). Status via the SENSE line (IWM status bit 7),
+  commands on the LSTRB rising edge. Tables normalized from three sources
+  that each pack the index differently: KEGS `iwm.c:912-1091`
+  ({PH1,PH0,SEL,PH2}), MAME `floppy.cpp` mac_floppy ({SEL,CA2,CA1,CA0}),
+  Neil Parker's note (= GSSquared) — all agree after normalization. One KEGS
+  divergence kept: index `0b1010` returns 1 (a ROM 03 probe; MAME's
+  non-SuperDrive returns 0) — KEGS is the IIgs-validated behaviour.
+- **800K GCR codec** — 160 tracks (80 cyl × 2 sides), 5 speed zones of 16
+  cylinders with 12/11/10/9/8 × 512-B sectors, interleave 2. The 6-and-2
+  encode with the 3-byte rolling carry checksum is an **exact port of KEGS
+  `iwm_nibblize_track_35` / `iwm_denib_track35`** (iwm.c:3125-3345 /
+  2409-2725) — itself a disassembly of the IIgs ROM's own nibblizer (the
+  `/* 63xx */` landmarks). `Sony35::checkNibblization()` = KEGS's
+  `g_check_nibblization` self-check, pinned in `iwm35_test`.
+- **Write path** — nibble-level: data writes land on the track stream right
+  after the address field the firmware just read; dirty tracks are
+  de-nibblised back to sectors on motor-off / step / eject / exit and patched
+  into the backing file (.po in place, .2mg past the 64-byte header).
+
+**Three boot-blockers, all timing semantics (root-caused with an IWM access
+trace against the ROM's own read routines):**
+
+1. **Latch pacing** — the ROM's address-field hunt budgets *poll iterations*,
+   expecting most `LDA $C0EC / BPL` polls to see bit 7 clear (a byte
+   assembles only every ~16 µs). Delivering a fresh nibble on every read (our
+   5.25" policy) exhausted the budget in 64 reads. Now a nibble is valid at
+   most once per 16 µs (229 master ticks) and polls in between read $00 —
+   with **elastic delivery** (KEGS `g_fast_disk_emul` discipline): the stream
+   advances exactly one nibble per delivery, so a slow poller loses nothing.
+   (A strict rotational model dropped nibbles whenever an iteration exceeded
+   one nibble time and field decodes never lined up.)
+2. **RDDATA sense toggling** — status `0b1000/0b1001` (instantaneous head
+   data) must *toggle* while the platter spins; the ROM polls it for flux
+   activity between fields and hangs on a constant line. Derived from time
+   (`cycle>>4` ≈ 1.1 µs), not position.
+3. **Handshake run-dry** — after its last data write the ROM waits at
+   `$FF:57B7` (`LDA $C0EC / AND #$40 / BNE`) for handshake bit 6 to **drop**
+   ("shifter empty"). KEGS parity (iwm.c:1147-1162): bit 6 is set only within
+   ~8 bit-times of the last write — not MAME's constant `0xC0`.
+
+Also deliberate: the sector-0 sync leader is 100 × $FF, not KEGS's
+ROM-format 400 — with elastic delivery a hunt can start at the leader head
+and the ROM's hunt budget (~420 nibble reads, measured) expires inside a
+400-FF run. De-nibblisation does not care about leader length.
+
+Also modelled: **write sessions** — data writes collect in a session buffer
+closed by Q7/ENABLE falling, a data read, a step, motor-off or eject; a
+session covering ≥ half the track **replaces it wholesale** (the ROM's FORMAT
+writes whole tracks whose nibble count differs from ours), shorter sessions
+splice in place (normal sector write). **Tach** pulses at the zone's real
+rate (120 inversions/rev at 394/429/472/525/590 rpm — MAME
+floppy.cpp:3374-3389), which the ROM's FORMAT counts to verify drive speed.
+**Both internal drives** exist ($C0EA/$C0EB select, DRVIN = installed for
+each); drive 2 mounts via `disk35b =` in `pomiigs.cfg` (or `--disk35b` on the
+screenshot harness). All pinned in `iwm35_test`.
+
+Open: end-to-end Finder "Initialize" pass (mechanics pinned by the full-track
+rewrite test), 5.25" write path. (SWIM: out of scope — Mark Twain prototype
+only.)
 
 **SmartPort dispatch gotcha.** The `$Cn53` entry serves both the classic
 (`DFB cmd` / `DW paramList`, 2-byte bank-0 pointer) and the GS/OS **extended**

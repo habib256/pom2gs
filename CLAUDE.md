@@ -82,7 +82,7 @@ its hardware logic into these files. 🟢 = working + pinned test.
 | **VGC** — Super Hi-Res 320/640 + SCB/palettes, **and** legacy 40/80-col text (char ROM 344s0047) + HGR/DHGR (NTSC-composite / RGB-clean) → 640×400 GL | `VGC.h/.cpp`, `VGCNtsc.h` | 🟢 SHR/text/HGR/DHGR render; scanline IRQ TODO | MAME `apple2gs.cpp` VGC |
 | **Ensoniq 5503 DOC** — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$F) | `Es5503.h/.cpp` | 🟢 MAME es5503 parity (`doc_test`) | MAME `es5503.cpp`, Ensoniq datasheet |
 | **Audio host** — miniaudio mono-f32 ring; speaker ($C030) + DOC mix | `Audio.h/.cpp` | 🟢 (native; WASM stub) | POM2 AudioDevice pattern |
-| **IWM** (5.25" read path) | `Iwm.h/.cpp` | 🟢 boots to "Check startup device". SWIM / 3.5" IWM 🔴 | MAME `iwm.cpp` |
+| **IWM** (5.25" read path + **3.5" Sony LLE**) | `Iwm.h/.cpp`, `Sony35.h/.cpp` | 🟢 5.25" boots to "Check startup device"; `iwm35 = 1` → real Sony drive + 800K GCR codec, **GS/OS boots to the Finder via the genuine slot-5 ROM firmware** (`iwm35_test`) | MAME `iwm.cpp`+`floppy.cpp`, KEGS `iwm.c` |
 | **SCC 8530 serial** | `Scc8530.h/.cpp` | 🟢 loopback (`scc_test`) | MAME `scc8530.cpp` |
 | **Snapshot** (save/load state, F7/F8 → `states/quick.pgss`) | `Snapshot.h/.cpp` | 🟢 (`snapshot_test`) | POM2 pattern |
 | **UI** (ImGui desktop chrome, menus, file picker) | `Ui.h/.cpp` | 🟢 | — |
@@ -132,7 +132,7 @@ Slow-side I/O ($E0/E1 $Cnnn), also visible at $00/$01 $Cnnn via shadow:
 | Profile | ROM | CPU boot mode | Notes |
 |---|---|---|---|
 | Apple IIgs ROM 01 (1986) | `iigs-rom01.rom` (128 KB) | 65C816 emul → native | DOC, VGC, ADB, IWM. 256 KB–1 MB RAM. Best compatibility. |
-| Apple IIgs ROM 03 (1989) | `iigs-rom03.rom` (256 KB) | 65C816 emul → native | SWIM, shadow-all, up to 8 MB RAM. |
+| Apple IIgs ROM 03 (1989) | `iigs-rom03.rom` (256 KB) | 65C816 emul → native | IWM (like ROM 01 — SWIM only ever shipped on the unreleased 1991 "Mark Twain" prototype), shadow-all, up to 8 MB RAM. |
 
 ROM probe warns on size/checksum mismatch (POM2 pattern). Default = ROM 03.
 
@@ -155,6 +155,10 @@ POMIIGS to broad KEGS/MAME/GSSquared parity:
 - ADB 🟢 (IRQ kbd/mouse, ⌘-menu shortcuts), BRAM/RTC 🟢, SCC 🟢.
 - IWM 5.25" read path 🟢; **SmartPort HLE 🟢 — GS/OS 6.0.1 installs and boots
   from HDD to the full Finder desktop**; games run; save/load state (F7/F8) 🟢.
+- **Real IWM 3.5" Sony LLE 🟢** (`Sony35`, `iwm35 = 1`): the genuine slot-5 ROM
+  firmware drives the drive nibble-by-nibble — **GS/OS boots to the Finder**.
 
-Open: SWIM / 3.5" IWM (🔴), VGC scanline IRQ, rewind ring, WASM audio, full ADB
-µC command model. See `TODO.md` for the parity dashboard + backlog.
+Open: 3.5" FORMAT/tach calibration, VGC scanline IRQ, rewind ring, WASM audio,
+full ADB µC command model. (SWIM is out of scope: it only existed on the
+unreleased "Mark Twain" prototype — every production IIgs uses the IWM.)
+See `TODO.md` for the parity dashboard + backlog.

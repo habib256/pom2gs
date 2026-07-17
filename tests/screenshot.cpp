@@ -29,21 +29,24 @@ int main(int argc, char** argv) {
     const char* romPath = argv[1];
     const char* outPath = argv[2];
     long frames = 120; const char* charPath = "roms/iigs-char.rom"; const char* hddPath = nullptr;
-    const char* disk35Path = nullptr;
+    const char* disk35Path = nullptr; const char* disk35bPath = nullptr; bool iwm35 = false;
     for (int i = 3; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--frames") && i + 1 < argc) frames = std::strtol(argv[++i], nullptr, 10);
         else if (!std::strcmp(argv[i], "--char") && i + 1 < argc) charPath = argv[++i];
         else if (!std::strcmp(argv[i], "--hdd") && i + 1 < argc) hddPath = argv[++i];
         else if (!std::strcmp(argv[i], "--disk35") && i + 1 < argc) disk35Path = argv[++i];
+        else if (!std::strcmp(argv[i], "--disk35b") && i + 1 < argc) disk35bPath = argv[++i];
+        else if (!std::strcmp(argv[i], "--iwm35")) iwm35 = true;
     }
 
     std::vector<uint8_t> rom = readFile(romPath);
     IIgsMemory mem; CPU65816 cpu(&mem); VGC vgc;
     if (rom.empty() || !mem.loadRom(rom)) { std::fprintf(stderr, "bad ROM %s\n", romPath); return 2; }
-    mem.setCpu(&cpu); mem.reset(); if (hddPath) mem.loadHdd(hddPath);
+    mem.setCpu(&cpu); mem.reset(); mem.setIwm35(iwm35); if (hddPath) mem.loadHdd(hddPath);
     // --disk35 alone → boot the 3.5" (eject the HDD). Both → keep both (install
     // scenario: blank HDD on slot 7 as target, boot chains to the slot-5 disk).
     if (disk35Path) { mem.loadDisk35(disk35Path); if (!hddPath) mem.ejectHdd(); }
+    if (disk35bPath) mem.loadDisk35(disk35bPath, 1);
     cpu.hardReset();
     std::vector<uint8_t> chr = readFile(charPath);
     bool chrOk = !chr.empty() && vgc.setCharRom(chr);

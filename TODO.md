@@ -173,7 +173,7 @@ self-test, then the visible/audible subsystems.
 | **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟡 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → speed-calibration loop ($FF:FCDC). Needs VBL/timer to progress. Verify: `boot_trace` |
 | **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); HGR + DHGR colour (NTSC + RGB, dhgr_test); scanline IRQ + 80col next |
 | **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing + BRAM persistence + ROM 01 banner = follow-ups |
-| **M5** | Disk (IWM/SWIM) + **//e legacy** | Reuse POM2 `IWMDevice`+`DiskImage`; add `Swim` for ROM 03. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. | 🟡 IWM 5.25" read path + //e HGR/LORES video done; ROM boots to **"Check startup device!"** (no disk). Real disk boot + SWIM/3.5" + NTSC-colour + full //e mem = follow-ups |
+| **M5** | Disk (IWM) + **//e legacy** | POM2-lineage IWM + native `Sony35` 3.5" LLE. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. (SWIM: out of scope — Mark Twain prototype only, never shipped; ROM 01 **and** 03 use the IWM, MAME apple2gs.cpp:15/3891.) | 🟡 IWM 5.25" read path + //e HGR/LORES video done; **real IWM 3.5" Sony LLE done** (`Sony35`, `iwm35 = 1` — GS/OS boots to the Finder via the genuine slot-5 ROM firmware). 3.5" FORMAT/tach + 5.25" write + NTSC-colour = follow-ups |
 | **M6** | Ensoniq 5503 DOC | `Es5503` — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$C03F) | 🟢 MAME es5503 parity (July 2026): swap mode + partner start + retrigger quirk, $E0 IRQ protocol, native-rate pitch (894886/(N+2) Hz→host), GLU bit6/bit5 decode + $C03D read latch FIXED (were swapped/missing → DOC was silent). Gate: doc_test (16 checks). Interactive gate = synthLAB music |
 | **M7** | Serial + slots | `Scc8530` serial | 🟡 SCC loopback (scc_test gate); slot bus / SmartPort / Mockingboard reuse from POM2 = follow-up |
 | **M8** | Polish | WASM build (Emscripten) | 🟡 `./build_wasm.sh` → POMIIGS.html/.js/.wasm (emscripten main loop); snapshot/rewind, CLI, packaging = follow-ups |
@@ -194,8 +194,9 @@ self-test, then the visible/audible subsystems.
 | Audio host (miniaudio) | — | `AudioOut` | 🟢 mono f32 ring, speaker+DOC mix (native; WASM stub) |
 | ADB GLU (keyboard/mouse) | `apple2gs.cpp` | `IIgsMemory` | 🟡 mouse **interrupt** ($C024) + **keyboard interrupt** (key→IRQ_SRC_ADB→ROM `$FE:EC99` reads $C000→PostEvent; typing selects Finder icons) + modifiers ($C025→event via `$FEE267` table, **⌘-key menu shortcuts fire**); native+VBL gated, storm-safe; `adb_test`. Full ADB µC command model = follow-up |
 | Battery RAM + RTC | `apple2gs.cpp` | `IIgsMemory` | 🟢 $C033/$C034 full serial protocol (KEGS decode): RTC seconds = host **local** time, BRAM read/write + internal regs, 2-strobe read timing; Control Panel shows correct date/time. File persistence = follow-up |
-| IWM (5.25/3.5) | `machine/iwm.cpp` | `Iwm` | 🟢 5.25" read path (boots to Check startup device) |
-| SWIM (ROM 03) | `machine/swim.cpp` | `Swim` | 🔴 |
+| IWM (5.25/3.5) | `machine/iwm.cpp` | `Iwm` | 🟢 5.25" read path (boots to Check startup device); **3.5" Sony LLE 🟢** — `iwm35 = 1` routes 800K media to the real IWM/Sony drive, the genuine slot-5 ROM firmware drives it, **GS/OS 6.0.1 boots to the Finder** (gate: `iwm35_test`) |
+| Sony 3.5" drive + 800K GCR codec | `floppy.cpp` mac_floppy + KEGS `iwm.c` | `Sony35` | 🟢 status/command tables, read+write, codec = exact KEGS/ROM nibblizer port; FORMAT/tach-calibration untested |
+| SWIM1 (MFM/1.44M) | `machine/swim1.cpp` | — | ⚪ out of scope: SWIM never shipped on a production IIgs (only the unreleased 1991 "Mark Twain" prototype, MAME apple2gs.cpp:15/3891-3896); ROM 01 **and** ROM 03 drive the IWM |
 | SCC 8530 serial | `machine/scc8530.cpp` | `Scc8530` | 🟢 loopback (scc_test) |
 | Mega II interrupt regs ($C041-$C047) | `apple2gs.cpp` | `IIgsMemory` | 🟡 INTEN/INTFLAG/VBL |
 
@@ -212,7 +213,8 @@ ticking:
 - 🟡 `AudioDevice` / `SpeakerDevice` — folded into `AudioOut` (miniaudio host +
   cycle-exact speaker + DOC mix). `Mockingboard` / `Ssi263` = follow-up.
 - 🔴 `IWMDevice` / `DiskImage` / `Block512Backing` / WOZ / 2mg
-- 🔴 `SmartPortCard` / `Sony35Drive` / `Disk35Image` / SmartPort hub
+- 🟢 `SmartPortCard` / `Sony35Drive` / `Disk35Image` — covered natively: slot-5
+  SmartPort HLE (`ProDosHdd`) + real IWM/Sony 3.5" LLE (`Sony35`, `iwm35 = 1`)
 - 🔴 `SlotBus` / `SlotPeripheral` (wire-OR IRQ)
 - 🔴 `MachineSnapshot` / `RewindBuffer`
 - 🔴 `CliDispatcher` / `EmulationController` (fork, retune clock to 2.8/1.02)
@@ -291,7 +293,8 @@ needs the following, in rough priority order.
   runs stably past the welcome screen. Remaining to reach the Finder desktop:
   ADB **mouse**, and whatever the VBL-timed boot loop (`$FF/A5Ex`) is waiting on
   (next boot-file load / desktop bring-up).
-- 🔴 **SWIM** (ROM 03 disk chip, MFM superset).
+- ⚪ **SWIM** — dropped: never shipped on a production IIgs (Mark Twain
+  prototype only); ROM 01 and 03 both drive the IWM (MAME apple2gs.cpp:15).
 - 🟡 **ADB mouse interrupt + keyboard modifiers** — mouse motion/button raise
   `IRQ_SRC_ADB`; the ROM interrupt manager services it via ReadMouse
   (`$FE:B1E1` → `$C024`). Storm-safe (gated on native + VBL-int-enabled, +2-frame

@@ -4,6 +4,33 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — real IWM 3.5" Sony drive LLE (`Sony35`) — GS/OS boots via the genuine ROM firmware
+`iwm35 = 1` (or `--iwm35`) mounts 800K media on a low-level Sony 3.5" drive on the IWM instead of the
+slot-5 SmartPort HLE; slot 5 then serves the **internal ROM firmware** at $C500, which talks to
+$C0E0-$C0EF + $C031 like real hardware. **GS/OS 6.0.1 boots from the System Disk to the full Finder
+desktop** over this path. New `src/Sony35.{h,cpp}` (drive status/command tables + 800K zoned GCR codec,
+an exact port of KEGS `iwm_nibblize_track_35`/`iwm_denib_track35` — the ROM's own nibblizer), `Iwm`
+grows the 35SEL/HDSEL routing, gate `iwm35_test`. Sources: KEGS iwm.c, MAME floppy.cpp mac_floppy +
+apple2gs.cpp, GSSquared Floppy35 + Neil Parker's drive-protocol note. Three non-obvious boot-blockers,
+all *timing semantics* (full write-ups in DEV.md § Disk):
+- **Data-latch pacing with elastic delivery** — the ROM's field-hunt loops budget poll iterations
+  assuming a byte assembles only every ~16 µs; always-fresh nibbles exhausted the budget in 64 reads.
+  One valid nibble per 16 µs, $00 between, stream advances one nibble per delivery (KEGS
+  fast-disk-emul discipline) so slow pollers lose nothing.
+- **RDDATA sense must toggle** — the ROM polls the instantaneous-head-data status bit for flux
+  activity between fields; a position-derived (frozen) value hung it. Now time-derived (~1.1 µs).
+- **Handshake run-dry** — after its last write the ROM waits at $FF:57B7 for handshake bit 6 to DROP
+  (shifter empty). KEGS parity: bit 6 set only ~8 bit-times after a write — not MAME's constant $C0.
+Deviation: sector-0 sync leader is 100×$FF (not the ROM-format 400) because elastic delivery can start
+a hunt at the leader head and the ROM's hunt budget (~420 reads, measured) dies inside a 400-FF run.
+Follow-up same day: **FORMAT mechanics** (write sessions — ≥half-track replaces the track wholesale,
+shorter splices in place; sessions close on Q7/ENABLE fall, data read, step, motor-off, eject),
+**zone-true tach** (120 inversions/rev at 394-590 rpm per 16-cyl zone, MAME floppy.cpp:3374-3389) and
+the **second internal drive** ($C0EA/$C0EB select, `disk35b =` / `--disk35b`), all pinned in
+`iwm35_test`. Also corrected a doc misconception: **SWIM never shipped on a production IIgs** — ROM 01
+and ROM 03 both use the IWM; SWIM1 only existed on the unreleased 1991 "Mark Twain" prototype (MAME
+apple2gs.cpp:15/3891-3896) — dropped from the roadmap. Open: end-to-end Finder Initialize, 5.25" writes.
+
 ### Fixed — pass 9: differential audit round 3 (DOC IRQ, SCC, ADB, RTC, speed, CPU int)
 Third differential pass on fresh routines; 4 confirmed 3/3–2/3, 3 applied (5 weaker findings correctly
 rejected by the 3-judge panel):

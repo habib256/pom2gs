@@ -75,8 +75,10 @@ static std::string findPath(const std::string& rel) {
 
 // ── Config file (pomiigs.cfg) ────────────────────────────────────────────
 // Plain `key = value`, `#` comments. Keys: boot (gsos|finder|hdd), rom, hdd,
-// disk35. Sits next to run_emulator.sh (repo root). CLI args/flags override it.
-struct Config { std::string boot, rom, hdd, disk35; };
+// disk35, iwm35 (0/1: 3.5" media on the real IWM Sony drive instead of the
+// SmartPort HLE). Sits next to run_emulator.sh (repo root). CLI args/flags
+// override it.
+struct Config { std::string boot, rom, hdd, disk35, disk35b; bool iwm35 = false; };
 static std::string trim(std::string s) {
     size_t a = s.find_first_not_of(" \t\r\n"), b = s.find_last_not_of(" \t\r\n");
     return a == std::string::npos ? std::string() : s.substr(a, b - a + 1);
@@ -93,7 +95,9 @@ static Config readConfig(std::string& usedPath) {
         if      (k == "boot")   c.boot   = v;
         else if (k == "rom")    c.rom    = v;
         else if (k == "hdd")    c.hdd    = v;
-        else if (k == "disk35") c.disk35 = v;
+        else if (k == "disk35")  c.disk35 = v;
+        else if (k == "disk35b") c.disk35b = v;   // second Sony drive (needs iwm35)
+        else if (k == "iwm35")   c.iwm35  = (v == "1" || v == "true" || v == "yes");
     }
     return c;
 }
@@ -125,7 +129,16 @@ int main(int argc, char** argv) {
         std::string a = argv[i];
         if (a == "--gsos" || a == "--finder") { forceGsos = true; if (i + 1 < argc && argv[i + 1][0] != '-') gsosDisk = argv[++i]; }
         else if (a == "--hdd") forceHdd = true;
+        else if (a == "--iwm35") cfg.iwm35 = true;
         else pos.push_back(a);
+    }
+    mem.setIwm35(cfg.iwm35);   // before any loadDisk35 below
+    if (cfg.iwm35) std::printf("3.5\" drive: real IWM/Sony (internal ROM firmware)\n");
+    if (cfg.iwm35 && !cfg.disk35b.empty()) {
+        std::string rp = findPath(cfg.disk35b);
+        if (!rp.empty() && mem.loadDisk35(rp, 1))
+            std::printf("3.5\" drive 2: %s\n", rp.c_str());
+        else std::fprintf(stderr, "3.5\" drive 2: cannot load '%s'\n", cfg.disk35b.c_str());
     }
     const bool bootGsos = forceGsos ||
         (!forceHdd && (cfg.boot == "gsos" || cfg.boot == "finder"));
@@ -446,6 +459,7 @@ int main(int argc, char** argv) {
     emscripten_set_main_loop_arg(frame, &ctx, 0, 1);   // browser drives the loop
 #else
     while (!glfwWindowShouldClose(window)) frame(&ctx);
+    mem.iwm().flushDisk35();    // commit pending 3.5" sector writes (real-IWM path)
     glDeleteTextures(1, &screenTex);
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
