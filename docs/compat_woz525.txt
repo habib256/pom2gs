@@ -1,0 +1,726 @@
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 6 of 8 Side A)[128K][cp manual].woz
+STATUS=OK_GFX mode=DHGR pc=FE:FBDF hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Rampage (1988)(Activision)(IIE)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wishbringer r23 (1988-07-06)(Infocom)(IIE)(Side B)[128K][Interpeter 2 Version H][Solid Gold].woz
+STATUS=CRASH_MON mode=text pc=FE:0101 hang=0 zp=613 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #3 - Mission Impossible v2.1-306 (1982)(Adventure International)(II+)(US)(Side A)[48K].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Photar (1981)(Softape)[48K].woz
+STATUS=TEXT mode=text pc=00:0846 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic (1986)(New World Computing)(Disk C)[48K].woz
+STATUS=TEXT mode=text pc=00:D4D5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ikari Warriors (1987)(Data East USA)(IIE)(Side B)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Little Computer People side B.woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 8 of 8 Side A)[128K][cp manual].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dark Crystal, The (1982)(Sierra On-Line)(Disk 2 of 2 Side A)[48K][Hi-Res Adventure #6].woz
+STATUS=OK_GFX mode=DHGR pc=00:D38F hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Bounty (1990)(New World Computing)(IIE)(Side A)[128K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Forbidden Castle (1985)(Mindscape)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Montezuma's Revenge (1984)(Parker Brothers)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:056B hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Spy Strikes Back, The (1983)(Penguin Software)[48K].woz
+STATUS=CRASH_BRK mode=HGR pc=00:0000 hang=1 zp=8550131 brk=8549623 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Platoon (1988)(Data East)(IIE)(Side B)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:B83B hang=0 zp=15202 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Apple Stellar Invaders (1980)(Apple)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FE:0124 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Questprobe featuring Spider-Man vF261 (1984)(Adventure International)(II+)(US)(Side B)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0561 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Pensate (1983)(Penguin Software)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:B1AA hang=0 zp=1221 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dig Dug (1983)(Atarisoft)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Beneath the Pyramids (1980)(Crystalware)[a][req 13-sector drive][48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 1 of 8 Side B)[128K][cp manual].woz
+STATUS=CRASH_MON mode=text pc=FF:CF3F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Hollywood Hijinx r37 (1986-12-15)(Infocom)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:679E hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Hadron (1981)(Sirius Software)[48K].woz
+STATUS=TEXT mode=text pc=00:BD9E hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Countdown to Shutdown (1985)(Activision)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:DC52 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ski Crazed v28701 (1987)(Baudville)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:0842 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Impossible Mission II side B.woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 2 of 8 Side A)[128K][cp manual].woz
+STATUS=TEXT mode=text pc=00:BA38 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Carriers at War (1984)(Strategic Studies Group)(II+)(Disk 2 of 2 Side A)(Backup Scenario Disk 1)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Crisis Mountain (1982)(Synergistic Software)[m highscore][48K].woz
+STATUS=HANG mode=text pc=00:10D3 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dogfight II (1981)(Micro Lab)(II-II+)(US)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CFA9 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Marble Madness (1986)(Electronic Arts)(IIE)(Side B)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=559 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Sea Dragon (1982)(Adventure International)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:B775 hang=0 zp=99054 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/World War III (1980)(Crystalware)(II+)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=1032425 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Neptune (1982)(Gebelli Software)(II-II+)[48K].woz
+STATUS=CRASH_BRK mode=text pc=00:0000 hang=1 zp=7872304 brk=7871796 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Arkanoid (1988)(Taito America)(II+)(US)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dunjonquest - The Temple of Apshai rev. 2 (1979)(Automated Simulations)(II+)[req 13-sector drive][48K].woz
+STATUS=OK_GFX mode=HGR pc=00:B952 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Spy's Demise (1982)(Penguin Software)[48K].woz
+STATUS=TEXT mode=text pc=00:B94F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Beyond Castle Wolfenstein (1984-12-07)(MUSE Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:5688 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Robot Odyssey I v2.0 side B - Robotropolis Preview, Chip Designs, Innovation Lab and Chip Library.woz
+STATUS=OK_GFX mode=HGR pc=00:EB9A hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Marble Madness side A.woz
+STATUS=CRASH_ZP mode=text pc=FC:CEBC hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Destroyer (1986)(Epyx)(IIE)[128K].woz
+STATUS=TEXT mode=text pc=00:BD80 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alien Lander (1980)(Sierra)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:7574 hang=0 zp=10919 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Frontline (1982)(subLOGIC)(II+)[48K].woz
+STATUS=OK_GFX mode=DHGR pc=00:D388 hang=0 zp=541 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Pipe Dream (1990)(LucasFilm Games)(IIE)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:0A78 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Halls of Montezuma (1987)(Strategic Studies Group)(II+)(Side A)(Master Disk)[64K].woz
+STATUS=UNKNOWN mode=LORES pc=00:BA67 hang=0 zp=509 brk=0 rom=0 gfx=0 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Roach Hotel (1981)(Micro Lab)[48K].woz
+STATUS=TEXT mode=text pc=00:D20F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bureaucracy r116 (1987-06-02)(Infocom)(IIE)(Side A)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:00F5 hang=0 zp=25247649 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima IV - Quest of the Avatar (1985)(Origin Systems)(II+)(Disk 1 of 2 Side A)(Program)[64K].woz
+STATUS=CRASH_ZP mode=text pc=00:0CC0 hang=0 zp=6108 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Spy vs. Spy III - Arctic Antics (1987)(Epyx)(IIE)[128K][Maxx Out! series].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 1 of 5 Side B)[64K].woz
+STATUS=TEXT mode=text pc=00:B970 hang=0 zp=577 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sabotage (1981)(On-Line Systems)[48K].woz
+STATUS=TEXT mode=text pc=00:9877 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wayout (1982)(Sirius Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Sherlock Holmes in Another Bow (1985)(Bantam Software)(II+)(Side A)[64K].woz
+STATUS=CRASH_MON mode=text pc=FE:00EE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Championship Golf (1982)(Hayden Book Company)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:B840 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Thunderchopper v1.0 (1987)(ActionSoft)[64K].woz
+STATUS=TEXT mode=text pc=00:0813 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/I, Damiano (1985)(Bantam Software)(Side B)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BA03 hang=0 zp=686 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Mask of the Sun, The v2.1 (1982)(Brøderbund)(II+)(Side A)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=1371 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Escape From Rungistan (1982)(Sirius Software)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 3 of 5 Side B)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:0973 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Mabel's Mansion (1983)(Datamost)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BD80 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Pulsar II (1981)(Sirius Software)[48K].woz
+STATUS=TEXT mode=text pc=00:0839 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Copy (2) Sorcellerie II side B - master scenario.woz
+STATUS=TEXT mode=text pc=00:0857 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Games, The - Summer Edition (1988)(Epyx)(IIE)(Disk 2 of 2 Side A)[128K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=2224107 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sargon III (1983)(Hayden Book Company)(II+)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:0DD9 hang=0 zp=31580 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Gumball (1983)(Brøderbund)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dark Crystal, The (1982)(Sierra On-Line)(Disk 2 of 2 Side B)[48K][Hi-Res Adventure #6].woz
+STATUS=CRASH_MON mode=text pc=FF:CFAE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wishbringer r68 (1985-05-01)(Infocom)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:0123 hang=0 zp=541 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Kabul Spy (1981)(Sirius Software)(Side A)[48K].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Swashbuckler (1981)(Datamost)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:D388 hang=0 zp=540 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Hunt for Red October, The (1988)(Datasoft)(IIE)(Side B)(Boot)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FE:FBE3 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Essex (1985)(Brøderbund)(Disk 2 of 2)[48K][cp manual].woz
+STATUS=CRASH_BRK mode=text pc=FE:00D8 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry - The Return of Werdna - The Fourth Scenario (1987)(Sir-Tech)(II+)(Disk 2 of 3 Side C)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wings of Fury (1987)(Brøderbund)(IIE)(Side B)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 5 of 8 Side B)[128K][cp manual].woz
+STATUS=OK_GFX mode=HGR pc=00:16D7 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Tapper (1984)(Bally Midway)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0B36 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Europe Ablaze (1985)(Strategic Studies Group)(II+)(Disk 2 of 3 Side A)(Backup Master Disk)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:89EB hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Flight Simulator II v2.0 (1984)(subLOGIC)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 5 of 5 Side B)[128K].woz
+STATUS=CRASH_MON mode=text pc=FE:0107 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossword Magic v4.0 (1985)(Mindscape)(US)(Math Puzzle Disk)[48K].woz
+STATUS=TEXT mode=text pc=00:A871 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Reach for the Stars 1.0.woz
+STATUS=CRASH_BRK mode=text pc=FF:CEFC hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Below the Root (1984)(Windham Classics)(II+)(Side B)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:0106 hang=0 zp=273250 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dragon's Keep (1983)(Sierra On-Line)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:FCDE hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Twerps (1981)(Sirius Software)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF38 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima IV - Quest of the Avatar (1985)(Origin Systems)(II+)(Disk 2 of 2 Side C)(Britannia)[64K].woz
+STATUS=TEXT mode=text pc=00:BA3B hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Russia - The Great War in the East 1941-1945 (1987)(Strategic Studies Group)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=6108 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Tetris (1987)(Spectrum HoloByte)(IIE)[128K].woz
+STATUS=TEXT mode=text pc=00:0830 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Centauri Alliance (1990)(Brøderbund)(II+)(Disk 2 of 3 Side A)(Scenario 1)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BCCB hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Night Stalker (1982)(Mattel Electronics)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Kadet (1982)(Datamost)[48K].woz
+STATUS=TEXT mode=text pc=00:0839 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sorcellerie II side B - master scenario.woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dunjonquest - The Temple of Apshai rev. 1 (1979)(Automated Simulations)(II+)[req 13-sector drive][48K].woz
+STATUS=OK_GFX mode=HGR pc=00:936C hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Road Block (1982)(subLOGIC)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Congo (1982)(Sentient Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:56B9 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Sneakers (1981)(Sirius Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:1217 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Reach for the Stars v2.0 (1985)(Strategic Studies Group)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:0874 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic Book Two (1988)(New World Computing)(IIE)(Disk E)[128K].woz
+STATUS=TEXT mode=text pc=00:FDA0 hang=0 zp=816 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dave Winfield's Batter Up! (1985)(Avant-Garde Publishing)(II+)(Side A)[64K].woz
+STATUS=CRASH_MON mode=text pc=FF:CEFC hang=0 zp=582 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Arthur - The Quest for Excalibur v17 (1989)(Infocom)(IIE)(Disk 1 of 3 Side A)(Side 1)[128K].woz
+STATUS=TEXT mode=text pc=00:BDA5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Top Fuel Eliminator (1987)(Activision)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:215F hang=0 zp=511 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Borg (1981)(Sirius Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:FCE3 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/O'Riley's Mine (1983)(Datasoft)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Gulf Strike (1985)(Avalon Hill)[48K].woz
+STATUS=TEXT mode=text pc=00:BD93 hang=0 zp=1069 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Firebug (1982)(MUSE Software)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF9F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bloody Murder (1979)(Stoneware)(II)[48K][req Integer BASIC].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest II - Romancing the Throne (1985)(Sierra On-Line)(IIE)(Disk 2 of 3 Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:081C hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Oo-Topos (1986)(Polarware)(II+)(Side A)[64K].woz
+STATUS=TEXT mode=text pc=00:0860 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Games, The - Summer Edition (1988)(Epyx)(IIE)(Disk 1 of 2 Side B)[128K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF3D hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Victory Road (1988)(Data East USA)(IIE)(US)(Side B)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:B973 hang=0 zp=727 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Gobbler (1981)(On-Line Systems)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:5687 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Robot Odyssey I v2.0 side C - Robot Anatomy, Robot wiring, Sensors, the Toolkit, Robot Circuits and Robot Teamwork.woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Force 7 (1987)(Datasoft)(IIE)[128K].woz
+STATUS=TEXT mode=text pc=00:E0C2 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Video Vegas v12501 (1985)(Baudville)[48K].woz
+STATUS=CRASH_BRK mode=HGR pc=00:E517 hang=0 zp=510 brk=3 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Bug Attack (1981)(Cavalier Computer)(II-II+)[48K].woz
+STATUS=TEXT mode=text pc=00:C6E5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Street Sports Soccer (1988)(Epyx)(IIE)[128K].woz
+STATUS=TEXT mode=text pc=00:0817 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sub Battle Simulator (1986)(Epyx)(II+)(Side B)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:52A3 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Battlezone (1983)(Atarisoft)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:9D4C hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Sub Mission (1987)(Mindscape)(II+)(US)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:41FB hang=0 zp=16272 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Picnic Paranoia (1982)(Synapse Software)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:99A9 hang=0 zp=279567 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Sorcellerie II side A - program.woz
+STATUS=TEXT mode=text pc=00:D218 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Trinity r11 (1986-05-09)(Infocom)(IIE)(Side A)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:BDA0 hang=0 zp=2273 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Olin in Emerald - Kingdom of Myrrh (1984)(Adventure International)(II+)(Side A)[48K].woz
+STATUS=TEXT mode=text pc=00:D210 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/A Mind Forever Voyaging r77 (1985)(Infocom)(IIE)(Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:0891 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #4 - Voodoo Castle v2.1-119 (1982)(Adventure International)(II+)(US)(Side A)[48K].woz
+STATUS=UNKNOWN mode=LORES pc=00:B962 hang=0 zp=509 brk=0 rom=0 gfx=0 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Alien Ambush (1981)(Micro Distributors)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0523 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Plasmania (1983)(Sirius Software)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima III - Exodus (1983)(Origin Systems)(Side A)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0A8B hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/MacArthur's War (1988)(Strategic Studies Group)(II+)(Side A)(Master Disk)[64K].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 4 of 5 Side H)[64K].woz
+STATUS=CRASH_ZP mode=text pc=FF:9ADD hang=0 zp=37504 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Queen of Hearts.woz
+STATUS=CRASH_BRK mode=text pc=FF:CFDB hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Rendezvous with Rama (1984)(Trillium)(II+)(Disk 2 of 2 Side A)[64K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ulysses and the Golden Fleece (1981)(On-Line Systems)(Side A)[48K][Hi-Res Adventure #4].woz
+STATUS=OK_GFX mode=HGR pc=00:B086 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Realm of Impossibility (1986)(Electronic Arts)(II+)[64K][AKA Zombies].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Castle Wolfenstein (1984-06-19)(MUSE Software)[48K][re-release].woz
+STATUS=CRASH_MON mode=text pc=FE:00F6 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Pharaoh's Revenge (1988)(Publishing International)(II+)(US)(Side B)(Boot)[64K].woz
+STATUS=CRASH_MON mode=text pc=FE:00E5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Reversal (1980)(Hayden Book Company)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:40C6 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Asteroid Field, The (1980)(Cavalier Computer)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:14E3 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Lock 'N' Chase (1982)(Mattel Electronics)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:7091 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Joust (1983)(Atarisoft)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zork Zero (1989)(Infocom)(IIE)(Disk 2 of 2 Side B)(Side 4)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:1BA5 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Kung Fu Master (1985)(Data East)(II+)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:B77A hang=0 zp=9476 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Maze Craze Construction Set (1983)(Data Trek)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FE:0125 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Rendezvous with Rama (1984)(Trillium)(II+)(Disk 2 of 2 Side B)[64K].woz
+STATUS=TEXT mode=text pc=00:09F5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Times of Lore (1988)(Origin Systems)(II+)(Side B)[64K].woz
+STATUS=TEXT mode=text pc=00:D388 hang=0 zp=1478 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima I - The Beginning (1986)(Origin Systems)(II+)[64K][Ultima Trilogy version].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Jungle Hunt (1984)(Atarisoft)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alternate Reality- The Dungeon disk 1B.woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima V - Warriors of Destiny (1988)(Origin Systems)(II+)(Disk 4 of 8)(Towne)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FE:0101 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Carriers at War (1984)(Strategic Studies Group)(II+)(Disk 2 of 2 Side A)(Backup Scenario Disk 2)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:4B9E hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Night Mission Pinball.woz
+STATUS=OK_GFX mode=HGR pc=00:B973 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Pool v1.5 (1981)(Innovative Design Software)(US)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:D388 hang=0 zp=540 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Paperboy (1988)(Mindscape)(IIE)(US)[128K].woz
+STATUS=CRASH_ZP mode=text pc=FC:CEBC hang=0 zp=18443 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Lunar Leepers (1982)(Sierra On-Line)(II-II+)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:D645 hang=0 zp=750075 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SwordThrust 7 - The Hall of Alchemie (1981)(CE Software)(II+)[req Master Disk][48K].woz
+STATUS=CRASH_BRK mode=text pc=00:9C25 hang=0 zp=509 brk=7 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Beer Run (1981)(Sirius Software)(II-II+)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FE:0125 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest (1984)(Sierra On-Line)(IIE)(Disk 2 of 2 Side C)[128K].woz
+STATUS=TEXT mode=text pc=00:DDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Labyrinth (1986)(Activision)(IIE)(Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:7FEA hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Ceiling Zero (1981)(Turnkey Software)[48K].woz
+STATUS=TEXT mode=text pc=00:0853 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ancient Art of War at Sea, The (1988)(Brøderbund)(IIE)(Side B)[128K].woz
+STATUS=TEXT mode=text pc=00:BBB0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Winter Games (1985)(Epyx)(II+)(Side A)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:70AA hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Axis Assassin (1983)(Electronic Arts)(II+)[48K].woz
+STATUS=OK_GFX mode=DHGR pc=00:DEB8 hang=0 zp=1896 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Airheart (1986)(Brøderbund)(IIE)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Micro Invaders (1979)(Programma Software)[32K][req 13-sector drive].woz
+STATUS=CRASH_MON mode=text pc=FE:00C5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Europe Ablaze (1985)(Strategic Studies Group)(II+)(Disk 3 of 3 Side A)(Save Game Disk A)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sands of Mars, The (1980)(Crystal Software)(Side A)[48K][req 13-sector drive].woz
+STATUS=TEXT mode=text pc=00:BA03 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossfire (1981)(On-Line Systems)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shogun r311 (1989-05-10)(Infocom)(IIE)(Disk 2 of 3 Side A)(Side 3)[128K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Arthur - The Quest for Excalibur v17 (1989)(Infocom)(IIE)(Disk 2 of 3 Side B)(Side 4)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:BDA0 hang=0 zp=2020 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zykron Hearts (1986)(Zykron Company)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:E5B3 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossbow (1988)(Absolute Entertainment)(IIE)(Side B)[128K].woz
+STATUS=CRASH_MON mode=text pc=FE:00D8 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Olin in Emerald - Kingdom of Myrrh (1984)(Adventure International)(II+)(Side B)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BC8B hang=0 zp=449096 brk=149530 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/County Fair (1981)(Datamost)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Buzzard Bait (1983)(Sirius Software)[48K].woz
+STATUS=TEXT mode=text pc=00:EBDB hang=0 zp=545 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry - The Return of Werdna - The Fourth Scenario (1987)(Sir-Tech)(II+)(Disk 3 of 3 Side F)[64K].woz
+STATUS=TEXT mode=text pc=00:0839 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Copy (1) Sorcellerie II side B - master scenario.woz
+STATUS=OK_GFX mode=HGR pc=00:0AC0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Battlefront v1.0 (1986)(SSG)(II+)(Side A)(Master Disk)[64K].woz
+STATUS=UNKNOWN mode=LORES pc=00:BDA0 hang=0 zp=1584 brk=0 rom=0 gfx=0 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Below the Root (1984)(Windham Classics)(II+)(Side A)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FF:CF9C hang=0 zp=2551 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Earthquake - San Francisco 1906 (1982)(Adventure International)(II+)(Side A)[48K][Apple Other-Ventures #4].woz
+STATUS=OK_GFX mode=HGR pc=00:B78F hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/PHM Pegasus (1987)(Electronic Arts)(II+)(Side A)[64K].woz
+STATUS=CRASH_ZP mode=text pc=00:BBB0 hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Rad Warrior (1987)(Epyx)(IIE)[128K][Maxx Out! series].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=721 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Minit Man (1983)(Penguin Software)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Street Sports Football (1988)(Epyx)(IIE)(Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:BA81 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Hard Hat Mack (1983)(Electronic Arts)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=763 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ardy the Aardvark (1983)(Datamost)(II+)[48K].woz
+STATUS=CRASH_BRK mode=HGR pc=E1:0010 hang=0 zp=147667 brk=147158 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Raiders v2.0 (1983)(United Software of America)(US)[48K].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 3 of 5 Side F)[64K].woz
+STATUS=TEXT mode=text pc=00:B94F hang=0 zp=648 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Mr. Cool (1983)(Sierra On-Line)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Arthur - The Quest for Excalibur v17 (1989)(Infocom)(IIE)(Disk 2 of 3 Side A)(Side 3)[128K].woz
+STATUS=HANG mode=text pc=00:10D3 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Trick Shot (1981)(IDSI)(II-II+)(Disk 1 of 2)(Game)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 2 of 8 Side B)[128K][cp manual].woz
+STATUS=TEXT mode=text pc=00:7D93 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dogfight (1980)(Micro Lab)(US)[32K].woz
+STATUS=CRASH_MON mode=text pc=FE:00C5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Congo Bongo (1983)(Sega)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:BDA0 hang=0 zp=371035 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Xevious (1984)(Mindscape)(II+)(US)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FE:00D6 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry - The Return of Werdna - The Fourth Scenario (1987)(Sir-Tech)(II+)(Disk 2 of 3 Side D)[64K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:B9E6 hang=0 zp=185772 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Summer Games (1984)(Epyx)(II+)(Side A)[64K].woz
+STATUS=TEXT mode=text pc=00:0874 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic Book Two (1988)(New World Computing)(IIE)(Disk F)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:D0F2 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Graphics Master.woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Miner 2049er (1982)(Micro Fun)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima V - Warriors of Destiny (1988)(Origin Systems)(II+)(Disk 2 of 8)(Britannia)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/MIRV (1982)(Level-10)[48K].woz
+STATUS=TEXT mode=text pc=00:7223 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Queen of Phobos, The (1982)(Phoenix Software)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Star Warrior (1981)(Automated Simulations)[48K][req 13-sector drive].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Fraktured Faebles (1985)(American Eagle Software)(II+)(Side B)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:07B1 hang=0 zp=568103 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Genetic Drift (1981)(Brøderbund)(II-II+)(US)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/G. I. Joe (1985)(Epyx)(II+)(Side A)[64K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:FC57 hang=0 zp=8499 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Super Zaxxon (1984)(Sega)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:EC10 hang=0 zp=545 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry - The Return of Werdna - The Fourth Scenario (1987)(Sir-Tech)(II+)(Disk 1 of 3 Side A)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Hardball (1985)(Accolade)(II+)[64K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/World Karate Championship (1986)(Epyx)(IIE)[128K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF95 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/RoboCop (1988)(Data East USA)(IIE)(Side B)[128K].woz
+STATUS=CRASH_MON mode=text pc=FE:0101 hang=0 zp=527 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shogun r311 (1989-05-10)(Infocom)(IIE)(Disk 1 of 3 Side A)(Side 1)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA5 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Beach Landing (1984)(Optimum Resource)(IIE)[64K].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 5 of 5 Side I)[64K].woz
+STATUS=TEXT mode=text pc=00:29A0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Deadline r26 (1982-11-08)(Infocom)(II+)[32K].woz
+STATUS=OK_GFX mode=HGR pc=00:0D65 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Karateka (1984)(Brøderbund)(Side A)[48K].woz
+STATUS=TEXT mode=text pc=00:B952 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Golden Mountain (1980)(Brøderbund)(II-II+)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 2 of 5 Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:5935 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Wavy Navy (1982)(Sirius Software)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Shuttle - A Journey Into Space (1985)(Activision)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Rendezvous with Rama (1984)(Trillium)(II+)(Disk 1 of 2 Side A)[64K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:86B8 hang=0 zp=21326 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Lode Runner (1983)(Brøderbund)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF41 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Soko-Ban (1984)(Spectrum HoloByte)(IIE)(Side B)[128K].woz
+STATUS=TEXT mode=text pc=00:0891 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #5 - The Count v2.1-115 (1982)(Adventure International)(II+)(US)(Side A)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=6108 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Soko-Ban (1984)(Spectrum HoloByte)(IIE)(Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:B119 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Free Fall (1982)(Sirius Software)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shogun r311 (1989-05-10)(Infocom)(IIE)(Disk 2 of 3 Side B)(Side 4)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FE:00D8 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry - The Return of Werdna - The Fourth Scenario (1987)(Sir-Tech)(II+)(Disk 1 of 3 Side B)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF03 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizard of Oz, The (1985)(Windham Classics)(II+)(Disk 2 of 2 Side B)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BF9B hang=0 zp=97483 brk=96975 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Tawala's Last Redoubt (1981)(Brøderbund)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CEFD hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ballyhoo r97 (1985-12-18)(Infocom)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF3C hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima IV - Quest of the Avatar (1985)(Origin Systems)(II+)(Disk 1 of 2 Side B)(Towne)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Planetfall r10 (1988-05-31)(Infocom)(IIE)(Side B)[128K][Solid Gold Edition].woz
+STATUS=CRASH_ZP mode=HGR pc=00:056E hang=0 zp=8791 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Raster Blaster (1981)(BudgeCo)(II-II+)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:8AE7 hang=0 zp=21236 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Championship Lode Runner (1984)(Brøderbund)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=661 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Shanghai (1986)(Activision)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:8C05 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Crosscheck (1985)(Datasoft)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:711A hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/International Hockey (1987)(Artworx)(II+)[64K].woz
+STATUS=CRASH_ZP mode=text pc=00:C6E1 hang=0 zp=196855 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Cannonball Blitz (1982)(On-Line Systems)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:D388 hang=0 zp=541 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Championship Baseball (1986)(Activision)(II+)(Side A)[64K].woz
+STATUS=TEXT mode=text pc=00:0BE2 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Movie Monster Game, The (1986)(Epyx)(IIE)(Side B)[64K].woz
+STATUS=TEXT mode=text pc=00:DA0B hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Times of Lore (1988)(Origin Systems)(II+)(Side A)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic (1986)(New World Computing)(Disk A)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=1032185 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Eggs-It (1982)(Gebelli Software)(II-II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:7719 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Flip Out (1982)(Sirius Software)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zork Zero (1989)(Infocom)(IIE)(Disk 1 of 2 Side B)(Side 2)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Trick Shot (1981)(IDSI)(II-II+)(Disk 2 of 2)(Sample Shots)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Heavy Barrel (1989)(Data East USA)(IIE)(Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:0546 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Sherwood Forest (1982)(Phoenix Software)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FE:0125 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/California Games (1987)(Epyx)(IIE)(Side B)[128K].woz
+STATUS=TEXT mode=text pc=00:6680 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Head On (1980)(California Pacific Computer)[32K].woz
+STATUS=OK_GFX mode=HGR pc=00:B1D9 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Sands of Egypt, The (1983)(Datasoft)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Monster Smash (1983)(Datamost)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BD94 hang=0 zp=604 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Flockland Island Crisis, The (1982)(Vital Information)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0A2D hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Buck Rogers - Planet of Zoom (1984)(Sega)[48K].woz
+STATUS=UNKNOWN mode=LORES pc=00:BD93 hang=0 zp=509 brk=0 rom=0 gfx=0 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Alien Typhoon (1981-03-20)(Brøderbund)[48K].woz
+STATUS=TEXT mode=text pc=00:085A hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Test Drive (1988)(Accolade)(IIE)(Side B)[128K].woz
+STATUS=CRASH_ZP mode=HGR pc=FE:010B hang=0 zp=53226 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Alpine Encounter, The (1983)(Random House)(II+)(Side A)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:1432 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Outpost (1981)(Sirius Software)[48K].woz
+STATUS=TEXT mode=text pc=00:B975 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Mission - Asteroid (1980)(On-Line Systems)(II+)[48K][Hi-Res Adventure #0].woz
+STATUS=OK_GFX mode=HGR pc=00:405F hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Blade of Blackpoole, The (1982)(Sirius Software)(Side A)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima V - Warriors of Destiny (1988)(Origin Systems)(II+)(Disk 6 of 8)(Keep)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:64CB hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Jet, The v1.00 (1986)(subLOGIC)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Conquering Worlds (1983)(Datamost)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:7B7E hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Warp Destroyer (1982)(Piccadilly Software)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FC:CEB7 hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sporting News, The - Baseball (1988)(Epyx)(IIE)(Side A)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF58 hang=0 zp=143409 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossword Magic v4.0 (1985)(Mindscape)(US)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0A7B hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Panzer Battles (1989)(Strategic Studies Group)(II+)(Side A)(Master Disk)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:5688 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Robot Odyssey I v2.0 side A - Robotropolis.woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alternate Reality - The Dungeon v2.1 (1987)(Datasoft)(II+)(Disk 1 of 2 Side B)[64K].woz
+STATUS=CRASH_ZP mode=text pc=FC:CEBB hang=0 zp=18443 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Pest Patrol (1982)(Sierra On-Line)(II-II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/High Rise (1983)(Micro Learn)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:13A9 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Gorgon (1981)(Sirius Software)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Journey v16 (1989)(Infocom)(IIE)(Disk 2 of 3 Side A)(Side 3)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:644D hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Ribbit (1982)(Piccadilly Software)(US)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:D630 hang=0 zp=773763 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SwordThrust 2 - The Vampyre Caves (1981)(CE Software)(II+)[req Master Disk][48K].woz
+STATUS=CRASH_BRK mode=LORES pc=00:045D hang=0 zp=510 brk=9 rom=0 gfx=0 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Orbitron (1981)(Sirius Software)(II-II+)[48K].woz
+STATUS=HANG mode=text pc=00:2CF6 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Maniac Mansion (1987)(LucasFilm Games)(IIE)(Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:0848 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Captain Goodnight and the Islands of Fear (1985)(Brøderbund)(II+)(Side B)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Asteroid (1980)(Adventure International)(US)[48K][req 13-sector drive].woz
+STATUS=CRASH_BRK mode=text pc=FF:BC9A hang=0 zp=350435 brk=116643 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Gauntlet (1986)(Mindscape)(II+)(US)(Side A)[64K][E7].woz
+STATUS=CRASH_ZP mode=HGR pc=00:38BE hang=0 zp=166081 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Archon II - Adept (1984)(Electronic Arts)(II+)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BB23 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Karate Champ (1985)(Data East)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:A08B hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Pooyan (1984)(Datasoft)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BD3A hang=0 zp=449210 brk=149568 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Snack Attack (1981)(Datamost).woz
+STATUS=TEXT mode=text pc=00:B8D6 hang=0 zp=1592 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dungeon! (1982)(TSR Hobbies)(II+)[a woz-a-day][48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:0AC9 hang=0 zp=31300 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Drol (1983)(Brøderbund)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FE:010E hang=0 zp=249611 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zendar (1982)(subLOGIC)(II+)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:EB71 hang=0 zp=1307423 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Southern Command (1981)(Strategic Simulations)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ulysses and the Golden Fleece (1981)(On-Line Systems)(Side B)[48K][Hi-Res Adventure #4].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Leisure Suit Larry in The Land of The Lounge Lizards (1987)(Sierra On-Line)(IIE)(Disk 2 of 3 Side A)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF08 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry - The Return of Werdna - The Fourth Scenario (1987)(Sir-Tech)(II+)(Disk 3 of 3 Side E)[64K].woz
+STATUS=CRASH_ZP mode=text pc=00:BDA0 hang=0 zp=2048 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Vaults of Zurich (1982)(Artworx)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:829B hang=0 zp=726 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ancient Art of War at Sea, The (1988)(Brøderbund)(IIE)(Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:BB6D hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Robots of Dawn (1984)(Epyx)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Death Sword (1987)(Epyx)(IIE)[128K][Maxx Out! series].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/RoboCop (1988)(Data East USA)(IIE)(Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:48BA hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Beach-Head (1985)(Access Software)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/BC's Quest for Tires (1983)(Sierra On-Line)[48K].woz
+STATUS=TEXT mode=text pc=00:BD94 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dung Beetles (1982)(Datasoft)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:00CD hang=0 zp=1776 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SwordThrust 1 - The King's Testing Ground (1981)(CE Software)(II+)(Master Disk)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0B36 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Decisive Battles of the American Civil War - Volume I v1.0 (1987)(Strategic Studies Group)(II+)(Side A)(Master Disk)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dark Crystal, The (1982)(Sierra On-Line)(Disk 1 of 2 Side B)[48K][Hi-Res Adventure #6].woz
+STATUS=OK_GFX mode=HGR pc=00:125B hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Apple Panic (1981-06-02)(Brøderbund)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF94 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Tetrad (1981)(Hayden Book Company)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CFA9 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Marble Madness side B.woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Gammon Gambler (1979)(Personal Software)[24K][req 13-sector drive].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quest II - Vohaul's Revenge v2.0A (1987)(Sierra On-Line)(IIE)(Disk 4 of 4 Side A)[128K][interpreter 0.089].woz
+STATUS=TEXT mode=text pc=00:BA87 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Cranston Manor (1981)(On-Line Systems)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima V - Warriors of Destiny (1988)(Origin Systems)(II+)(Disk 3 of 8)(Castle)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Aztec (1982)(Datamost)[48K].woz
+STATUS=HANG mode=text pc=00:0806 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Mask of the Sun, The v2.1 (1982)(Brøderbund)(II+)(Side B)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF3B hang=0 zp=542 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Tass Times in Tonetown (1986)(Activision)(II+)(Side A)[64K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCE1 hang=0 zp=1117898 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Choplifter (1982)(Brøderbund)(II-II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:7CC1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Reach for the Stars v3.0 (1988)(Strategic Studies Group)(II+)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:0D7B hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Karateka (1984)(Brøderbund)(Side B)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:00BA hang=0 zp=765720 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SwordThrust 3 - Kidnapper's Cove (1981)(CE Software)(II+)[req Master Disk][48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:1505 hang=0 zp=3287965 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Shadowkeep (1984)(Trillium)(Disk 1 of 2 Side A)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA5 hang=0 zp=559 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Oil Rig (1981)(Computer Programs Unlimited)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 1 of 5 Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:BD93 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Snoggle (1981-06-30)(Brøderbund)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=749 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Rocky Horror Show, The (1986)(Activision)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:BA73 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Pitfall II - Lost Caverns (1984)(Activision)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:00DD hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima III - Exodus (1983)(Origin Systems)(Side B)(Scenario Disk)[48K][write protected].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Journey v16 (1989)(Infocom)(IIE)(Disk 1 of 3 Side B)(Side 2)[128K].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ms. Pac-Man (1983)(Atarisoft)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:B45D hang=0 zp=1261 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #5 - The Count v2.1-115 (1982)(Adventure International)(II+)(US)(Side B)(Boot)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Trivia Fever (1984)(Professional Software)(II+)(Side B)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BB13 hang=0 zp=1995 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Dunjonquest - The Temple of Apshai rev. 3 (1979)(Automated Simulations)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Renegade (1989)(Taito America)(IIE)(US)(Side B)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 7 of 8 Side A)[128K][cp manual].woz
+STATUS=TEXT mode=text pc=00:BDA5 hang=0 zp=583 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Centipede (1983)(Atarisoft)[48K].woz
+STATUS=TEXT mode=text pc=00:BA03 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest II - Romancing the Throne (1985)(Sierra On-Line)(IIE)(Disk 1 of 3 Side A)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CFDB hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Gruds in Space (1983)(Sirius Software)(Side B)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:018A hang=0 zp=23758262 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Juggler (1982)(IDSI)(II-II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Formula 1 Racer (1983)(Gentry Software)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BA38 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Europe Ablaze (1985)(Strategic Studies Group)(II+)(Disk 1 of 3 Side B)(Scenario Disk)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 3 of 8 Side A)[128K][cp manual].woz
+STATUS=CRASH_ZP mode=text pc=00:BBB0 hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Movie Monster Game, The (1986)(Epyx)(IIE)(Side A)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Crazy Mazey (1982)(Datamost)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BD94 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Apple Galaxian (1980)(StarCraft)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 7 of 8 Side B)[128K][cp manual].woz
+STATUS=OK_GFX mode=HGR pc=00:BD94 hang=0 zp=727 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Jawbreaker (1981)(On-Line Systems)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=559 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Hacker (1985)(Activision)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Battle Chess (1990)(Interplay)(IIE)(Side B)[128K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Journey v16 (1989)(Infocom)(IIE)(Disk 2 of 3 Side B)(Side 4)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Fidelity Chessmaster 2100, The (1988)(The Software Toolworks)(II+)(Side B)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BFEB hang=0 zp=246518 brk=82004 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Infiltrator (1987)(Mindscape)(II+)(US)(Side B)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:031C hang=0 zp=509 brk=101 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/PHM Pegasus (1987)(Electronic Arts)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=CRASH_MON mode=text pc=FE:0125 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Moonmist r9 (1986-10-22)(Infocom)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BF32 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/A.E. (1982)(Brøderbund)(Side B)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 1 of 5 Side B)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:F5A0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Lords of Conquest (1986)(Electronic Arts)(II+)(Side A)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:0278 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Boa (1983)(Micro Magic)[48K].woz
+STATUS=TEXT mode=text pc=00:1D4B hang=0 zp=541 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Oo-Topos (1986)(Polarware)(II+)(Side B)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BC6C hang=0 zp=346187 brk=115227 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Infiltrator Part II - The Next Day (1987)(Mindscape)(II+)(US)(Side B)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BD58 hang=0 zp=303002 brk=100832 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bop 'N Wrestle (1986)(Mindscape)(II+)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FE:00D8 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Decisive Battles of the American Civil War - Volume II v1.0 (1987)(Strategic Studies Group)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDE hang=0 zp=1117768 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Seafox (1982)(Brøderbund)(II-II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:3D80 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Cyber Strike (1980)(Sirius Software)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:BDA1 hang=0 zp=34879 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Colossus Chess IV (1986)(Firebird)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:BA38 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/MacArthur's War (1988)(Strategic Studies Group)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=TEXT mode=text pc=00:0830 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Centauri Alliance (1990)(Brøderbund)(II+)(Disk 2 of 3 Side B)(Scenario 2)[64K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:00D2 hang=0 zp=3835634 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Vindicator (1983)(H.A.L. Labs)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CFDB hang=0 zp=1261 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #4 - Voodoo Castle v2.1-119 (1982)(Adventure International)(II+)(US)(Side B)(Boot)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=733 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Fathom's 40 (1982)(Datasoft)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CFA2 hang=0 zp=1021 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Rear Guard (1982)(Adventure International)(US)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0983 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Black Magic (1987)(Datasoft)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quest II - Vohaul's Revenge v2.0A (1987)(Sierra On-Line)(IIE)(Disk 1 of 4 Side A)[128K][interpreter 0.089].woz
+STATUS=OK_GFX mode=HGR pc=00:6951 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Gruds in Space (1983)(Sirius Software)(Side A)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:BA02 hang=0 zp=4609 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Trivia Fever (1984)(Professional Software)(II+)(Side A)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:0107 hang=0 zp=867 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Roadwar 2000 v1.1 (1986)(SSI)(II+)(Side B)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Batman - The Caped Crusader (1988)(Data East)(IIE)(Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:0A0C hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Victory Road (1988)(Data East USA)(IIE)(US)(Side A)[128K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Quadrant 6112 (1982)(Sensible Software)(II-II+)[48K].woz
+STATUS=TEXT mode=text pc=00:0874 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic Book Two (1988)(New World Computing)(IIE)(Disk B)[128K].woz
+STATUS=TEXT mode=text pc=00:BD94 hang=0 zp=1345 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Race for Midnight (1981)(Avant-Garde Creations)(II+)(US)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:B078 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Summer Games (1984)(Epyx)(II+)(Side B)[64K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Racter (1985)(Mindscape)(IIE)(US)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Ghostbusters (1984)(Activision)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0AA6 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Russia - The Great War in the East 1941-1945 (1987)(Strategic Studies Group)(II+)(Side A)(Master Disk)[64K].woz
+STATUS=TEXT mode=text pc=00:0849 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic (1986)(New World Computing)(Disk D)[48K].woz
+STATUS=TEXT mode=text pc=00:0849 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic (1986)(New World Computing)(Disk B)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:9FB5 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/BurgerTime (1982)(Mattel)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 5 of 5 Side A)[128K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF14 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Blade of Blackpoole, The (1982)(Sirius Software)(Side B)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zork Zero (1989)(Infocom)(IIE)(Disk 2 of 2 Side A)(Side 3)[128K].woz
+STATUS=TEXT mode=text pc=00:0833 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bard's Tale, The - Tales of the Unknown (1985)(Electronic Arts)(II+)(Dungeon Disk)[64K].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest (1984)(Sierra On-Line)(IIE)(Disk 1 of 2 Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:BA03 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/I, Damiano (1985)(Bantam Software)(Side A)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Centauri Alliance (1990)(Brøderbund)(II+)(Disk 1 of 3 Side A)(Boot)[64K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=572 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Qix (1989)(Taito America)(IIE)(US)[128K].woz
+STATUS=TEXT mode=text pc=00:0874 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic Book Two (1988)(New World Computing)(IIE)(Disk C)[128K].woz
+STATUS=CRASH_MON mode=text pc=FE:00C8 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Suspended r8 (1983-05-21)(Infocom)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:FCDC hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Moon Patrol (1983)(Atarisoft)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:ABF9 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Return of Heracles (1983)(Quality Software)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=660 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dam Busters, The (1985)(Accolade)(II+)[64K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:E907 hang=0 zp=371344 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Dunjonquest - The Temple of Apshai rev. 4 (1979)(Automated Simulations)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 3 of 5 Side E)[64K].woz
+STATUS=TEXT mode=text pc=00:29A1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zork II - The Wizard of Frobozz r7 (1981)(Infocom)[32K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Pandora's Box (1982)(Datamost)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:071B hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Mr. Do (1985)(Datasoft)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Checker King (1979)(Personal Software)[16K][req 13-sector drive].woz
+STATUS=OK_GFX mode=HGR pc=00:3A81 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Eggs (1981)(Sirius Software)(II-II+-IIE)[48K][II-II+, unenhanced IIE only].woz
+STATUS=TEXT mode=text pc=00:40CA hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Swiss Family Robinson (1984)(Windham Classics)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BD9E hang=0 zp=672 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Robotron 2084 (1983)(Atarisoft)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:6227 hang=0 zp=21246 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Captain Goodnight and the Islands of Fear (1985)(Brøderbund)(II+)(Side A)[64K].woz
+STATUS=TEXT mode=text pc=00:0833 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Centauri Alliance (1990)(Brøderbund)(II+)(Disk 3 of 3 Side B)(Scenario 4)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/A Mind Forever Voyaging r77 (1985)(Infocom)(IIE)(Side B)[128K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ikari Warriors (1987)(Data East USA)(IIE)(Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:8785 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/International Gran Prix (1982)(MUSE Software)(US)[48K].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 2 of 5 Side D)[64K].woz
+STATUS=TEXT mode=text pc=00:B952 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Master of the Lamps (1985)(Activision)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:46D1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alternate Reality - The Dungeon v2.1 (1987)(Datasoft)(II+)(Disk 1 of 2 Side A)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:B94F hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Stellar 7 (1983)(Penguin Software)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:010E hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Go (1982)(Hayden Book Company)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:B904 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Succession (1982)(Piccadilly Software)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Pentapus (1983)(Turning Point Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BA74 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Bad Dudes (1988)(Data East)(IIE)(Side B)[128K].woz
+STATUS=TEXT mode=text pc=00:BD9E hang=0 zp=1907 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Fraktured Faebles (1985)(American Eagle Software)(II+)(Side A)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Mindshadow (1985)(Activision)(II+)(Side B)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Conan (1984)(Datasoft)(Side A)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CFAE hang=0 zp=1342 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #6 - Strange Odyssey v2.1-119 (1982)(Adventure International)(II+)(US)(Side B)(Boot)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Tubeway II (1982)(Datamost)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=2563113 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ballblazer (1985)(Epyx)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:BBBA hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Street Sports Basketball (1987)(Epyx)(IIE)(Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:DFC4 hang=0 zp=522 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Prince of Persia (1989)(Brøderbund)(IIE)(Side A)[128K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Coveted Mirror, The (1985)(Polarware)(II+)(Side A)[64K][re-release].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dunjonquest - Hellfire Warrior v1 (1980)(Automated Simulations)(II+)[req 13-sector drive][48K].woz
+STATUS=TEXT mode=text pc=00:0A12 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bad Dudes (1988)(Data East)(IIE)(Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Apple Galaxian (1980)(Brøderbund)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA5 hang=0 zp=763 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Aliens (1987)(Activision)(IIE)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:D62C hang=0 zp=787959 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SwordThrust 6 - The Eternal Curse (1981)(CE Software)(II+)[req Master Disk][48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/A View to a Kill (1985)(Mindscape)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:0827 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alice in Wonderland (1985)(Windham Classics)(II+)(Side B)[64K].woz
+STATUS=TEXT mode=text pc=00:BD93 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Beneath Apple Manor- The Special Edition.woz
+STATUS=CRASH_BRK mode=HGR pc=FF:BD21 hang=0 zp=426692 brk=142061 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Lancaster (1983)(Silicon Valley Systems)[48K].woz
+STATUS=TEXT mode=text pc=00:0839 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry - Legacy of Llylgamyn - The Third Scenario v4 (1983-05-04)(Sir-Tech)(II+)(Side A)(Master Scenario Disk)[48K][sn 121090].woz
+STATUS=TEXT mode=text pc=00:EE54 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/World's Greatest Football Game, The (1985)(Epyx)(II+)(Side A)[64K].woz
+STATUS=HANG mode=text pc=00:088D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Injured Engine (1984)(Imagic)(II+)(Side B)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:00F6 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Stationfall r107 (1987-04-30)(Infocom)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=621 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Stargate (1983)(Atarisoft)[48K].woz
+STATUS=TEXT mode=text pc=00:0CEC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zorro (1985)(Datasoft)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest II - Romancing the Throne (1985)(Sierra On-Line)(IIE)(Disk 2 of 3 Side B)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FE:0123 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizard of Oz, The (1985)(Windham Classics)(II+)(Disk 1 of 2 Side B)[64K].woz
+STATUS=CRASH_MON mode=text pc=FF:CFA9 hang=0 zp=1410 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #1 - Adventureland v2.0-416 (1982)(Adventure International)(II+)(US)(Side B)(Boot)[48K].woz
+STATUS=CRASH_BRK mode=text pc=00:21AC hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Autobahn (1981)(Sirius Software)[48K].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 4 of 5 Side G)[64K].woz
+STATUS=TEXT mode=text pc=00:60D2 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Street Sports Basketball (1987)(Epyx)(IIE)(Side B)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:1167 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Warrior (1981)(Brøderbund)(US)[32K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:072A hang=0 zp=1206091 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Lazer Silk (1982)(Gebelli Software)(II-II+)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:BD9E hang=0 zp=371035 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alice in Wonderland (1985)(Windham Classics)(II+)(Side A)[64K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Apventure to Atlantis (1982)(Synergistic Software)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Microsoft Adventure (1980)(Microsoft)[32K][req 13-sector drive].woz
+STATUS=TEXT mode=text pc=00:B17A hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Spindizzy (1986)(Activision)(II+)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BA80 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Peeping Tom (1982)(Micro Lab)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quest II - Vohaul's Revenge v2.0A (1987)(Sierra On-Line)(IIE)(Disk 1 of 4 Side B)[128K][interpreter 0.089].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Little Computer People side A.woz
+STATUS=CRASH_MON mode=text pc=FF:CF95 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Games, The - Summer Edition (1988)(Epyx)(IIE)(Disk 1 of 2 Side A)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bureaucracy r116 (1987-06-02)(Infocom)(IIE)(Side B)[128K].woz
+STATUS=CRASH_MON mode=text pc=FE:00E4 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bellhop (1982)(Hayden Book Company)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CFA9 hang=0 zp=1410 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #2 - Pirate Adventure v2.1-408 (1982)(Adventure International)(II+)(US)(Side B)(Boot)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shogun r311 (1989-05-10)(Infocom)(IIE)(Disk 1 of 3 Side B)(Side 2)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quest II - Vohaul's Revenge v2.0A (1987)(Sierra On-Line)(IIE)(Disk 3 of 4 Side A)[128K][interpreter 0.089].woz
+STATUS=TEXT mode=text pc=00:084C hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Conan (1984)(Datasoft)(Side B)[48K].woz
+STATUS=TEXT mode=text pc=00:46D1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alternate Reality- The Dungeon disk 1A.woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sammy Lightfoot (1983)(Sierra On-Line)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:0869 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shadowkeep (1984)(Trillium)(Disk 2 of 2 Side A)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:076C hang=0 zp=1120108 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Star Blazer (1981-12-15)(Brøderbund)(II-II+)[48K].woz
+STATUS=CRASH_BRK mode=text pc=00:C074 hang=0 zp=350141 brk=116545 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Infiltrator (1987)(Mindscape)(II+)(US)(Side A)[64K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:7A19 hang=0 zp=25434 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Spare Change (1983)(Brøderbund)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:C658 hang=0 zp=744665 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Red Alert (1981)(Brøderbund)(II-II+)(US)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:D95C hang=0 zp=767799 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SwordThrust 4 - The Case of the Sultan's Pearl (1981)(CE Software)(II+)[req Master Disk][48K].woz
+STATUS=OK_GFX mode=DHGR pc=00:9493 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic Book Two (1988)(New World Computing)(IIE)(Disk A)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/MicroChess v2.0 (1978)(Personal Software)(US)[16K][req 13-sector drive].woz
+STATUS=OK_GFX mode=HGR pc=00:61E4 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Track & Field (1984)(Atarisoft)[48K].woz
+STATUS=TEXT mode=text pc=00:0833 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Centauri Alliance (1990)(Brøderbund)(II+)(Disk 3 of 3 Side A)(Scenario 3)[64K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Monty Plays Scrabble v4.0 (1984)(Ritam Corporation)(II+)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FE:00E2 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/World's Greatest Football Game, The (1985)(Epyx)(II+)(Side B)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:0B36 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Decisive Battles of the American Civil War - Volume III v1.0 (1987)(Strategic Studies Group)(II+)(Side A)(Master Disk)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quest II - Vohaul's Revenge v2.0A (1987)(Sierra On-Line)(IIE)(Disk 3 of 4 Side B)[128K][interpreter 0.089].woz
+STATUS=OK_GFX mode=HGR pc=00:82BA hang=0 zp=695 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Ancient Art of War, The (1989)(Brøderbund)(IIE)(Side A)[re-release][128K].woz
+STATUS=CRASH_ZP mode=text pc=00:C6D9 hang=0 zp=6108 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sub Battle Simulator (1986)(Epyx)(II+)(Side A)[64K].woz
+STATUS=OK_GFX mode=HGR pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Eidolon, The (1985)(Epyx)(II+)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/The Oregon Trail v1.4 side A.woz
+STATUS=CRASH_MON mode=text pc=FE:0101 hang=0 zp=517 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Journey v16 (1989)(Infocom)(IIE)(Disk 1 of 3 Side A)(Side 1)[128K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Mars Cars (1982)(Datamost)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:B923 hang=0 zp=547 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Galactic Wars (1980)(Apple)[48K].woz
+STATUS=TEXT mode=text pc=00:BA38 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Carriers at War (1984)(Strategic Studies Group)(II+)(Disk 1 of 2 Side B)(Scenario Disk)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:0556 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Thunder Bombs (1982)(Penguin Software)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Commando (1987)(Data East USA)(IIE)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CEFD hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Mr. Robot and his Robot Factory (1984)(Datamost)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:022D hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Marauder (1982)(On-Line Systems)(II+)[48K].woz
+STATUS=CRASH_BRK mode=DHGR pc=00:0000 hang=1 zp=8366892 brk=8366384 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Street Sports Football (1988)(Epyx)(IIE)(Side B)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:8446 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Copts and Robbers (1981)(Sirius Software)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:BBBB hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Spiderbot (1988)(Epyx)(IIE)[128K][Maxx Out! series].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 2 of 5 Side C)[64K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF41 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alternate Reality- The Dungeon disk 2.woz
+STATUS=CRASH_MON mode=text pc=FE:00CD hang=0 zp=613 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #2 - Pirate Adventure v2.1-408 (1982)(Adventure International)(II+)(US)(Side A)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BD80 hang=0 zp=597 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/RobotWar (1981)(MUSE Software)(II+)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:BBA9 hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/California Games (1987)(Epyx)(IIE)(Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=1255 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Caverns of Freitag, The (1982)(MUSE Software)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=805 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Super Bunny (1983)(Datamost)(II+)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:01C4 hang=0 zp=14648955 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Zaxxon (1983)(Datasoft)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:B776 hang=0 zp=2475 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Haunted Palace, The (1982)(Crystalware)(II+)(Side A)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Arthur - The Quest for Excalibur v17 (1989)(Infocom)(IIE)(Disk 3 of 3 Side A)(Side 5)[128K].woz
+STATUS=CRASH_ZP mode=text pc=FE:00F7 hang=0 zp=8307 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Akalabeth - World of Doom (1980)(California Pacific Computer)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CFA6 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizard of Oz, The (1985)(Windham Classics)(II+)(Disk 2 of 2 Side A)[64K].woz
+STATUS=CRASH_BRK mode=text pc=00:064C hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/One on One (1983)(Electronic Arts)(II+)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CFDB hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Maniac Mansion (1987)(LucasFilm Games)(IIE)(Side B)[128K].woz
+STATUS=CRASH_MON mode=text pc=FE:00EE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Lords of Conquest (1986)(Electronic Arts)(II+)(Side B)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:B8DB hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Mindshadow (1985)(Activision)(II+)(Side A)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CFDB hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest (1984)(Sierra On-Line)(IIE)(Disk 1 of 2 Side B)[128K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=1032185 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Russki Duck (1982)(Gebelli Software)(II-II+)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 4 of 5 Side A)[128K].woz
+STATUS=CRASH_MON mode=text pc=FE:00D6 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Suspect r14 (1984-10-05)(Infocom)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest II - Romancing the Throne (1985)(Sierra On-Line)(IIE)(Disk 1 of 3 Side B)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:BDA3 hang=0 zp=2035 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dawn Patrol (1982)(TSR Hobbies)(II+)[a woz-a-day][48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 4 of 5 Side B)[128K].woz
+STATUS=TEXT mode=text pc=00:BA00 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bug Battle (1982)(United Software of America)(US)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FC:CEBB hang=0 zp=18443 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Jawbreaker (1981)(Sierra On-Line)(II-II+)[48K][AKA Jawbreaker II].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Aquatron (1983)(Sierra On-Line)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Leisure Suit Larry in The Land of The Lounge Lizards (1987)(Sierra On-Line)(IIE)(Disk 1 of 3 Side B)[128K].woz
+STATUS=HANG mode=text pc=00:0847 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dark Lord (1987)(Datasoft)(II+)(Side B)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quest II - Vohaul's Revenge v2.0A (1987)(Sierra On-Line)(IIE)(Disk 4 of 4 Side B)[128K][interpreter 0.089].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Kabul Spy (1981)(Sirius Software)(Side B)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest II - Romancing the Throne (1985)(Sierra On-Line)(IIE)(Disk 3 of 3 Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:BB23 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Tag Team Wrestling (1984)(Data East USA)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/2400 A.D. (1987)(Origin Systems)(II+)(Disk 2 of 2)(Player Disk)[64K].woz
+STATUS=TEXT mode=text pc=00:B95C hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Hyper Head On (1980)(Brøderbund)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0B58 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Carriers at War (1984)(Strategic Studies Group)(II+)(Disk 1 of 2 Side A)(Master Disk)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:0E79 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Spy Hunter (1983)(Bally Midway)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:018A hang=0 zp=23766625 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shuffleboard (1981)(IDSI)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:19FC hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Epoch (1981)(Sirius Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:168F hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Flight Simulator I (1980)(subLOGIC)[32K][AKA A2-FS1].woz
+STATUS=TEXT mode=text pc=00:A871 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Reach for the Stars v1.0 (1983)(Strategic Studies Group)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Apple Cider Spider (1983)(Sierra On-Line)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Donkey Kong (1983)(Atarisoft)[48K].woz
+STATUS=TEXT mode=text pc=00:D360 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wishbringer r23 (1988-07-06)(Infocom)(IIE)(Side A)[128K][Interpeter 2 Version H][Solid Gold].woz
+STATUS=TEXT mode=text pc=00:3A02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alien Munchies (1983)(Gentry Software)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:2743 hang=0 zp=520 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Essex (1985)(Brøderbund)(Disk 1 of 2 Side A)[48K][cp manual].woz
+STATUS=CRASH_MON mode=text pc=FE:00C5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Congo Bongo.woz
+STATUS=OK_GFX mode=HGR pc=00:AF64 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Mating Zone (1983)(Datamost)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:E5B5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossword Magic v4.0 (1985)(Mindscape)(US)(Social Studies Puzzle Disk)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizard of Oz, The (1985)(Windham Classics)(II+)(Disk 1 of 2 Side A)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:FCDC hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Lost Tomb (1984)(Datasoft)[48K].woz
+STATUS=HANG mode=text pc=00:0822 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/G. I. Joe (1985)(Epyx)(II+)(Side B)[64K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Journey v16 (1989)(Infocom)(IIE)(Disk 3 of 3 Side A)(Side 5)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:0B26 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Decisive Battles of the American Civil War - Volume II v1.0 (1987)(Strategic Studies Group)(II+)(Side A)(Master Disk)[64K].woz
+STATUS=CRASH_MON mode=text pc=FE:00C8 hang=0 zp=613 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #6 - Strange Odyssey v2.1-119 (1982)(Adventure International)(II+)(US)(Side A)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF9C hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Essex (1985)(Brøderbund)(Disk 1 of 2 Side B)[48K][cp manual].woz
+STATUS=TEXT mode=text pc=00:BA02 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Hacker II - The Doomsday Papers (1986)(Activision)(II+)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:7B4F hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Fidelity Chessmaster 2100, The (1988)(The Software Toolworks)(II+)(Side A)[64K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Kid Niki - Radical Ninja (1987)(Data East USA)(II+)(Side B)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:60CD hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/The Neverending Story.woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zork I - The Great Underground Empire r5 (1980)(Personal Software)[48K][req 13-sector drive].woz
+STATUS=TEXT mode=text pc=00:0874 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Bounty (1990)(New World Computing)(IIE)(Side B)[128K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF3F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossword Magic v4.0 (1985)(Mindscape)(US)(Reading Puzzle Disk)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:D387 hang=0 zp=541 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/OGRE (1986)(Origin Systems)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:1D1B hang=0 zp=541 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Coveted Mirror, The (1985)(Polarware)(II+)(Side B)(Boot)[64K][re-release].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Championship Baseball (1986)(Activision)(II+)(Side B)[64K].woz
+STATUS=CRASH_MON mode=text pc=FE:00E5 hang=0 zp=527 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Zork Zero (1989)(Infocom)(IIE)(Disk 1 of 2 Side A)(Side 1)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dunjonquest - Hellfire Warrior v2 (1980)(Automated Simulations)(II+)[req 13-sector drive][48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Leisure Suit Larry in The Land of The Lounge Lizards (1987)(Sierra On-Line)(IIE)(Disk 2 of 3 Side B)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Leisure Suit Larry in The Land of The Lounge Lizards (1987)(Sierra On-Line)(IIE)(Disk 3 of 3 Side A)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sands of Mars, The (1980)(Crystal Software)(Side B)[48K][req 13-sector drive].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry V - Heart of the Maelstrom (1988)(Sir-Tech)(II+)(Disk 1 of 5 Side A)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dunjonquest - The Datestones of Ryn (1980)(Automated Simulations)(II+)[48K][req 13-sector drive].woz
+STATUS=HANG mode=text pc=00:3FB0 hang=1 zp=542 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crimson Crown, The (1985)(Polarware)(II+)(Side A)[64K][AKA Transylvania II].woz
+STATUS=CRASH_BRK mode=HGR pc=FF:BC85 hang=0 zp=512 brk=143382 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Star Thief (1981)(Cavalier Computer)(II-II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BA38 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Decisive Battles of the American Civil War - Volume I v1.0 (1987)(Strategic Studies Group)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 3 of 5 Side A)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:D4E4 hang=0 zp=540 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Chemistry- The Periodic Table v1.0.woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Fight Night (1985)(Accolade)(II+)[64K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=12810 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Frogger (1981)(Sierra On-Line)[48K][Spiradisc][updated version].woz
+STATUS=CRASH_ZP mode=text pc=00:D63E hang=0 zp=790605 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SwordThrust 5 - The Green Plague (1981)(CE Software)(II+)[req Master Disk][48K].woz
+STATUS=OK_GFX mode=HGR pc=00:043F hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/A.E. (1982)(Brøderbund)(Side A)[48K].woz
+STATUS=TEXT mode=text pc=00:D388 hang=0 zp=541 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/2400 A.D. (1987)(Origin Systems)(II+)(Disk 1 of 2)(Program Disk)[64K].woz
+STATUS=TEXT mode=text pc=00:BA3B hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Panzer Battles (1989)(Strategic Studies Group)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shogun r311 (1989-05-10)(Infocom)(IIE)(Disk 3 of 3 Side A)(Side 5)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:BD80 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Phantoms Five (1980)(Sirius Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:D494 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/GATO (1985)(Spectrum Holobyte)(IIE)[128K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Heist, The (1983)(Micro Fun)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:B970 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Star Cruiser (1980)(Sirius Software)[48K].woz
+STATUS=TEXT mode=text pc=00:BB54 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Maxwell Manor (1984)(Avalon Hill)(II+)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BC8E hang=0 zp=510 brk=163037 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Caverns of Callisto (1983)(Origin Systems)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CF07 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ankh (1983)(Datamost)[48K].woz
+STATUS=CRASH_ZP mode=LORES pc=00:B775 hang=0 zp=91604 brk=0 rom=0 gfx=0 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Fore (1982)(Epyx)(II+)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:01F8 hang=0 zp=1177164 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Labyrinth (1982)(Brøderbund)(II-II+)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:066C hang=0 zp=27932 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Snapper, The (1982)(Silicon Valley Systems)[48K].woz
+STATUS=TEXT mode=text pc=00:0853 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ancient Art of War, The (1989)(Brøderbund)(IIE)(Side B)[re-release][128K].woz
+STATUS=TEXT mode=text pc=00:083A hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Labyrinth (1986)(Activision)(IIE)(Side B)[128K].woz
+STATUS=CRASH_BRK mode=text pc=00:0000 hang=1 zp=8908659 brk=8876977 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quarks (1981)(Brøderbund)(II-II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF41 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alternate Reality - The Dungeon v2.1 (1987)(Datasoft)(II+)(Disk 2 of 2)[64K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima V - Warriors of Destiny (1988)(Origin Systems)(II+)(Disk 7 of 8)(Dungeon)[64K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crimson Crown, The (1985)(Polarware)(II+)(Side B)[64K][AKA Transylvania II].woz
+STATUS=TEXT mode=text pc=00:BA67 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Thief (1981)(Datamost)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FE:FBE3 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Decisive Battles of the American Civil War - Volume III v1.0 (1987)(Strategic Studies Group)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=TEXT mode=text pc=00:BA3B hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Europe Ablaze (1985)(Strategic Studies Group)(II+)(Disk 2 of 3 Side B)(Backup Scenario Disk)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:1100 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Star Trek - Strategic Operations Simulator (1983)(Sega)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alpine Encounter, The (1983)(Random House)(II+)(Side B)[48K].woz
+STATUS=TEXT mode=text pc=00:B776 hang=0 zp=740 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Elite (1985)(Firebird)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=1875 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Questprobe featuring Spider-Man vF261 (1984)(Adventure International)(II+)(US)(Side A)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BD76 hang=0 zp=349718 brk=116404 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Infiltrator Part II - The Next Day (1987)(Mindscape)(II+)(US)(Side A)[64K].woz
+STATUS=TEXT mode=text pc=00:0829 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sporting News, The - Baseball (1988)(Epyx)(IIE)(Side B)[128K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Hunt for Red October, The (1988)(Datasoft)(IIE)(Side A)[128K].woz
+STATUS=OK_GFX mode=DHGR pc=00:D387 hang=0 zp=540 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Renegade (1989)(Taito America)(IIE)(US)(Side A)[128K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:3AAB hang=0 zp=205131 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Archon - The Light and the Dark (1984)(Electronic Arts)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quest II - Vohaul's Revenge v2.0A (1987)(Sierra On-Line)(IIE)(Disk 2 of 4 Side B)[128K][interpreter 0.089].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 5 of 8 Side A)[128K][cp manual].woz
+STATUS=CRASH_BRK mode=text pc=FE:00D8 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Rendezvous with Rama (1984)(Trillium)(II+)(Disk 1 of 2 Side B)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:05E0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Repton (1982)(Sirius Software)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF3F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Infidel r22 (1983-09-16)(Infocom)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:52C0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Suicide! (1981)(Piccadilly Software)[48K].woz
+STATUS=HANG mode=text pc=00:0955 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Indiana Jones and the Temple of Doom (1989)(Mindscape)(IIE)(US)(Side B)(Data Disk)[128K].woz
+STATUS=TEXT mode=text pc=00:D3F3 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dark Lord (1987)(Datasoft)(II+)(Side A)[64K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDE hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Impossible Mission (1984)(Epyx)(II+)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:B776 hang=0 zp=1848 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Sorcerer of Siva (1981)(Epyx)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:D387 hang=0 zp=557 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Indiana Jones and the Temple of Doom (1989)(Mindscape)(IIE)(US)(Side A)[128K].woz
+STATUS=TEXT mode=text pc=00:D35F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Planetfall r10 (1988-05-31)(Infocom)(IIE)(Side A)[128K][Solid Gold Edition].woz
+STATUS=TEXT mode=text pc=00:D388 hang=0 zp=540 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Battle Chess (1990)(Interplay)(IIE)(Side A)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FE:011F hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Escape! (1981)(subLOGIC)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Roundabout (1983)(Datamost)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:EB9A hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Marble Madness (1986)(Electronic Arts)(IIE)(Side A)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 4 of 8 Side B)[128K][cp manual].woz
+STATUS=TEXT mode=text pc=00:BA38 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Battlefront v1.0 (1986)(SSG)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Escape (1985)(Bantam Electronic Publishing)(II+)[64K].woz
+STATUS=CRASH_MON mode=text pc=FE:011F hang=0 zp=613 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #1 - Adventureland v2.0-416 (1982)(Adventure International)(II+)(US)(Side A)[48K].woz
+STATUS=TEXT mode=text pc=00:0851 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/The Oregon Trail v1.4 side B.woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Money Munchers (1982)(Datamost)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:0833 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bard's Tale, The - Tales of the Unknown (1985)(Electronic Arts)(II+)(Character Disk)[64K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Guderian (1986)(Avalon Hill)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Prince of Persia (1989)(Brøderbund)(IIE)(Side B)[128K].woz
+STATUS=OK_GFX mode=HGR pc=00:70EB hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Arcticfox (1986)(Electronic Arts)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:0866 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shadowkeep (1984)(Trillium)(Disk 1 of 2 Side B)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FE:0125 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Gamma Goblins (1981)(Sirius Software)(II-II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:00E2 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Europe Ablaze (1985)(Strategic Studies Group)(II+)(Disk 3 of 3 Side B)(Save Game Disk B)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Asteroids in Space (1980)(Quality Software)[32K][req 13-sector drive].woz
+STATUS=OK_GFX mode=HGR pc=00:42FC hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Tomahawk (1987)(Datasoft)(II+)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BC51 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Rescue Raiders (1984)(Sir-Tech)(US)[64K].woz
+STATUS=TEXT mode=text pc=00:0869 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Shadowkeep (1984)(Trillium)(Disk 2 of 2 Side B)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:0B46 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Europe Ablaze (1985)(Strategic Studies Group)(II+)(Disk 1 of 3 Side A)(Master Disk)[64K].woz
+STATUS=TEXT mode=text pc=00:DA03 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima V - Warriors of Destiny (1988)(Origin Systems)(II+)(Disk 1 of 8)(Program)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Pharaoh's Revenge (1988)(Publishing International)(II+)(US)(Side A)(Play Disk)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:04F0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Up 'N Down (1984)(Sega)[48K].woz
+STATUS=TEXT mode=text pc=00:0830 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Centauri Alliance (1990)(Brøderbund)(II+)(Disk 1 of 3 Side B)(Roster)[64K].woz
+STATUS=CRASH_MON mode=text pc=FE:0109 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dave Winfield's Batter Up! (1985)(Avant-Garde Publishing)(II+)(Side B)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 6 of 8 Side B)[128K][cp manual].woz
+STATUS=CRASH_MON mode=text pc=FE:0101 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Starcross r17 (1982-10-21)(Infocom)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:00B1 hang=0 zp=265693 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Dunjonquest - Hellfire Warrior v3 (1980)(Automated Simulations)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:41DB hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/ALF - The First Adventure v3.2 (1987)(Box Office)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:B94F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 1 of 8 Side A)[128K][cp manual].woz
+STATUS=TEXT mode=text pc=00:BA71 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/H.E.R.O. (1984)(Activision)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDE hang=0 zp=1119328 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Phaser Fire (1982)(Gebelli Software)(II-II+)[48K].woz
+STATUS=CRASH_BRK mode=text pc=FE:0121 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Winter Games (1985)(Epyx)(II+)(Side B)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:61BF hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Gold Rush (1982)(Sentient Software)[48K].woz
+STATUS=TEXT mode=text pc=00:09F9 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Batman - The Caped Crusader (1988)(Data East)(IIE)(Side B)[128K].woz
+STATUS=TEXT mode=text pc=00:B948 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/World's Greatest Baseball Game, The (1985)(Epyx)(II+)[64K].woz
+STATUS=CRASH_ZP mode=text pc=00:BBB0 hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Street Sports Baseball (1987)(Epyx)(IIE)[128K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Trinity r11 (1986-05-09)(Infocom)(IIE)(Side B)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FF:BFCC hang=0 zp=292049 brk=97181 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Gauntlet (1986)(Mindscape)(II+)(US)(Side B)[64K][E7].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Leisure Suit Larry in The Land of The Lounge Lizards (1987)(Sierra On-Line)(IIE)(Disk 1 of 3 Side A)[128K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:BA7E hang=0 zp=4974 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Both Barrels (1980)(Sirius Software)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:60CD hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Neverending Story, The (1985)(Datasoft)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest III - To Heir is Human (1987)(Sierra On-Line)(IIE)(Disk 2 of 5 Side B)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:EBF9 hang=0 zp=1178257 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Tuesday Morning Quarterback (1981)(Automated Simulations)(II+)[48K].woz
+STATUS=TEXT mode=text pc=00:BA03 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Short Circuit (1984)(Micro Fun)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 4 of 8 Side A)[128K][cp manual].woz
+STATUS=TEXT mode=text pc=00:6D2B hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/AIRSIM 1 (1981)(Mind Systems)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:1827 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Frogger II - Three Deep (1984)(Sega)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:4B9E hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Night Mission Pinball (1982)(subLOGIC)[48K].woz
+STATUS=TEXT mode=text pc=00:0CF8 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Goonies, The (1985)(Datasoft)[48K].woz
+STATUS=TEXT mode=text pc=00:29A1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Enchanter r15 (1983-11-07)(Infocom)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CEFC hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Alibi (1981)(Hayden Book Company)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:0105 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossword Magic v4.0 (1985)(Mindscape)(US)(Language Arts Puzzle Disk)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF94 hang=0 zp=1553 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Earthquake - San Francisco 1906 (1982)(Adventure International)(II+)(Side B)[48K][Apple Other-Ventures #4].woz
+STATUS=CRASH_ZP mode=text pc=00:BDA0 hang=0 zp=371035 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Pitstop II (1984)(Epyx)[48K].woz
+STATUS=TEXT mode=text pc=00:BD80 hang=0 zp=597 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Castle Wolfenstein (1981)(MUSE Software)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Tass Times in Tonetown (1986)(Activision)(II+)(Side B)[64K].woz
+STATUS=TEXT mode=text pc=00:BA3B hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Halls of Montezuma (1987)(Strategic Studies Group)(II+)(Side B)(Scenario Disk)[64K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF95 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossword Magic v4.0 (1985)(Mindscape)(US)(Science Puzzle Disk)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:4442 hang=0 zp=221403 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Bard's Tale, The - Tales of the Unknown (1985)(Electronic Arts)(II+)(Boot Disk)[64K].woz
+STATUS=CRASH_ZP mode=text pc=00:9897 hang=0 zp=305186 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Galactic Attack (1980)(Sir-Tech)(II+)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:A314 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Skyfox (1984)(Electronic Arts)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 8 of 8 Side B)[128K][cp manual].woz
+STATUS=OK_GFX mode=HGR pc=FF:CFA9 hang=0 zp=1101 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Roadwar 2000 v1.1 (1986)(SSI)(II+)(Side A)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Tharolian Tunnels (1982)(Datamost)(II+)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CFA9 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Cutthroats r23 (1984-08-09)(Infocom)(II+)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima V - Warriors of Destiny (1988)(Origin Systems)(II+)(Disk 8 of 8)(Underworld)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/L.A. Crackdown (1988)(Epyx)(IIE)(Side B)[128K].woz
+STATUS=TEXT mode=text pc=00:BB22 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dino Eggs (1983)(Micro Fun)[48K].woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Cubit (1983)(Micromax)(II+)[48K].woz
+STATUS=CRASH_ZP mode=HGR pc=00:8820 hang=0 zp=272621 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Wizardry - Legacy of Llylgamyn - The Third Scenario v4 (1983-05-04)(Sir-Tech)(II+)(Side B)(Boot)[48K][sn 121090].woz
+STATUS=CRASH_MON mode=text pc=FF:CFA9 hang=0 zp=763 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Haunted Palace, The (1982)(Crystalware)(II+)(Side B)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:47BD hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Spider Raid (1982)(InSoft)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF3B hang=0 zp=1410 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/SAGA #3 - Mission Impossible v2.1-306 (1982)(Adventure International)(II+)(US)(Side B)(Boot)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/King's Quest IV - The Perils of Rosella (1989)(Sierra On-Line)(IIE)(Disk 3 of 8 Side B)[128K][cp manual].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Space Quest II - Vohaul's Revenge v2.0A (1987)(Sierra On-Line)(IIE)(Disk 2 of 4 Side A)[128K][interpreter 0.089].woz
+STATUS=CRASH_BRK mode=text pc=00:0000 hang=1 zp=8852403 brk=8851894 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dive Bomber (1988)(Epyx)(II+)[64K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bruce Lee (1984)(Datasoft)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:9E6D hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Falcons (1981)(Piccadilly Software)[48K].woz
+STATUS=TEXT mode=text pc=00:D4D5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Heavy Barrel (1989)(Data East USA)(IIE)(Side B)[128K].woz
+STATUS=OK_GFX mode=DHGR pc=00:DF8C hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Test Drive (1988)(Accolade)(IIE)(Side A)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:0359 hang=0 zp=1120498 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/High Orbit (1982)(Gebelli Software)(II-II+)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Arthur - The Quest for Excalibur v17 (1989)(Infocom)(IIE)(Disk 1 of 3 Side B)(Side 2)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:BBB3 hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Impossible Mission II side A.woz
+STATUS=TEXT mode=text pc=00:BDA1 hang=0 zp=684 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crime Stopper (1982)(Hayden Book Company)[48K].woz
+STATUS=TEXT mode=text pc=00:0A15 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Platoon (1988)(Data East)(IIE)(Side A)[128K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=6108 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/L.A. Crackdown (1988)(Epyx)(IIE)(Side A)[128K].woz
+STATUS=CRASH_BRK mode=text pc=FE:FBE0 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Sherlock Holmes in Another Bow (1985)(Bantam Software)(II+)(Side B)[64K].woz
+STATUS=OK_GFX mode=HGR pc=00:BD9E hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Alcazar - The Forgotten Fortress (1985)(Activision)[48K].woz
+STATUS=CRASH_MON mode=text pc=FE:00E5 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Witness, The r22 (1984-09-24)(Infocom)[48K].woz
+STATUS=TEXT mode=text pc=00:085D hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Games, The - Summer Edition (1988)(Epyx)(IIE)(Disk 2 of 2 Side B)[128K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Bilestoad, The (1983)(Datamost)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:6108 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Snake Byte (1981)(Sirius Software)[48K].woz
+STATUS=HANG mode=text pc=00:094D hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima V - Warriors of Destiny (1988)(Origin Systems)(II+)(Disk 5 of 8)(Dwelling)[64K].woz
+STATUS=TEXT mode=text pc=00:0874 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Might and Magic Book Two (1988)(New World Computing)(IIE)(Disk D)[128K].woz
+STATUS=OK_GFX mode=DHGR pc=00:B6AC hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Injured Engine (1984)(Imagic)(II+)(Side A)[48K].woz
+STATUS=CRASH_ZP mode=text pc=FF:FCDC hang=0 zp=1119198 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Serpentine (1982)(Brøderbund)(II-II+)[48K].woz
+STATUS=CRASH_ZP mode=text pc=00:C6C1 hang=0 zp=5599 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Wings of Fury (1987)(Brøderbund)(IIE)(Side A)[128K].woz
+STATUS=CRASH_MON mode=text pc=FF:CF3F hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossword Magic v4.0 (1985)(Mindscape)(US)(Spelling Puzzle Disk)[48K].woz
+STATUS=HANG mode=text pc=00:C5E0 hang=1 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Ultima IV - Quest of the Avatar (1985)(Origin Systems)(II+)(Disk 2 of 2 Side D)(Underworld)[64K].woz
+STATUS=CRASH_BRK mode=text pc=FF:CFA9 hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Crossbow (1988)(Absolute Entertainment)(IIE)(Side A)[128K].woz
+STATUS=CRASH_ZP mode=text pc=00:BDA0 hang=0 zp=56832 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Theatre Europe (1986)(Datasoft)(II+)[64K].woz
+STATUS=TEXT mode=text pc=00:BDA0 hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Dark Crystal, The (1982)(Sierra On-Line)(Disk 1 of 2 Side A)[48K][Hi-Res Adventure #6].woz
+STATUS=CRASH_BRK mode=text pc=FF:CEFC hang=0 zp=509 brk=1 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Station 5 (1984)(Micro Fun)(II+)[48K].woz
+STATUS=OK_GFX mode=HGR pc=00:BDA1 hang=0 zp=509 brk=0 rom=0 gfx=1 text=0 | /home/gistarcade/src/POM2/disks_5.4/woz/Gremlins (1984)(Atarisoft)[48K].woz
+STATUS=CRASH_MON mode=text pc=FF:FCDE hang=0 zp=509 brk=0 rom=0 gfx=0 text=1 | /home/gistarcade/src/POM2/disks_5.4/woz/Kid Niki - Radical Ninja (1987)(Data East USA)(II+)(Side A)[64K].woz

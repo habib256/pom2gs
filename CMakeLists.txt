@@ -228,4 +228,8 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     # Headless PNG screenshot of a booting ROM (dev tool).
     add_executable(screenshot tests/screenshot.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(screenshot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+    # Headless compatibility triage (boots a disk, classifies how far it got).
+    add_executable(triage tests/triage.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/VGC.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    target_include_directories(triage PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()
