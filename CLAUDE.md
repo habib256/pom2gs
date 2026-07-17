@@ -79,7 +79,7 @@ its hardware logic into these files. 🟢 = working + pinned test.
 | **ADB GLU** (keyboard/mouse/modifiers, HLE) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 IRQ kbd/mouse, ⌘-menu shortcuts (`adb_test`) | MAME `apple2gs.cpp` ADB GLU |
 | **Battery RAM + RTC** ($C033/$C034 serial) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 Control Panel shows host local time; BRAM r/w | KEGS clock.c, MAME |
 | **SmartPort / ProDOS HDD** (HLE via `WDM $42` trap; slot-7 block device) | `IIgsMemory.h/.cpp` + `ProDosHdd.h/.cpp` | 🟢 GS/OS installs+boots from HDD | KEGS, Apple SmartPort firmware |
-| **VGC** — Super Hi-Res 320/640 + SCB/palettes, **and** legacy 40/80-col text (char ROM 344s0047) + HGR/DHGR (NTSC-composite / RGB-clean) → 640×400 GL | `VGC.h/.cpp`, `VGCNtsc.h` | 🟢 SHR/text/HGR/DHGR render; scanline IRQ TODO | MAME `apple2gs.cpp` VGC |
+| **VGC** — Super Hi-Res 320/640 + SCB/palettes, **and** legacy 40/80-col text (char ROM 344s0047) + HGR/DHGR (NTSC-composite / RGB-clean) → 640×400 GL | `VGC.h/.cpp`, `VGCNtsc.h` | 🟢 SHR/text/HGR/DHGR render + per-line SCB scanline IRQ ($C023/$C032, $C02E/2F ack — `irq_test`) | MAME `apple2gs.cpp` VGC |
 | **Ensoniq 5503 DOC** — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$F) | `Es5503.h/.cpp` | 🟢 MAME es5503 parity (`doc_test`) | MAME `es5503.cpp`, Ensoniq datasheet |
 | **Audio host** — miniaudio mono-f32 ring; speaker ($C030) + DOC mix | `Audio.h/.cpp` | 🟢 (native; WASM stub) | POM2 AudioDevice pattern |
 | **IWM** — 5.25" bit-cell read/**write** + **WOZ** (POM2 `DiskImage` port) + **3.5" Sony LLE** | `Iwm.h/.cpp`, `DiskImage.h/.cpp`, `Sony35.h/.cpp` | 🟢 5.25": .dsk/.po/.nib/.d13/.2mg/.woz via the $C600 PROM — **Choplifter boots to gameplay, protected WOZ originals (A.E.) boot**; writes persist (`iwm525_test`). 3.5": `iwm35 = 1` → real Sony drive, **GS/OS boots to the Finder via the genuine slot-5 ROM firmware** (`iwm35_test`) | POM2 `DiskImage`, MAME `iwm.cpp`+`floppy.cpp`, KEGS `iwm.c` |
@@ -161,7 +161,8 @@ POMIIGS to broad KEGS/MAME/GSSquared parity:
 - **Real IWM 3.5" Sony LLE 🟢** (`Sony35`, `iwm35 = 1`): the genuine slot-5 ROM
   firmware drives the drive nibble-by-nibble — **GS/OS boots to the Finder**.
 
-Open: 3.5" FORMAT/tach calibration, VGC scanline IRQ, rewind ring, WASM audio,
+Open: 3.5" FORMAT/tach calibration, mid-frame SHR palette splits (scanline IRQ
+timing is real; the renderer still draws whole frames), rewind ring, WASM audio,
 full ADB µC command model. (SWIM is out of scope: it only existed on the
 unreleased "Mark Twain" prototype — every production IIgs uses the IWM.)
 See `TODO.md` for the parity dashboard + backlog.

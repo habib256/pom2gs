@@ -388,6 +388,7 @@ private:
     // Recompute the shared CPU IRQ lines from the flag/enable registers.
     void updateMega2Irq();   // VBL + ¼-second ($C041 INTEN & $C046 INTFLAG)
     void updateVgcIrq();     // scan-line + 1-second ($C023 VGCINT)
+    void clearVgcScanline(); // $C02E/$C02F read side-effect (MAME clear_vgcint)
     // SmartPort HLE (slot-5 3.5" drive).
     void    prodosBlockCall();       // WDM $C6 — ProDOS block via $42-$47
     void    smartportCall();         // WDM $C5 — SmartPort dispatch (inline params)

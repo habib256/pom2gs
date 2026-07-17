@@ -59,16 +59,33 @@ int main() {
     mem.write8(io(0x32), 0);                          // VGCINTCLEAR
     check("1sec cleared",     !line(VGC));
 
-    // ── scan-line (VGC, SHR + SCB bit6) ──────────────────────────────────
+    // ── scan-line (VGC, SHR + SCB bit6) — per-line, tick()-driven ────────
+    // One display line = 65 slow CPU cycles (×14 = 910 master ticks), so
+    // tick(65) at reset speed advances the beam exactly one line.
     mem.reset(); cpu.hardReset();
     mem.write8(io(0x29), 0x80);                       // NEWVIDEO: SHR on
     mem.write8((uint32_t(0xE1) << 16) | 0x9D05, 0x40);// SCB line 5 requests scan IRQ
     mem.write8(io(0x23), 0x02);                       // VGCINT: scan-line enable
-    mem.frameTick();
+    for (int i = 0; i < 3; ++i) mem.tick(65);         // beam at line ~3: not yet
+    check("scanline not before line 5", (mem.read8(io(0x23)) & 0x20) == 0);
+    for (int i = 0; i < 5; ++i) mem.tick(65);         // beam crosses line 5
     check("scanline status bit5", (mem.read8(io(0x23)) & 0x20) != 0);
+    check("scanline IRQ bit7",    (mem.read8(io(0x23)) & 0x80) != 0);
     check("scanline IRQ line",    line(VGC));
-    mem.write8(io(0x32), 0);
+    mem.write8(io(0x32), 0);                          // VGCINTCLEAR
     check("scanline cleared",     !line(VGC));
+    // Re-fires when the beam crosses the flagged line again (next frame).
+    for (int i = 0; i < 262; ++i) mem.tick(65);
+    check("scanline re-fires next frame", line(VGC));
+    // Reading VERTCNT ($C02E) acknowledges the SCB interrupt (MAME :1674).
+    (void)mem.read8(io(0x2E));
+    check("VERTCNT read clears scanline", !line(VGC) && (mem.read8(io(0x23)) & 0x20) == 0);
+    // Disabled: crossing the line still latches STATUS but no IRQ.
+    mem.write8(io(0x23), 0x00);                       // scan-line enable off
+    mem.write8(io(0x32), 0);                          // clear pending status
+    for (int i = 0; i < 262; ++i) mem.tick(65);
+    check("scanline status latches when disabled", (mem.read8(io(0x23)) & 0x20) != 0);
+    check("scanline no IRQ when disabled", !line(VGC));
 
     // ── DOC oscillator IRQ ───────────────────────────────────────────────
     mem.reset(); cpu.hardReset();

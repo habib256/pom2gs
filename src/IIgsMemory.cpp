@@ -56,6 +56,21 @@ void IIgsMemory::tick(int cpuCycles) {
         intflag_ |= 0x08;                                 // INTFLAG_VBL
         updateMega2Irq();
     }
+    // VGC scan-line interrupt: for every display line the beam ENTERED since
+    // the last tick, a Super Hi-Res SCB with bit 6 set latches $C023 bit 5
+    // (status even when disabled) and raises the VGC IRQ when enabled —
+    // MAME apple2gs.cpp apple2_vgc (~1090-1125), per line during HBL.
+    if (vp != lastVpos_ && shrEnabled()) {
+        const uint8_t* scb = slowRam_.data() + 0x10000 + 0x9D00;   // $E1/9D00+L
+        int l = lastVpos_, steps = kLines;                // cap one full frame
+        while (l != vp && steps-- > 0) {
+            l = (l + 1) % kLines;
+            if (l < 200 && (scb[l] & 0x40)) {
+                vgcint_ |= 0x20;
+                updateVgcIrq();
+            }
+        }
+    }
     lastVpos_ = vp;
 
     // ADB mouse-interrupt safety valve: if a posted mouse sample isn't consumed
@@ -244,6 +259,14 @@ void IIgsMemory::adbCommand(uint8_t v) {
     updateAdbIrq();
 }
 
+// Reading VERTCNT/HORIZCNT ($C02E/$C02F) clears the scan-line interrupt —
+// MAME apple2gs.cpp:1674-1683 clear_vgcint(~VGCINT_SCANLINE): raster loops
+// poll the beam counters and each read acknowledges the pending SCB int.
+void IIgsMemory::clearVgcScanline() {
+    vgcint_ &= uint8_t(~0x20);
+    updateVgcIrq();
+}
+
 void IIgsMemory::updateVgcIrq() {
     const bool oneSec = (vgcint_ & 0x04) && (vgcint_ & 0x40);  // enable 0x04 & status 0x40
     const bool scan   = (vgcint_ & 0x02) && (vgcint_ & 0x20);  // enable 0x02 & status 0x20
@@ -260,14 +283,7 @@ void IIgsMemory::frameTick() {
     if (frameCount_ % 16 == 0) { intflag_ |= 0x10; updateMega2Irq(); }   // 16 VBLs (MAME frame&0xf, KEGS >=16)
     // 1-second → VGC status bit6.
     if (frameCount_ % 60 == 0) { vgcint_ |= 0x40; updateVgcIrq(); }
-    // Scan-line (SHR): if enabled ($C023 bit1) and any SCB line requests an
-    // interrupt (SCB bit6), fire once. The renderer draws a whole frame in one
-    // mode, so this is status/IRQ only — no mid-frame split yet.
-    if (shrEnabled()) {                     // set scanline STATUS regardless of enable; updateVgcIrq() gates the IRQ (MAME)
-        const uint8_t* scb = slowRam_.data() + 0x10000 + 0x9D00;
-        for (int l = 0; l < 200; ++l)
-            if (scb[l] & 0x40) { vgcint_ |= 0x20; updateVgcIrq(); break; }
-    }
+    // (Scan-line interrupts fire per-line from tick() — see the vpos walk.)
     // DOC oscillator IRQ: safety re-mirror (the per-tick path is the fast one).
     mirrorDocIrq();
 }
@@ -851,6 +867,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             // reads 0x100 (→ VERTCNT 0x80), not 0. POMIIGS vpos() is already the
             // visible-line index (0 = first active), so MAME's `256 - BORDER_TOP`
             // bias reduces to `256 + vpos()`, wrapping past 511 by a frame height.
+            clearVgcScanline();                             // reading VERTCNT clears SCB status (MAME :1674)
             int c = 256 + vpos();
             if (c > 511) c -= kLines;
             return uint8_t((c >> 1) & 0xFF);
@@ -860,6 +877,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             // $40-$7F across the 65-cycle scan line. It was stuck at 0, so
             // raster-synced code (Battle Chess waits for `$C02F & $1F` to enter a
             // beam window at $00:AB26) spun forever on a frozen beam.
+            clearVgcScanline();                             // reading HORIZCNT clears SCB status (MAME :1681)
             const uint32_t h = uint32_t((videoCycles_ % uint64_t(kMasterPerLine)) / 14);   // 0..64
             return uint8_t(uint32_t((vpos() & 1) << 7) | (h == 0 ? 0u : 0x3Fu + h));
         }

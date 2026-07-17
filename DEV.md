@@ -202,8 +202,17 @@ New: the **VGC (Video Graphics Controller)** Super Hi-Res —
 palettes × 16 colours × 12-bit RGB). Per line the SCB picks 320-mode
 (16 colours/line) or 640-mode (4 colours + dither), a palette, and fill/IRQ
 bits — up to 256 on-screen colours. VGC also raises the **scanline interrupt**
-and **VBL**, load-bearing for beam-raced demos. Reuse POM2's beam-racing
-softswitch event log so mid-frame SCB/palette writes land on the right line.
+and **VBL**, load-bearing for beam-raced demos.
+
+**Scanline interrupt (done, `irq_test`).** The tick() beam walk fires for
+every display line the beam enters: an SHR SCB with bit 6 latches $C023 bit 5
+at that line (status even when disabled — MAME apple2gs.cpp apple2_vgc
+~1090-1125) and asserts the VGC IRQ when $C023 bit 1 is set; $C032 writes and
+**$C02E/$C02F reads** acknowledge it (clear_vgcint(~SCANLINE), MAME
+:1674-1683). One IRQ per flagged line per frame. Still open: the renderer
+draws whole frames, so mid-frame palette-content splits (3200-colour
+pictures) don't show yet — needs a per-line palette capture (POM2's
+beam-racing softswitch event log is the pattern to reuse).
 
 ---
 

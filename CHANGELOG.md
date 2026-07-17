@@ -4,6 +4,17 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Added — VGC per-line scanline interrupt (real beam timing)
+The frame-level approximation ("any SCB bit 6 → one status latch per frame" in frameTick) was replaced
+by the real model: the tick() beam walk fires on EVERY display line the beam enters — an SHR SCB with
+bit 6 latches $C023 bit 5 at that line (status even when disabled, MAME apple2gs.cpp apple2_vgc
+~1090-1125) and raises the VGC IRQ when enabled ($C023 bit 1); one IRQ per flagged line per frame.
+Also modelled: **reading VERTCNT/HORIZCNT ($C02E/$C02F) acknowledges the scanline int**
+(clear_vgcint(~VGCINT_SCANLINE), MAME :1674-1683) — raster loops poll the beam counters and each
+read acks the pending SCB int. Pinned in `irq_test` (fires at the right line, re-fires per frame,
+$C02E ack, status-latch-when-disabled). Non-regression: GS/OS Finder + Arkanoid SHR. The renderer
+still draws whole frames — mid-frame palette splits (3200-colour) are a follow-up.
+
 ### Fixed — pass 10: disk-subsystem bug hunt (8 finder angles × adversarial verify over HEAD~2..HEAD)
 Multi-agent review of the two disk commits; ~40 candidates → 15 deduped → 2 confirmed + 8 plausible
 (guards held on the rest: endWrite div-by-zero, qt cache churn, motorOn() semantics, ENABLE2 stepper
