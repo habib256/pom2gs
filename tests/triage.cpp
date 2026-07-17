@@ -84,7 +84,11 @@ int main(int argc, char** argv) {
             // $Cnxx I/O page, where a read would fire a soft switch). A BRK
             // executed in game/loader RAM is a hard crash — ROM firmware never
             // runs one, so only count it below the ROM banks.
-            if (pb < 0xFC && (pc & 0xFF00) != 0xC000 && mem.read8(addr) == 0x00) ++brkExec;
+            if (pb < 0xFC && (pc & 0xFF00) != 0xC000 && mem.read8(addr) == 0x00) {
+                if (brkExec == 0 && getenv("TRIAGE_BRK"))   // dev: report the first BRK site
+                    std::fprintf(stderr, "first BRK at %02X:%04X frame=%ld\n", pb, pc, f);
+                ++brkExec;
+            }
             int c = cpu.run(1); mem.tick(c); spent += (c > 0 ? c : 1);
         }
     }
@@ -102,8 +106,13 @@ int main(int argc, char** argv) {
 
     // Classify (order = priority).
     const char* status;
+    // CRASH_ZP is gated on !gfx: some games legitimately run code from zero
+    // page / the stack page (Pirates!, Silent Service — millions of ZP
+    // instructions with a live SHR menu). A *runaway* into zero page lands on
+    // $00 bytes = BRK and is caught by CRASH_BRK above, so sustained ZP
+    // execution with graphics up and no BRK is a working title, not a crash.
     if (brkExec > 0)                            status = "CRASH_BRK";  // executed BRK in RAM
-    else if (zpExec > 2000)                     status = "CRASH_ZP";   // sustained runaway in ZP
+    else if (zpExec > 2000 && !gfx)             status = "CRASH_ZP";   // sustained runaway in ZP
     else if (inRomMon)                          status = "CRASH_MON";  // fell into the ROM monitor
     else if (hang && !leftRom)                  status = "NOBOOT";     // frozen inside the boot ROM
     else if (hang)                              status = "HANG";       // frozen in game/loader code

@@ -507,6 +507,18 @@ void IIgsMemory::smartportCall() {
         const uint8_t ctlCode = ext ? pRd(6) : pRd(4);
         if (unit != 1) err = 0x28;
         else if (ctlCode == 0x04) { disk35_.eject(); disk35Changed_ = true; disk35SwitchIo_ = true; }
+        else if (ctlCode == 0x06) err = 0x21;         // BADCTL — see below.
+        // Every other control code succeeds as a no-op — a shared loader family
+        // (Qix, Life & Death, Jack Nicklaus, 2088, …: JSR from $00:AE15) sends
+        // $0A and dies on any error, and Silent Service's $05 (install I/O
+        // hook: list = count(2), $82, RAM routine ptr) is likewise only
+        // error-checked. The ONE exception is $06: Marble Madness's protection
+        // installs a hook ($05), then uses $06 to make the hook patch a
+        // vector; on a silent no-op it jumps through the never-initialized
+        // vector into an unloaded segment (BRK). The $21 on $06 sends it down
+        // its clean no-protection fallback and it boots. Real-drive
+        // protections need the LLE path (iwm35 = 1), where the genuine slot-5
+        // firmware runs the real protocol.
     } else {
         err = 0x01;                                   // unsupported SmartPort command
     }
@@ -555,23 +567,20 @@ uint8_t IIgsMemory::smartportStatus(uint8_t unit, uint8_t code, uint32_t list, b
         const uint32_t o = 1 + bc;                    // ID-string-length offset (5 std / 6 ext)
         w(o, 16);                                     // ID string length
         for (int i = 0; i < 16; ++i) w(o + 1 + i, uint8_t(name[i]));
-        // Device type/subtype. The SmartPort subtype byte's high bits (Firmware Ref
-        // fig 7-7; A2 Tech Note "UniDisk 3.5 #2"): bit7 = supports disk-switched errors
-        // ("removable, poll me"), bit6 = it's the unintelligent **Apple 3.5 Drive** that
-        // needs the host `AppleDisk3.5` low-level driver.
-        //   $00 UniDisk 3.5  : intelligent, but NOT disk-switched-capable → GS/OS treats
-        //                      it as fixed and never polls it → an Installer disk swap is
-        //                      never noticed (it answers the app from its cached VCR).
-        //   $C0 Apple 3.5 Dr : pollable, but demands the AppleDisk3.5 driver — POMIIGS is
-        //                      HLE (WDM-trap SmartPort, no real IWM) so that dialog crashes.
-        //   $80              : bit7 only = disk-switched-capable (GS/OS polls it) WITHOUT
-        //                      the Apple-3.5 driver bit. Intelligent + removable — what our
-        //                      HLE drive actually is; POM2's SmartPortCard uses exactly this.
-        // Pairs with the general-status bit0 (disk switched) + the $2E block-READ one-shot,
-        // which GS/OS's now-armed poll consumes to invalidate the VCR and re-mount.
+        // Device type/subtype. DIB subtype high bits (Firmware Ref ch. 7; KEGS
+        // smartport.c "extended calls+disk_sw"): bit7 = supports EXTENDED
+        // SmartPort calls, bit6 = supports disk-switched errors. Real devices
+        // report $00 (UniDisk 3.5) or $C0 (Apple 3.5 / KEGS's HLE) — and games
+        // whitelist exactly those: Silent Service's loader DIBs unit 1 and
+        // BRKs on any other subtype ($80 → deliberate LDA #err / BRK exit).
+        // $C0 = extended + disk-switched matches what the HLE actually does
+        // (extended calls handled, $2E block-READ one-shot on swap). GS/OS
+        // does NOT pick its low-level AppleDisk3.5 driver off these bits (the
+        // driver match is by device name/ID), so the Finder/Installer swap
+        // flow keeps working — pinned by smartport_test + the GS/OS boot gate.
         // type at o+17, subtype o+18.
         w(o + 17, 0x01);                              // device type $01 = 3.5" disk
-        w(o + 18, 0x80);                              // subtype $80 = removable/disk-switched, no driver
+        w(o + 18, 0xC0);                              // subtype $C0 = extended + disk-switched
         w(o + 19, 0x01); w(o + 20, 0x00);             // version
     }
     return 0;

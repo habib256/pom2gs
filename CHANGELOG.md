@@ -4,6 +4,42 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — SmartPort HLE identity bytes + CONTROL semantics: Dungeon Master, Silent Service, Marble Madness boot; CRASH_ZP false positives
+Three distinct slot-5 **HLE SmartPort** bugs, found by chasing the post-AppleTalk-fix crash clusters
+(each verified with a targeted trace harness; suite 17/17, GS/OS Finder boots — HDD, 3.5" HLE, 3.5"
+LLE — all pinned; full 341-image triage: OK_GFX 144 → **149**, CRASH_ZP 7 → 2, **0 regressions**):
+
+1. **`$C5FB` SmartPort ID type byte** (`ProDosHdd::buildRom`) was `$02` — which per the Firmware Ref
+   means "SCSI" and leaves bit7 (**Extended SmartPort**) clear, even though the comment claimed
+   "extended supported" and the dispatch really does handle extended calls. **Dungeon Master** probes
+   it and aborted with *"SmartPort firmware not detected in slot 5!"* — masked as OK_GFX in the
+   900-frame triage because the FTL splash is already up when the probe runs. Now `$80` (real ROM 03
+   firmware has `$C0`; bit6 there makes some titles assume the internal Apple 3.5 stack).
+2. **DIB subtype** (`smartportStatus` code 3) was `$80` — a value **no real device reports**, chosen
+   earlier on a wrong reading of the subtype bits (they are bit7 = extended, bit6 = disk-switched —
+   not "needs the AppleDisk3.5 driver", which GS/OS matches by name/ID, not subtype). **Silent
+   Service**'s loader DIBs unit 1 and whitelists `$00` (UniDisk 3.5) / `$C0` (Apple 3.5), BRK'ing on
+   anything else (deliberate `LDA #err / BRK` exit, traced to its `$00:A92C` check). Now `$C0` — the
+   same value KEGS's HLE reports ("extended calls+disk_sw") — and the GS/OS Installer disk-swap flow
+   ($2E one-shot + status bit0) is unaffected.
+3. **CONTROL codes**: unknown codes keep succeeding as no-ops — a shared loader family (Qix, Life &
+   Death, Jack Nicklaus, 2088 Cryllan Mission, Solitaire Royale, … JSR site `$00:AE15`) sends `$0A`
+   and treats any error as fatal (a blanket `$21` regressed 14 titles) — **except `$06` → `$21`
+   BADCTL**: Marble Madness's protection installs an I/O hook (ctl `$05`, list = count, `$82`, RAM
+   routine ptr) and then uses `$06` to have the hook patch a jump vector; with a silent no-op it
+   "verifies", jumps through the never-initialized vector into an unloaded segment (`AA BB CC…` fill
+   pattern) and BRKs, while the `$21` makes it take its clean no-protection fallback and boot.
+   Protected originals that verify the real drive protocol still need `iwm35 = 1` (MM also boots
+   there via the genuine firmware).
+
+Also fixed `tests/triage` itself: **CRASH_ZP is now gated on `!gfx`** — Pirates!, Silent Service,
+Reader Rabbit, Wheel of Fortune, Ancient Legends run millions of instructions from zero page with a
+live SHR menu (a legitimate technique); a real ZP runaway executes `$00` = BRK and is already caught
+by CRASH_BRK. Triage classification note: "Rastan crash" was a Computist crack waiting for keyboard
+input (TEXT = correct), and "Dungeon Master v2.0 Original" fails its own protection even on the LLE
+real drive — the flat .2mg conversion lost the protection data (*"game disk damaged"* on its own
+error screen), not an emulator bug.
+
 ### Fixed — slot-7 AppleTalk false-positive: +30 ProDOS-8 games boot (Block Out, Beyond Zork, King's Quest IV, …)
 `IIgsMemory::slotRomRead` served the system ROM's internal `$FF:C7xx` image for an empty slot 7 (HDD
 ejected) — but that image is the **AppleTalk firmware** (signature "ATLK" = $41 54 4C 4B at $C7F9). A

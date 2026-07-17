@@ -128,6 +128,11 @@ for "ATLK"; POMIIGS served the internal AppleTalk firmware there where an
 empty slot 7 should read `$00`. One fix (`slotRomRead`) → OK_GFX 114→144.
 Root-caused with a KEGS golden-trace diff (method in the `toolbox-loader-crash`
 memory note). The 150 HANGs are non-bootable images (no PRODOS file — correct).
+Follow-up sweep on the remaining clusters (July 2026): **OK_GFX 144→149** —
+SmartPort HLE identity bytes fixed ($C5FB extended bit → Dungeon Master; DIB
+subtype $C0 → Silent Service; ctl $06 → $21 → Marble Madness's protection
+fallback) + triage's CRASH_ZP heuristic gated on !gfx (Pirates!/Silent
+Service run legit code from zero page). See `docs/COMPAT.md` + CHANGELOG.
 Interactive play test (sound + mouse): File → "Load 3.5\" Disk..." boots the
 game disk directly (ejects the HDD + cold reset).
 

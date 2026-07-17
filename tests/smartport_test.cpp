@@ -36,7 +36,10 @@ int main() {
     // SmartPort ROM now advertises SmartPort ($Cn07=$00) with the extended bit.
     auto rom5 = [&](uint16_t off) { return mem.read8((uint32_t(0xE0) << 16) | off); };
     check("sig $C507=$00 (SmartPort)", rom5(0xC507) == 0x00);
-    check("$C5FB extended bit", (rom5(0xC5FB) & 0x02) != 0);
+    // ID type byte: bit7 = Extended SmartPort (Firmware Ref fig 7-4). The real
+    // ROM 03 slot-5 firmware reads $C0; the old HLE $02 meant "SCSI" and made
+    // Dungeon Master abort ("SmartPort firmware not detected in slot 5!").
+    check("$C5FB extended bit7", (rom5(0xC5FB) & 0x80) != 0);
     check("$C553 = WDM $C5", rom5(0xC553) == 0x42 && rom5(0xC554) == 0xC5);
 
     // Program at $0300: JSR $C553 / DFB READBLOCK / DW paramlist / STP-ish loop.
@@ -72,7 +75,10 @@ int main() {
     unsigned n = mem.read8(0x0501) | (mem.read8(0x0502) << 8) | (mem.read8(0x0503) << 16);
     check("DIB block count = 16", n == 16);
     check("DIB device type = 3.5\"", mem.read8(0x0515) == 0x01);   // offset 21: $01 = 3.5" (SmartPort TN #4)
-    check("DIB subtype = removable/disk-switched, no driver ($80)", mem.read8(0x0516) == 0x80);  // offset 22
+    // Subtype $C0 = extended + disk-switched (Firmware Ref ch. 7), the real
+    // Apple 3.5 / KEGS HLE value. Games whitelist $00/$C0 — Silent Service's
+    // loader BRKs on anything else (it BRK'd on the old $80).
+    check("DIB subtype = extended + disk-switched ($C0)", mem.read8(0x0516) == 0xC0);  // offset 22
 
     // STATUS to a non-existent unit (2) must FAIL — only unit 1 exists. The System 6
     // Installer scans units 1,2,3,… and only stops on a no-device error; answering

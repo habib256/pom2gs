@@ -19,14 +19,14 @@ page) · `CRASH_MON` (fell into the ROM monitor) · `HANG` (PC frozen) ·
 
 ## GS 3.5" — 341 images (ROM 03, HLE SmartPort)
 
-| Class | All 341 | After the slot-7 AppleTalk fix |
-|---|---|---|
-| OK_GFX | 114 | **144 (+30)** |
-| CRASH_BRK | 34 | **3 (−31)** |
-| TEXT | 26 | 24 |
-| CRASH_MON | 10 | 13 |
-| CRASH_ZP | 7 | 7 |
-| HANG | 150 | 150 |
+| Class | All 341 | After the slot-7 AppleTalk fix | After the SmartPort DIB/CONTROL fixes |
+|---|---|---|---|
+| OK_GFX | 114 | 144 (+30) | **149 (+5)** |
+| CRASH_BRK | 34 | 3 (−31) | 3 |
+| TEXT | 26 | 24 | 25 |
+| CRASH_MON | 10 | 13 | 12 |
+| CRASH_ZP | 7 | 7 | **2 (−5)** |
+| HANG | 150 | 150 | 150 |
 
 **+30 real games** unblocked by one fix (see below): of the ~180 genuinely
 bootable disks, **~80% now reach graphics**. Wins include Winter Games,
@@ -76,11 +76,39 @@ handlers; the *source* chain is shared.)
 The 5.25" //e surface (bank switching, softswitch timing, cassette/lores) is
 a separate large effort from the GS-native path above.
 
+### SmartPort DIB/CONTROL fixes (July 2026)
+
+Chasing the `$FF:A5Fx` / CRASH_ZP clusters surfaced three distinct issues in
+the slot-5 **HLE SmartPort** identity bytes, all fixed with 0 regressions:
+
+1. **`$C5FB` ID type byte** was `$02` ("SCSI") instead of bit7 = Extended
+   SmartPort. Dungeon Master probes it and aborted with *"SmartPort firmware
+   not detected in slot 5!"* (masked as OK_GFX at 900 frames — it crashed
+   right after the splash). Now `$80`+dispatch (real ROM 03 has `$C0`).
+2. **DIB subtype** was `$80` — a value no real device reports. Silent
+   Service's loader whitelists `$00` (UniDisk 3.5) / `$C0` (Apple 3.5) and
+   BRK'd on anything else. Now `$C0` (= extended + disk-switched, same as
+   KEGS); the GS/OS Installer swap flow still works (Finder boots pinned).
+3. **CONTROL codes**: everything unknown succeeds as a no-op (a shared
+   loader family — Qix, Life & Death, Jack Nicklaus, 2088 — sends `$0A` and
+   dies on any error) **except `$06`**, which returns `$21` BADCTL: Marble
+   Madness's protection installs an I/O hook (ctl `$05`) and uses `$06` to
+   have it patch a vector; on a silent no-op it jumps through the
+   never-initialized vector (BRK), while `$21` sends it down its clean
+   no-protection fallback. Protected originals that *verify* the real drive
+   protocol still need the LLE path (`iwm35 = 1`).
+
+Also fixed the triage heuristic itself: `CRASH_ZP` is now gated on `!gfx` —
+Pirates!, Silent Service, Reader Rabbit, Wheel of Fortune, Ancient Legends
+legitimately run code from zero page with a live SHR screen (a real runaway
+lands on `$00` = BRK and is already caught by CRASH_BRK).
+
 ## Next fix (highest ROI)
 
-The remaining crashes are now few and heterogeneous (3 CRASH_BRK, 13
-CRASH_MON, 7 CRASH_ZP) — no single dominant signature. The `$FF:A5Fx`
-cluster (Rastan, Dungeon Master, Tower of Myraglen) and the CRASH_ZP titles
-(Pirates!, Silent Service, Wheel of Fortune) are the next candidates, each
-likely a distinct root cause. The 150 HANGs remain non-bootable images (no
-PRODOS system file — correct behavior, not bugs).
+The remaining crashes are few and heterogeneous (3 CRASH_BRK, 12 CRASH_MON,
+2 CRASH_ZP) — no single dominant signature. Known non-bugs: Rastan boots to
+a Computist crack prompt waiting for keyboard input (TEXT = correct);
+"Dungeon Master v2.0 Original" fails its own protection even under the LLE
+real drive ("game disk damaged" — the .2mg conversion lost the protection
+data); Silpheed correctly waits for its Disk 2. The 150 HANGs remain
+non-bootable images (no PRODOS system file — correct behavior, not bugs).

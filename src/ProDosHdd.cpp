@@ -114,7 +114,16 @@ void ProDosHdd::buildRom() {
     if (smartport_) {
         rom_[0x00] = 0x4C; rom_[0x01] = kBoot; rom_[0x02] = hi;    // JMP $Cn20 (boot)
         rom_[0x03] = 0x00; rom_[0x05] = 0x03; rom_[0x07] = 0x00;   // SmartPort ($Cn07=$00)
-        rom_[0xFB] = 0x02;                                         // extended SmartPort supported
+        // SmartPort ID type byte (Firmware Ref fig 7-4): bit7 = Extended
+        // SmartPort. The old $02 actually meant "SCSI" (bit1) and left bit7
+        // clear, so probes for extended support failed — Dungeon Master
+        // aborts with "SmartPort firmware not detected in slot 5!". The real
+        // ROM 03 slot-5 firmware has $C0, but mirroring bit6 too makes Silent
+        // Service treat us as the *internal* Apple 3.5 controller and call
+        // past the public dispatch into firmware internals our stub doesn't
+        // have (BRK). $80 = extended-capable third-party card — what the HLE
+        // actually is (matches POM2's SmartPortCard).
+        rom_[0xFB] = 0x80;
         rom_[0xFE] = 0xBF;                                         // status: read/write/status/format
         rom_[0xFF] = kDrv;                                         // ProDOS entry $Cn50
         // Boot: read block 0 to $0800 via the ProDOS-block trap, then JMP $0801.
