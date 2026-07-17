@@ -125,7 +125,7 @@ void IIgsMemory::clockStrobe(uint8_t c034) {
         const uint8_t op  = (cmd >> 4) & 0x07;      // bits 6-4: operation group
         if (op == 3 && (reg & 0x02)) {              // extended BRAM: a 2nd address byte
             clkSrc_ = SRC_BRAM;
-            clkAddr_ = uint8_t((cmd & 0x03) << 6);  // address bits 7-6
+            clkAddr_ = uint8_t((cmd & 0x07) << 5);  // address bits 7-5 (KEGS/GSSquared/MAME macrtc: (cmd&7)<<5)
             clkState_ = CLK_ADDR;
         } else {                                    // single-strobe address; data next strobe
             if (op == 0)        { clkSrc_ = SRC_SECONDS;  clkReg_ = reg; }
@@ -137,7 +137,7 @@ void IIgsMemory::clockStrobe(uint8_t c034) {
         break;
     }
     case CLK_ADDR:                                   // extended BRAM: 2nd byte = addr bits 5-0
-        clkAddr_ = uint8_t(clkAddr_ | ((clkData_ >> 2) & 0x3F));
+        clkAddr_ = uint8_t(clkAddr_ | ((clkData_ >> 2) & 0x1F));   // address bits 4-0 (KEGS/GSSquared/MAME: (data>>2)&0x1f)
         clkState_ = CLK_DATA;
         break;
     case CLK_DATA:                                   // data phase — the firmware reads/writes
@@ -235,9 +235,11 @@ void IIgsMemory::adbCommand(uint8_t v) {
         case 0x0D: adbQueue(romBankBase_ == 0xFC ? 0x06 : 0x05); break; // version (ROM03 6 / ROM01 5)
         case 0x0E: adbQueue(0x08); adbQueue(0x00); break;          // read available char sets (count, current)
         case 0x0F: adbQueue(0x0A); adbQueue(0x00); break;          // read available keyboard layouts (count, current)
+        case 0x11: adbParamsLeft_ = 1; break;                      // send ADB keycodes: 1 data byte (KEGS adb.c)
         default:                                                   // ADB-bus command ($2n Talk/Listen,
-            if (v >= 0x20) adbParamsLeft_ = 0;                     // $Bn device access): absorbed —
-            break;                                                 // no direct-device model (µC auto-polls)
+            if (v >= 0xB0 && v <= 0xBF) adbParamsLeft_ = 2;        // Listen dev x reg 3: 2 data bytes (KEGS adb.c)
+            else if (v >= 0x20) adbParamsLeft_ = 0;               // other $Bn/$2n absorbed — no direct-device
+            break;                                                 // model (µC auto-polls)
     }
     updateAdbIrq();
 }
@@ -255,13 +257,13 @@ void IIgsMemory::updateVgcIrq() {
 void IIgsMemory::frameTick() {
     ++frameCount_;
     // ¼-second (~0.25 s at 60 Hz) → Mega II INTFLAG bit4.
-    if (frameCount_ % 15 == 0) { intflag_ |= 0x10; updateMega2Irq(); }
+    if (frameCount_ % 16 == 0) { intflag_ |= 0x10; updateMega2Irq(); }   // 16 VBLs (MAME frame&0xf, KEGS >=16)
     // 1-second → VGC status bit6.
     if (frameCount_ % 60 == 0) { vgcint_ |= 0x40; updateVgcIrq(); }
     // Scan-line (SHR): if enabled ($C023 bit1) and any SCB line requests an
     // interrupt (SCB bit6), fire once. The renderer draws a whole frame in one
     // mode, so this is status/IRQ only — no mid-frame split yet.
-    if (shrEnabled() && (vgcint_ & 0x02)) {
+    if (shrEnabled()) {                     // set scanline STATUS regardless of enable; updateVgcIrq() gates the IRQ (MAME)
         const uint8_t* scb = slowRam_.data() + 0x10000 + 0x9D00;
         for (int l = 0; l < 200; ++l)
             if (scb[l] & 0x40) { vgcint_ |= 0x20; updateVgcIrq(); break; }
@@ -401,10 +403,10 @@ void IIgsMemory::prodosBlockCall() {
     } else if (cmd == 1) {                            // READ
         uint8_t b[512];
         if (disk35_.readBlock(blk, b)) for (int i = 0; i < 512; ++i) write8(uint16_t(buf + i), b[i]);
-        else err = 0x27;                              // I/O error
+        else err = disk35_.loaded() ? 0x27 : 0x2F;    // $2F = offline/no disk, $27 = bad block
     } else if (cmd == 2) {                            // WRITE
         uint8_t b[512]; for (int i = 0; i < 512; ++i) b[i] = read8(uint16_t(buf + i));
-        if (!disk35_.writeBlock(blk, b)) err = disk35_.writeProtected() ? 0x2B : 0x27;
+        if (!disk35_.writeBlock(blk, b)) err = !disk35_.loaded() ? 0x2F : (disk35_.writeProtected() ? 0x2B : 0x27);
     } else err = 0x01;                                // bad command
     spReturn(cpu_, err);
 }
@@ -459,8 +461,8 @@ void IIgsMemory::smartportCall() {
         // ~1 Hz STATUS poll would consume the one-shot before the file access.
         if (unit != 1) err = 0x28;                    // only unit 1 exists (no device)
         else if (disk35SwitchIo_) { err = 0x2E; disk35SwitchIo_ = false; }
-        else if (base == 0x01) { uint8_t b[512]; if (disk35_.readBlock(blk, b)) for (int i = 0; i < 512; ++i) write8(buf + i, b[i]); else err = 0x27; }
-        else                   { uint8_t b[512]; for (int i = 0; i < 512; ++i) b[i] = read8(buf + i); if (!disk35_.writeBlock(blk, b)) err = disk35_.writeProtected() ? 0x2B : 0x27; }
+        else if (base == 0x01) { uint8_t b[512]; if (disk35_.readBlock(blk, b)) for (int i = 0; i < 512; ++i) write8(buf + i, b[i]); else err = disk35_.loaded() ? 0x27 : 0x2F; }   // $2F = offline/no disk, $27 = bad block
+        else                   { uint8_t b[512]; for (int i = 0; i < 512; ++i) b[i] = read8(buf + i); if (!disk35_.writeBlock(blk, b)) err = !disk35_.loaded() ? 0x2F : (disk35_.writeProtected() ? 0x2B : 0x27); }
         if (!err) { cpu_->setX(0x00); cpu_->setY(0x02); }   // 512 bytes transferred
     } else if (base == 0x03) {                        // FORMAT — nothing to do (the image is
         if (unit != 1) err = 0x28;                    // already a fixed-size volume); succeed so
@@ -512,7 +514,7 @@ uint8_t IIgsMemory::smartportStatus(uint8_t unit, uint8_t code, uint32_t list, b
     // READ (see smartportCall).
     uint8_t st = disk35_.loaded()
         ? uint8_t(0xF8 | (disk35_.writeProtected() ? 0x04 : 0x00))   // block/write/read/online/format
-        : 0x00;
+        : 0x80;                                                       // offline: still a block device (bit7), not online (KEGS)
     if (disk35Changed_) { st |= 0x01; disk35Changed_ = false; }      // bit0 = disk switched
     w(0, st);
     for (uint32_t i = 0; i < bc; ++i) w(1 + i, uint8_t((n >> (8 * i)) & 0xFF));  // block count
@@ -565,6 +567,8 @@ void IIgsMemory::reset() {
     lcRamRead_ = false; lcRamWrite_ = true; lcBank2_ = true; lcPreWrite_ = false;
     kbdLatch_ = 0;
     videoCycles_ = 0; lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0; frameCount_ = 0;
+    doc_.reset();                        // halt oscillators, clear sound RAM + pending DOC IRQ (MAME device_reset)
+    scc_.reset();                        // clear SCC register file + FIFOs
     if (cpu_) {                          // drop any interrupt lines we own
         cpu_->setIrqLine(CPU65816::IRQ_SRC_MEGA2_VBL, false);
         cpu_->setIrqLine(CPU65816::IRQ_SRC_VGC_VBL, false);
@@ -732,7 +736,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     }
     if (r <= 0x0F) return kbdLatch_;                        // keyboard latch
     switch (r) {
-        case 0x10: { uint8_t v = kbdLatch_ & 0x7F; kbdLatch_ &= 0x7F;   // clear strobe
+        case 0x10: { uint8_t v = (anyKeyDown_ ? 0x80 : 0x00) | (kbdLatch_ & 0x7F); kbdLatch_ &= 0x7F; // AKD bit7 + clear strobe
                      if (kbdIntPending_) { kbdIntPending_ = false; updateAdbIrq(); } return v; }
         case 0x11: return lcBank2_ ? 0x80 : 0x00;           // RDLCBNK2
         case 0x12: return lcRamRead_ ? 0x80 : 0x00;         // RDLCRAM
@@ -749,6 +753,9 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             // consumes the deltas and clears data-available ($C027 bit7).
             auto clamp7 = [](int v) { return v < -64 ? -64 : (v > 63 ? 63 : v); };
             int d = mouseReadY_ ? clamp7(mouseDY_) : clamp7(mouseDX_);
+            // Button (inverted, 0=down) reported on BOTH axis reads — matches the IIgs
+            // firmware ReadMouse expectation and the adb_test regression (a KEGS
+            // differential flagged X=bit7-high, but that broke real-mouse games).
             uint8_t v = uint8_t(uint8_t(d) & 0x7F) | (mouseBtn_ ? 0x00 : 0x80);
             if (!mouseReadY_) mouseReadY_ = true;           // next read = Y
             else { mouseReadY_ = false; mouseDX_ = mouseDY_ = 0; mouseDataFull_ = false; updateAdbIrq(); }
@@ -913,9 +920,12 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x38: case 0x39: case 0x3A: case 0x3B: scc_.write(r, v); return;    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: doc_.gluWrite(r, v); return; // Sound GLU
         case 0x22: txtColor_ = v; return;                   // SCREENCOLOR (text fg/bg)
-        case 0x23: vgcint_ = uint8_t((vgcint_ & 0xE0) | (v & 0x06)); updateVgcIrq(); return; // VGCINT: enables (bits1-2)
+        case 0x23: vgcint_ = uint8_t((vgcint_ & 0xF0) | (v & 0x07)); updateVgcIrq(); return; // VGCINT enables (MAME: preserve 0xF0, store bits0-2)
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
-        case 0x32: vgcint_ &= uint8_t(~0x60); updateVgcIrq(); return;   // VGCINTCLEAR (scan + 1-sec status)
+        case 0x32:                                          // VGCINTCLEAR — write-0-to-clear per bit (MAME clear_vgcint)
+            if (!(v & 0x40)) vgcint_ &= uint8_t(~0x40);     //   1-second status
+            if (!(v & 0x20)) vgcint_ &= uint8_t(~0x20);     //   scanline status (writing the bit as 1 preserves it)
+            updateVgcIrq(); return;
         case 0x70: paddleReset_ = videoCycles_; return;     // PTRIG (write also strobes)
         case 0x41: inten_ = v & 0x1F; updateMega2Irq(); return;   // INTEN (MAME 1811)
         case 0x47: intflag_ &= uint8_t(~0x18); updateMega2Irq(); return; // CLRVBLINT (VBL + ¼-sec)
@@ -974,7 +984,11 @@ uint8_t IIgsMemory::read8(uint32_t a) {
         if (off >= 0xC000 && off <= 0xC0FF) return ioRead(bank, off);
         if (off >= 0xC100 && off <= 0xCFFF) return slotRomRead(off);
         if (off >= 0xD000)                  return slowLcRead(bank, off);   // Mega II language card
-        return slowRam_[(size_t(bank - 0xE0) * 0x10000) + off];
+        // //e main/aux redirect: $E0 is the slow MAIN image switched exactly like bank $00
+        // (ALTZP/RAMRD/80STORE/PAGE2); $E1 is the AUX image, always aux. (KEGS moremem.c
+        // fixup_* loop over bank $00 AND $E0; MAME auxbank_update m_e0_*bank.)
+        const int pb = (bank == 0xE0) ? physBank01(off, false) : 1;
+        return slowRam_[(size_t(pb) * 0x10000) + off];
     }
 
     if (bank <= 0x01) {
@@ -1004,7 +1018,8 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
         if (off >= 0xC000 && off <= 0xC0FF) { ioWrite(bank, off, v); return; }
         if (off >= 0xC100 && off <= 0xCFFF) return;   // slot ROM: read-only
         if (off >= 0xD000)                  { slowLcWrite(bank, off, v); return; }   // Mega II language card
-        slowRam_[(size_t(bank - 0xE0) * 0x10000) + off] = v;
+        const int pb = (bank == 0xE0) ? physBank01(off, true) : 1;   // $E0 switched like $00, $E1 always aux
+        slowRam_[(size_t(pb) * 0x10000) + off] = v;
         return;
     }
 

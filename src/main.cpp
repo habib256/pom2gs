@@ -327,6 +327,18 @@ int main(int argc, char** argv) {
             {ImGuiKey_DownArrow,0x0A},{ImGuiKey_UpArrow,0x0B},{ImGuiKey_Backspace,0x7F} };
         if (!io.WantCaptureKeyboard)
             for (auto& s : kSpecial) if (ImGui::IsKeyPressed(s.k, false)) c.mem.keyDown(s.code);
+        // Any-key-down → $C010 bit7: reflect the live physical key state (the
+        // char-event path above is edge-only and can't model a held key).
+        bool akd = false;
+        if (!io.WantCaptureKeyboard) {
+            for (int k = ImGuiKey_A; k <= ImGuiKey_Z && !akd; ++k) akd = ImGui::IsKeyDown(ImGuiKey(k));
+            for (int k = ImGuiKey_0; k <= ImGuiKey_9 && !akd; ++k) akd = ImGui::IsKeyDown(ImGuiKey(k));
+            if (!akd) akd = ImGui::IsKeyDown(ImGuiKey_Space)   || ImGui::IsKeyDown(ImGuiKey_Enter)     ||
+                            ImGui::IsKeyDown(ImGuiKey_Backspace)|| ImGui::IsKeyDown(ImGuiKey_Escape)    ||
+                            ImGui::IsKeyDown(ImGuiKey_LeftArrow)|| ImGui::IsKeyDown(ImGuiKey_RightArrow)||
+                            ImGui::IsKeyDown(ImGuiKey_UpArrow)  || ImGui::IsKeyDown(ImGuiKey_DownArrow);
+        }
+        c.mem.setAnyKeyDown(akd);
         // Command/Option/Control shortcuts: these modifiers suppress ImGui's
         // InputQueueCharacters, so the base key never reaches the $C000 path
         // above. Deliver it directly here (the $C025 modifiers set below make the

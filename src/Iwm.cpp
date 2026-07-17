@@ -126,7 +126,7 @@ uint8_t Iwm::access(uint8_t offset, bool isWrite, uint8_t writeVal, uint64_t cyc
 
     // Read: the returned latch depends on Q7:Q6.
     if (!q7_ && !q6_) {                       // read data
-        if (!motorOn_) return 0x00;
+        if (!motorOn_) return 0xFF;           // motor off → floating-high bus (MAME iwm.cpp / KEGS)
         if (!diskPresent_)                    // empty drive: spinning weak bits
             return uint8_t(0x80 | (cycle >> 5));
         const auto& tk = track_[curTrack()];
@@ -144,6 +144,6 @@ uint8_t Iwm::access(uint8_t offset, bool isWrite, uint8_t writeVal, uint64_t cyc
         if (motorOn_) st |= 0x20;             // bit5 = motor on
         return st;
     }
-    if (q7_ && !q6_) return 0x80;             // read handshake (ready)
+    if (q7_ && !q6_) return 0xC0;             // read handshake: ready (bit7) + no write underrun (bit6) (MAME m_whd=0xC0)
     return dataReg_;
 }

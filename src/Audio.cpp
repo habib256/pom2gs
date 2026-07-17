@@ -218,6 +218,14 @@ void AudioOut::mixFrame(IIgsMemory& mem)
                                                            : volume_.load(std::memory_order_relaxed);
     if (g != 1.0f) for (int s = 0; s < n; ++s) mixBuf_[s] *= g;
 
+    // Final saturating clamp: the DC blocker (and volume) can transiently push a
+    // sample past ±1.0 (~1.44× on a large step); the f32 backend hard-clips and
+    // the int16 WAV cast wraps, both audible as clicks. Saturate softly instead.
+    for (int s = 0; s < n; ++s) {
+        float v = mixBuf_[s];
+        mixBuf_[s] = v > 1.0f ? 1.0f : (v < -1.0f ? -1.0f : v);
+    }
+
     // POMWAV=<path>: append the mixed output to a WAV for offline analysis
     // (crackle hunting — the header is finalised in the destructor).
     if (wavFile_) {

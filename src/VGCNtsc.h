@@ -79,7 +79,11 @@ inline void buildDhgrWordRow(const uint8_t* aux, const uint8_t* main,
 
 // Shared windowed artifact decode: 40 × 14-bit words → 280 RGBA pixels via the
 // 560-sub-pixel LUT + pair average. Used by both HGR and DHGR composite paths.
-inline void decodeWordRow(const uint16_t (&words)[40], uint32_t* out /*[280]*/) {
+// phaseBias selects the NTSC colour-wheel phase: 0 for HGR (is_80_column=0),
+// 1 for DHGR (is_80_column=1). Matches MAME apple2video.cpp
+// render_line_artifact_color's `x + is_80_column` (POM2 Apple2Display HGR absX /
+// DHGR absX+1). Omitting the DHGR +1 rotates every artifact hue by one phase.
+inline void decodeWordRow(const uint16_t (&words)[40], uint32_t* out /*[280]*/, unsigned phaseBias = 0) {
     constexpr int kCtx = 3;
     uint32_t sub[kStreamLen];
     uint32_t w = uint32_t(words[0]) << kCtx;
@@ -87,7 +91,7 @@ inline void decodeWordRow(const uint16_t (&words)[40], uint32_t* out /*[280]*/) 
         if (col + 1 < 40) w |= uint32_t(words[col + 1]) << (14 + kCtx);
         for (int b = 0; b < 14; ++b) {
             const int absX = col * 14 + b;
-            unsigned idx = rotl4b(kArtifactColorLut[w & 0x7F], unsigned(absX));
+            unsigned idx = rotl4b(kArtifactColorLut[w & 0x7F], unsigned(absX) + phaseBias);
             sub[absX] = kPalette[idx];
             w >>= 1;
         }
@@ -113,7 +117,7 @@ inline void decodeHgrLine(const uint8_t* row, uint32_t* out /*[280]*/) {
 inline void decodeDhgrLine(const uint8_t* aux, const uint8_t* main, uint32_t* out /*[280]*/) {
     uint16_t words[40];
     buildDhgrWordRow(aux, main, words);
-    decodeWordRow(words, out);
+    decodeWordRow(words, out, 1);   // DHGR = 80-column → chroma phase +1
 }
 
 // Clean RGB DHGR: the IIgs RGB monitor shows DHGR as 140 fat pixels, each a

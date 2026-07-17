@@ -4,6 +4,158 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — pass 9: differential audit round 3 (DOC IRQ, SCC, ADB, RTC, speed, CPU int)
+Third differential pass on fresh routines; 4 confirmed 3/3–2/3, 3 applied (5 weaker findings correctly
+rejected by the 3-judge panel):
+- **$C036 SPEED: disk-motor-detect nibble never forced 1 MHz** (`IIgsMemory.h`, `Iwm.h`) — MEDIUM. Bits
+  3-0 are per-slot Disk II motor-detect enables; on real hardware bit7 (2.8 MHz) is overridden back to
+  1 MHz while a detect-enabled slot's drive motor spins — how the IIgs auto-slows for timing-sensitive /
+  copy-protected 5.25" software. `speedFast()` looked only at bit7. Now `fast = bit7 && !(SL6-bit &&
+  iwm_.motorOn())`, mirroring MAME `update_speed()`. Zero effect on normal software (bits 3-0 = 0, and
+  GS/OS boots via SmartPort not the 5.25" IWM); only 5.25" titles that set the detect bit slow correctly.
+- **SCC RR1 returned 0x01 instead of 0x07** (`Scc8530.cpp`) — the two residue-code bits (0x06) read set
+  at reset per KEGS/MAME; drivers that check them now see the right idle value.
+- **SCC RR3 read back WR3 garbage** (`Scc8530.cpp`) — RR3 is the interrupt-pending register (0 in our
+  minimal, no-IP model; ch B always 0), not the WR3 contents. Now returns 0.
+
+Deferred: RTC seconds-register writes are dropped (Control-Panel time-set doesn't stick) — 2/3, and
+POMIIGS intentionally passes through the host clock (always shows correct real time); making it settable
+(base-time offset) is a feature, not a correctness fix. Panel-rejected (weak/wrong): RR2 vector mod, WR2
+shared-vs-per-channel, KMSTATUS keyboard-data bit position, $C025 no-key-down bit, extended-BRAM 2nd-byte guard.
+
+### Fixed — pass 8: differential audit round 2 (fresh routines) + empirical CPU fix
+Second differential pass on routines pass 7 didn't touch; 6 confirmed 3/3, 4 applied:
+- **Bank $E0/$E1 accesses ignored //e aux redirection** (`IIgsMemory.cpp` read8/write8) — HIGH. The
+  Mega II slow side is a full //e (bank $E0 = main, $E1 = aux), but $E0/$E1 accesses below $D000 used a
+  flat `slowRam_[(bank-0xE0)*0x10000+off]` that never consulted ALTZP/RAMRD/RAMWRT/80STORE/PAGE2. Now
+  bank $E0 routes through `physBank01()` exactly like bank $00 (KEGS moremem.c fixup_* loop over $00 AND
+  $E0; MAME auxbank_update m_e0_*bank). Legacy 8-bit / ProDOS-8 / GS-OS code running in $E0 with aux
+  switches active now hits the right image.
+- **(dp,X) emulation-mode pointer high-byte page-wrap was wrong** (`CPU65816.cpp`) — the empirical Tom
+  Harte oracle flagged $E1 SBC (dp,X) failing 1/10 000. Traced the exact vector (D=$F400, DL=0, offset
+  wraps to $FF): the DL=0 branch page-wrapped the pointer hi byte (→ $F400) but real silicon reads it at
+  ptr+1 (→ $F500, no wrap). NB: the diff agent's suggested fix (add wrap to the DL≠0 branch) was the
+  OPPOSITE and would have regressed — caught by empirical trace. Fixed the DL=0 branch; **validated
+  160000/160000 across all 8 (dp,X) opcodes** (01/21/41/61/81/A1/C1/E1, both modes).
+- **Quarter-second Mega II interrupt fired every 15 VBLs, not 16** (`IIgsMemory.cpp`) — ~6.7% too fast.
+  MAME uses `frame & 0xf`, KEGS `>= 16`. Fixed to 16; irq_test updated to assert the exact boundary
+  (nothing at 15, fires at 16).
+- **SmartPort STATUS for an offline drive returned $00 instead of $80** (`IIgsMemory.cpp`) — an empty
+  3.5" drive is still a block device (bit7 set) though not online (bit4 clear), per KEGS.
+
+Deferred: DOC control-register-write halt_osc swap/sync retrigger (touches the carefully-tuned oscillator
+engine, narrow edge, was rejected in pass 2, can't validate audio headless); $C046 AN3 status bit (low
+value, needs new AN3 annunciator state).
+
+### Fixed — pass 7: differential audit vs the actual KEGS / MAME / GSSquared source
+Agents fetched the real reference source and diffed it line-by-line against POMIIGS (verified by a
+3-judge panel). 14 confirmed, 0 rejected — comparing against real reference code is far higher-signal
+than LLM speculation. 8 applied, 1 reverted (broke a regression test), the rest deferred:
+- **Extended-BRAM address decoded into the wrong bit-fields** (`IIgsMemory.cpp`) — HIGH. The 256-byte
+  battery-RAM two-byte address used `(cmd&3)<<6` + `(data>>2)&0x3F` (2+6 bits) where KEGS clock.c,
+  GSSquared RTC.hpp and MAME macrtc all use `(cmd&7)<<5` + `(data>>2)&0x1F` (3+5 bits) — dropping
+  command bit 2 and shifting the low field. Every Control-Panel / GS-OS extended-BRAM byte (incl. the
+  checksum bytes) landed on the wrong offset. Fixed to the 3-reference-corroborated decode.
+- **VGC scanline STATUS bit only set when the enable bit was set** (`IIgsMemory.cpp`) — MAME sets the
+  $C023 bit5 status unconditionally and gates only the IRQ on the enable; now matches (status visible
+  to pollers, `updateVgcIrq()` still gates the interrupt).
+- **SCC WR9 reset command was stored but never executed** (`Scc8530.cpp`) — WR9 bits 7-6 (0x40 ch-B,
+  0x80 ch-A, 0xC0 hardware) now perform the reset (clear WR file + regPtr + FIFOs), per KEGS/MAME z80scc.
+- **$C023 VGCINT write mask wrong** (`IIgsMemory.cpp`) — was `(&0xE0)|(v&0x06)`, MAME is `(&0xF0)|(v&0x07)`
+  (preserve full status nibble, store all 3 enable bits incl. external-IRQ enable bit0).
+- **SCC RR0 omitted CTS/DCD** (`Scc8530.cpp`) — seeded 0x2C (Tx-empty + CTS + DCD asserted) per KEGS,
+  so drivers that gate transmit on CTS don't stall.
+- **IWM handshake read returned 0x80 not 0xC0** (`Iwm.cpp`) — MAME `m_whd` = 0xC0 (ready + no underrun).
+- **IWM motor-off data read returned 0x00 not 0xFF** (`Iwm.cpp`) — floating-high bus per MAME/KEGS.
+- **Ensoniq $E1 osc-enable readback returned the raw byte** (`Es5503.cpp`) — MAME returns `(oscsenabled-1)<<1`.
+
+Reverted after testing: the $C024 mouse-X-button differential (KEGS forces bit7 high on the X read)
+broke `adb_test`, which asserts button-down → b7=0 on BOTH reads — the model that makes real games'
+mouse work (Battle Chess / Captain Blood). The regression test is authoritative for observed behaviour.
+
+Deferred (real per the diff, but risk-vs-reward unfavourable): last-oscillator 3× mix glitch (interacts
+with the deliberately-tuned `>>7` output scale — would need audio re-tuning), ADB $10 µC-reset (2/3, would
+perturb the tuned ADB stream), $C02D SLOTROMSEL (needs slot-ROM-dispatch wiring; a read-back-only half-fix
+is misleading), IWM ~1 s motor spin-down timer (behavioural timer change to a working disk path).
+
+### Fixed — pass 6: empirical CPU oracle (full Tom Harte 65816, all 256 opcodes)
+Approach change: ran the FULL Tom Harte SingleStepTests/65816 corpus (256 opcodes × emul+native,
+10 000 vectors each) as a differential oracle instead of more LLM review. This is empirical
+ground truth and caught real CPU defects five static-review passes missed:
+- **WAI ($CB) / STP ($DB) cycle count** (`CPU65816.cpp`). Both were bare NOPs consuming 1 cycle;
+  Tom Harte requires 4 (3 internal + fetch). Added `cycles_ += 3`. Now 10000/10000 both modes.
+  (The pass-1 "WAI/STP are NOPs" refutation was right about *behaviour* but missed the *cycles*.)
+
+Investigated, NOT changed (with reasons):
+- **MVN ($54) / MVP ($44)** fail the Tom Harte vectors, but the vectors are cycle-capped
+  *mid-block-move* (e.g. 14 bytes / 100 cycles, PC = opcode+2). POMIIGS steps one byte per
+  instruction and rewinds PC to the opcode — which is the documented *interruptible* MVN
+  behaviour (an IRQ mid-move resumes correctly), and the full move copies correctly via run().
+  Matching Tom Harte's mid-move micro-snapshot needs cycle-accurate micro-stepping — a large
+  rewrite that would *break* interruptibility for no real-software gain. Left as-is by design.
+- **SBC ($E1) (dp,X)** fails 1/10 000 — a rare emulation-mode direct-page-indirect pointer edge
+  (not decimal: D=0 in the failing vector). Real impact is negligible (needs a specific DL/wrap
+  combination emulation-mode software almost never hits); flagged for a future focused fix rather
+  than a rushed change to the shared `ea_indx` path.
+
+### Fixed — adversarial bug sweep, pass 5 (under-audited subsystems, 3-judge verify)
+Fresh subsystems (NTSC decode, audio pipeline, IWM mechanics, DOC arithmetic, reset/init,
+memory safety) verified by a NEUTRAL 3-judge panel (majority vote) instead of a single skeptic.
+3 confirmed 3/3, 1 rejected:
+- **DHGR composite artifact colours were phase-rotated 90°** (`VGCNtsc.h`). `decodeWordRow()`
+  was shared verbatim by the HGR and DHGR composite paths and always used the HGR chroma phase
+  (`rotl4b(lut, absX)`). DHGR is 80-column, so it needs `is_80_column = 1` → `absX + 1` (MAME
+  `apple2video.cpp` render_line_artifact_color; POM2 `Apple2Display.cpp:2084`). Every DHGR
+  composite hue was one phase off (blue↔orange, green↔magenta swapped). Parameterized the
+  decoder with a phase bias (0 HGR, 1 DHGR).
+- **Machine reset never reset the Ensoniq DOC (or SCC)** (`IIgsMemory.cpp` reset). Oscillators,
+  sound RAM and a pending DOC IRQ persisted across reset, so sound kept playing and a stale DOC
+  IRQ could be re-asserted into the booting ROM. Added `doc_.reset(); scc_.reset();` (MAME resets
+  the ES5503 subdevice on machine reset).
+- **Audio: no final clamp before the float32 backend** (`Audio.cpp`). The one-pole DC blocker
+  (and volume) can transiently push a sample to ~1.44×; the miniaudio f32 device hard-clips and
+  the POMWAV int16 cast wraps — both audible clicks on large transitions. Added a saturating
+  clamp to [-1,1] after volume, before push()/WAV (also resolves the rejected POMWAV-overflow
+  finding, same root cause).
+
+### Fixed — adversarial bug sweep, pass 4 (neutral re-judging recovers false negatives)
+Approach change after diminishing returns (5→5→2): instead of more static review, a
+NEUTRAL 3-judge panel re-tried 10 findings the earlier skeptics had *refuted* (those
+skeptics were biased toward "not a bug"). 9/10 flipped to REAL by majority — the earlier
+refutations had a high false-negative rate. Each was then re-verified by hand against the
+code + MAME before acting; **3 applied, the rest deferred as risky-or-wrong** (see below):
+- **SmartPort/ProDOS: empty 3.5" drive returned $27 (I/O error) instead of $2F (offline)**
+  (`IIgsMemory.cpp` smartportCall + prodosBlockCall). `readBlock`/`writeBlock` fail both when
+  empty and on a bad block; now distinguishes `!disk35_.loaded()` → $2F (no disk) from a
+  loaded-but-out-of-range block → $27, per the ProDOS/SmartPort error convention. Volume-scan
+  logic that treats $2F as "skip, no media" now behaves correctly.
+- **VGC: $C032 VGCINTCLEAR cleared BOTH status bits unconditionally** (`IIgsMemory.cpp`).
+  Acking one VGC interrupt (scanline) while writing bit6=1 to *preserve* a pending one-second
+  interrupt silently dropped the latter. Now write-0-to-clear per bit, matching MAME
+  `clear_vgcint()`. (Also independently surfaced by the IRQ-consistency finder.)
+- **Sound GLU: $C03C read returned volume bits verbatim** (`Es5503.cpp` gluRead). The write-only
+  volume bits 0-4 read back as 1 on hardware; now `(ctl_ & 0x7F) | 0x1F` per MAME
+  `m_sndglu_ctrl | 0x1f`.
+
+Two more of the recovered findings were then applied (real, safely fixable, verified):
+- **KBDSTRB $C010 bit7 always read 0** (`IIgsMemory.cpp`, `IIgsMemory.h`, `main.cpp`). The read
+  masked bit7, so software could never see any-key-down (auto-repeat / "hold a key" logic).
+  Added a live `anyKeyDown_` state driven each frame from the physical key state (char events
+  are edge-only) and OR'd it into $C010 bit7, per MAME `GLU_ANY_KEY_DOWN`.
+- **ADB $Bn / $11 consumed 0 parameter bytes** (`IIgsMemory.cpp`). Listen-dev-reg-3 ($B0-$BF, 2
+  data bytes) and Send-ADB-keycodes ($11, 1 byte) fell to the default and left the following
+  data bytes to be mis-parsed as commands, desyncing the µC stream. Added both per KEGS `adb.c`.
+
+Still DEFERRED with concrete reasons (holding beats regressing tuned/working code): IWM data-latch
+force-advance — the deliver-a-nibble-per-read hack currently boots 5.25" reads; the accurate-timing
+rework is unvalidatable without a WOZ round-trip test and isn't the GS/OS boot path (SmartPort HLE).
+CLI/SEI/PLP IRQ delay-slot — MAME's own g65816 (our source of truth) does NOT model it, so adding it
+would diverge from the reference and Tom Harte can't validate it. $C02D SLTROMSEL read-back (needs
+slot-dispatch wiring) and $C068 bit1 (uncertain ROMBANK-vs-RAMDIS semantics) left as low-value.
+SPEED reset default = slow is INTENTIONAL, pinned by speed_test (firmware raises it to fast on boot).
+mouse ±64 clamp is CORRECT (7-bit two's-complement is -64..+63, not ±63) — a re-judge false positive
+caught by hand-verification.
+
 ### Fixed — adversarial bug sweep, pass 3 (2 confirmed on fresh subsystems)
 Third find-then-refute audit (CPU control-flow, language card, IWM/Sony, Sound GLU,
 video IRQ, main loop — all 10 prior fixes excluded). 10 candidates, 8 refuted, 2 fixed
