@@ -4,6 +4,100 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — adversarial bug sweep, pass 3 (2 confirmed on fresh subsystems)
+Third find-then-refute audit (CPU control-flow, language card, IWM/Sony, Sound GLU,
+video IRQ, main loop — all 10 prior fixes excluded). 10 candidates, 8 refuted, 2 fixed
+(diminishing returns: 5 → 5 → 2 across the three sweeps):
+- **Input: host keyboard forced every letter to UPPERCASE** (`main.cpp`). The typed-char
+  path did `if (a>='a'&&a<='z') a -= 0x20` before latching at $C000, so lowercase input
+  was impossible in *all* IIgs software (filenames, text fields, source). ImGui's
+  `InputQueueCharacters` already delivers OS-cased ASCII and the $C000 latch returns the
+  low 7 bits verbatim — the IIgs ADB keyboard is not the uppercase-only //e. Dropped the
+  fold; the separate Cmd/Ctrl shortcut path (A-Z for GS/OS menu keys) is untouched.
+- **Language card: pre-write flip-flop not cleared on an odd $C08x WRITE** (`IIgsMemory.cpp
+  lcSwitch`). Write-enable requires two consecutive odd READS; any write access must reset
+  the pre-write latch and can never arm write-enable. The odd branch only handled reads, so
+  `LDA $C089 ; STA $C089 ; LDA $C089` spuriously write-enabled the LC where hardware leaves
+  it protected. Now clears `lcPreWrite_` on an odd write (KEGS `g_c08x_prewrite = !write`,
+  Sather *Understanding the Apple IIe*).
+
+Refuted in pass 3 (non-bugs): CLI/SEI/PLP/RTI IRQ delay-slot, SmartPort 3.5" write-allowed
+bit / $27-vs-$2F empty-drive code / data-latch force-advance, $C03C SOUNDCTL pointer-clear
+& read bits, $C032 VGCINTCLEAR write-zero semantics, SPEED register slow-vs-fast power-on
+default — each read against the code and found harmless or already handled.
+
+### Fixed — adversarial bug sweep, pass 2 (5 more confirmed, complementary lenses)
+A second find-then-refute audit (6 reviewers on CPU-values, ADB, RTC/clock, video,
+audio/DOC, disk-write — each told the 5 pass-1 fixes to skip) surfaced 13 candidates;
+8 refuted, 5 confirmed and fixed:
+- **VGC: MIXED mode never honoured** (`VGC.cpp`). `render()` drew every legacy graphics
+  mode full-screen and never read `mem.mixed()`, so the bottom 4-row text window of
+  HGR/DHGR/LORES games ($C053) rendered as graphics garbage. Added `renderTextBand()`
+  (draws text rows 20-23 over the graphics, 40- or 80-col per softswitch), matching
+  POM2 `Apple2Display` (graphics 0-159, text band 160-191).
+- **DOC: SYNC/AM (mode 2) mix-path missing** (`Es5503.cpp step1`). Pass 1 fixed the
+  hard-sync accumulator reset in `haltOsc`; the *mix-side* AM is separate and was still
+  absent — every osc summed unconditionally. Per MAME `sound_stream_update` MODE_SYNCAM,
+  an ODD mode-2 osc must not sound and instead writes its sample byte into osc+1's
+  volume register (AM of the carrier); EVEN mixes normally. Verified via live MAME that
+  `partner.vol = data ^ 0x80` with `data = byte ^ 0x80` = the raw byte. Added the branch
+  (guarded `o<31` + partner-running).
+- **VGC: VERTCNT ($C02E) missing the vertical-counter bias** (`IIgsMemory.cpp`). Returned
+  raw `vpos()>>1`, so the first visible line read 0x00 instead of 0x80 and VERTCNT bit7
+  was inverted across the whole screen. Ported MAME `get_vpos()`: since POMIIGS `vpos()`
+  is already the visible-line index, the `256 - BORDER_TOP` bias reduces to `256 + vpos()`
+  wrapping past 511 by a frame height. Line 0 → 0x80, line 191 → 0xDF (raster-split titles).
+- **Disk: 2mg 'locked' flag ignored** (`ProDosHdd.cpp`). `loadImage()` stripped the 64-byte
+  2IMG header but never read the flags dword (offset 16, bit31 = write-protected), and
+  `writeProtect_` was never assigned — so a locked .2mg was silently writable and
+  `flushBlock()` corrupted the host file. Now parses the flag (and resets it per load);
+  the existing write-protect machinery (`writeBlock`/STATUS DIB) does the rest.
+- **ADB: commands $0E/$0F returned no bytes** (`IIgsMemory.cpp`). Read-available-char-sets
+  ($0E) and read-keyboard-layouts ($0F) had no case, fell through, and left the DATAREG
+  FIFO empty → firmware/Control Panel read 0x00,0x00. Added both (count + current id),
+  per KEGS `adb.c`.
+
+Refuted in pass 2 (non-bugs): emulation-mode BRK vector via `read8` (again — intentional,
+matches the code's documented //e-compat choice), DP/stack 16-bit operand bank-1 crossing,
+ADB $Bn/$11 param counts, KBDSTRB any-key-down clear, mouse ±64 vs ±63 clamp, DOC newCtrl
+IRQ-suppression guard, DOC last-osc triple-weight / ÷8 (POMIIGS uses a different >>7 scale),
+2mg variable header length.
+
+### Fixed — adversarial bug sweep (5 confirmed defects, cited to MAME/datasheet)
+An adversarial find-then-refute agent audit (6 subsystem reviewers → per-finding
+skeptics) surfaced 14 candidates; 9 were refuted as non-bugs, 5 confirmed and fixed:
+- **CPU: RMW abs,X under-counted one cycle** (`CPU65816.cpp`). ASL/LSR/ROL/ROR/INC/DEC
+  absolute,X form their EA via `ea_absx()`, whose `idxCross` only charges the index
+  cycle on a 16-bit index OR a page cross. But an indexed **write-back** always pays
+  that cycle (the write is unconditional) — exactly why the STA/STZ abs,X sites add
+  `cycles_ += !idxPen`. The RMW sites omitted it, yielding 6 cycles instead of 7 when
+  `eX` and no page cross. Added the same compensation to 0xFE/0xDE and the shift/rotate
+  block. **Validated cycle-exact: Tom Harte 65816 1e/3e/5e/7e/de/fe = 120000/120000 OK.**
+- **MMU: text/lores PAGE 2 ($0800-$0BFF) never shadowed** (`IIgsMemory.cpp maybeShadow`).
+  Only page 1 was gated; the `SHAD_TXTPG2` (0x20) bit was dead code and the VGC scans
+  page 2 from the slow side (`VGC.cpp` via `textPage2()`), so fast-side page-2 writes
+  in a PAGE2-flip (`page2_ && !store80_`) config showed a stale image. Added the
+  `0x0800-0x0BFF` branch gated by `SHAD_TXTPG2`, mirroring page 1. (MAME `shadow_w`.)
+- **DOC: SYNCAM (mode 2) hard-sync not implemented** (`Es5503.cpp haltOsc`). The code
+  collapsed sync/AM to plain free-run; MAME `halt_osc` also resets the odd partner
+  oscillator's accumulator (onum-1, verified against live MAME source) when an even
+  oscillator wraps and the partner is still running, locking the pair to one period.
+  Added the partner-accumulator reset with an `o>=1` guard (avoids the negative-index
+  underflow MAME leaves latent at oscillator 0).
+- **VGC: lo-res/text/border colour 4 (dark green) lost its blue** (`VGC.cpp`). Entry 4
+  was `0xFF007700` = $070; the canonical IIgs value is $072 → `0xFF227700` (blue nibble
+  0x2). Isolated transcription slip; all 15 other entries matched. Fixed the one entry.
+- **Snapshot: SCC 8530 state was omitted** (`Scc8530.*`, `IIgsMemory.cpp`, `Snapshot.cpp`).
+  Every other C0xx device round-trips but the SCC had no serializer, so a load kept the
+  live object's WR file / regPtr / rx-tx FIFOs. Added `Scc8530::saveState/loadState`
+  (per-channel WR[16] + regPtr + length-prefixed FIFOs), wired alongside `doc_`, bumped
+  snapshot `kVersion` 2→3.
+
+Refuted (documented as non-bugs, kept for the record): emulation-mode BRK vector via
+`read8`, WAI/STP as NOPs, slot-ROM INTCXROM gating, IWM stream ~14× (feeds `videoCycles_`,
+not raw CPU cycles), ProDOS-8 buffer bank-0 truncation, SCC WR0 command decode / RR2-3 —
+each checked against the code and found harmless or already compensated.
+
 ### Fixed — ADB µC command param counts (Captain Blood's mouse was frozen)
 - **Captain Blood's arm-cursor was stuck top-left** (mouse deltas never reached it).
   Unlike Battle Chess (native ADB-IRQ path) it does its ADB setup through the µC

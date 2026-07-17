@@ -5,6 +5,9 @@
 
 #include "Scc8530.h"
 
+#include <istream>
+#include <ostream>
+
 void Scc8530::reset() {
     for (auto& c : chan_) { for (auto& r : c.wr) r = 0; c.regPtr = 0; c.rx.clear(); c.tx.clear(); }
 }
@@ -75,5 +78,39 @@ void Scc8530::write(uint8_t reg, uint8_t v) {
         case 0x9: cmdWrite(1, v); break;
         case 0xA: dataWrite(0, v); break;
         case 0xB: dataWrite(1, v); break;
+    }
+}
+
+// ── Snapshot ─────────────────────────────────────────────────────────────
+// Both channels' WR file (WR0-15) + register pointer + rx/tx FIFOs, each FIFO
+// length-prefixed. Mirrors every other C0xx device so a restore round-trips
+// mid-transfer serial state instead of retaining the live object's contents.
+namespace {
+void putQueue(std::ostream& os, const std::deque<uint8_t>& q) {
+    uint32_t n = uint32_t(q.size()); os.write((const char*)&n, sizeof n);
+    for (uint8_t b : q) os.write((const char*)&b, 1);
+}
+void getQueue(std::istream& is, std::deque<uint8_t>& q) {
+    q.clear(); uint32_t n = 0; is.read((char*)&n, sizeof n);
+    if (n > 4096) n = 0;                       // guard against corrupt streams
+    for (uint32_t i = 0; i < n; ++i) { uint8_t b = 0; is.read((char*)&b, 1); q.push_back(b); }
+}
+}
+
+void Scc8530::saveState(std::ostream& os) const {
+    for (const Channel& c : chan_) {
+        os.write((const char*)c.wr, sizeof c.wr);
+        os.write((const char*)&c.regPtr, sizeof c.regPtr);
+        putQueue(os, c.rx);
+        putQueue(os, c.tx);
+    }
+}
+
+void Scc8530::loadState(std::istream& is) {
+    for (Channel& c : chan_) {
+        is.read((char*)c.wr, sizeof c.wr);
+        is.read((char*)&c.regPtr, sizeof c.regPtr);
+        getQueue(is, c.rx);
+        getQueue(is, c.tx);
     }
 }

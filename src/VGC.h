@@ -62,6 +62,7 @@ private:
     void renderSHR(const IIgsMemory& mem);
     void renderText(const IIgsMemory& mem);    // 40-column text
     void renderText80(const IIgsMemory& mem);  // 80-column text (aux/main interleaved)
+    void renderTextBand(const IIgsMemory& mem, int rowStart, int rowEnd);  // mixed-mode text window
     void renderHGR(const IIgsMemory& mem);    // legacy 280×192 hi-res
     void renderDHGR(const IIgsMemory& mem);   // double hi-res 140×192 (16 colour)
     void renderLores(const IIgsMemory& mem);  // legacy 40×48 lo-res

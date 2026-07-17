@@ -16,6 +16,7 @@
 
 #include <cstdint>
 #include <deque>
+#include <iosfwd>
 
 class Scc8530
 {
@@ -30,6 +31,10 @@ public:
     // Test/host hooks: inject a received byte / drain a transmitted byte.
     void hostRx(int ch, uint8_t b) { chan_[ch & 1].rx.push_back(b); }
     bool hostTx(int ch, uint8_t& b);
+
+    // Snapshot: per-channel WR file, register pointer, and rx/tx FIFOs.
+    void saveState(std::ostream& os) const;
+    void loadState(std::istream& is);
 
 private:
     struct Channel {

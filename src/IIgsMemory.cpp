@@ -233,6 +233,8 @@ void IIgsMemory::adbCommand(uint8_t v) {
         case 0x0B: adbQueue(uint8_t(0x82)); adbQueue(0x00);        // read config: 0x82|mouseaddr,
                    adbQueue(0x00); adbQueue(0x00); break;          //   kbdaddr, charset, layout
         case 0x0D: adbQueue(romBankBase_ == 0xFC ? 0x06 : 0x05); break; // version (ROM03 6 / ROM01 5)
+        case 0x0E: adbQueue(0x08); adbQueue(0x00); break;          // read available char sets (count, current)
+        case 0x0F: adbQueue(0x0A); adbQueue(0x00); break;          // read available keyboard layouts (count, current)
         default:                                                   // ADB-bus command ($2n Talk/Listen,
             if (v >= 0x20) adbParamsLeft_ = 0;                     // $Bn device access): absorbed —
             break;                                                 // no direct-device model (µC auto-polls)
@@ -312,6 +314,7 @@ void IIgsMemory::saveState(std::ostream& os) const {
     put(os, vgcint_); put(os, frameCount_);
     // Subsystems + media.
     doc_.saveState(os);
+    scc_.saveState(os);
     putStr(os, hdd_.path());
     putStr(os, disk35_.path());
 }
@@ -340,6 +343,7 @@ bool IIgsMemory::loadState(std::istream& is) {
     get(is, videoCycles_); get(is, lastVpos_); get(is, intflag_); get(is, inten_);
     get(is, vgcint_); get(is, frameCount_);
     doc_.loadState(is);
+    scc_.loadState(is);
     const std::string hddPath = getStr(is);
     const std::string d35Path = getStr(is);
     if (!is.good()) return false;
@@ -665,7 +669,11 @@ void IIgsMemory::lcSwitch(uint16_t off, bool writing) {
     lcBank2_ = !(n & 0x08);
     lcRamRead_ = ((n & 0x01) == ((n >> 1) & 0x01));
     if (n & 0x01) {                                 // odd → arm/enable write
+        // Write-enable needs two consecutive odd READS; any WRITE access clears
+        // the pre-write flip-flop and can never arm it (KEGS g_c08x_prewrite = !write,
+        // Sather "Understanding the Apple IIe").
         if (!writing) { if (lcPreWrite_) lcRamWrite_ = true; lcPreWrite_ = true; }
+        else          { lcPreWrite_ = false; }
     } else {                                        // even → disable write
         lcPreWrite_ = false; lcRamWrite_ = false;
     }
@@ -803,7 +811,15 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x22: return txtColor_;                        // SCREENCOLOR (text fg/bg)
         case 0x23: return vgcint_;                          // VGCINT
         case 0x29: return newvideo_;
-        case 0x2E: return uint8_t(vpos() >> 1);             // VERTCNT (MAME 1467)
+        case 0x2E: {                                        // VERTCNT (MAME apple2gs.cpp get_vpos)
+            // The IIgs 9-bit vertical counter is preset so the first VISIBLE line
+            // reads 0x100 (→ VERTCNT 0x80), not 0. POMIIGS vpos() is already the
+            // visible-line index (0 = first active), so MAME's `256 - BORDER_TOP`
+            // bias reduces to `256 + vpos()`, wrapping past 511 by a frame height.
+            int c = 256 + vpos();
+            if (c > 511) c -= kLines;
+            return uint8_t((c >> 1) & 0xFF);
+        }
         case 0x2F: {                                        // HORIZCNT (HW Ref): bit7 = vertical
             // count bit0, bits 6-0 = the horizontal counter — one $00 state then
             // $40-$7F across the 65-cycle scan line. It was stuck at 0, so
@@ -935,6 +951,7 @@ bool IIgsMemory::maybeShadow(uint8_t bank, uint16_t off, uint8_t v) {
     const bool shr = (bank == 1) && !(shadow_ & SHAD_SUPERHIRES);
     bool doit = false;
     if (off >= 0x0400 && off <= 0x07FF) doit = !(shadow_ & SHAD_TXTPG1);              // text/lores page 1
+    else if (off >= 0x0800 && off <= 0x0BFF) doit = !(shadow_ & SHAD_TXTPG2);         // text/lores page 2 (VGC scans it from the slow side)
     else if (off >= 0x2000 && off <= 0x3FFF) doit = !(shadow_ & SHAD_HIRESPG1) || shr;// hires page 1 / SHR
     else if (off >= 0x4000 && off <= 0x5FFF) doit = !(shadow_ & SHAD_HIRESPG2) || shr;// hires page 2 / SHR
     else if (off >= 0x6000 && off <= 0x9FFF) doit = shr;                              // SHR upper half

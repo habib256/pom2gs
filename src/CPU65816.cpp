@@ -517,11 +517,11 @@ void CPU65816::step() {
         case 0xE6: { uint32_t a=ea_dp();  uint16_t v=rdA(a); v=eM?uint8_t(v+1):uint16_t(v+1); wrA(a,v); setZNa(v);} break;
         case 0xF6: { uint32_t a=ea_dpx(); uint16_t v=rdA(a); v=eM?uint8_t(v+1):uint16_t(v+1); wrA(a,v); setZNa(v);} break;
         case 0xEE: { uint32_t a=ea_abs(); uint16_t v=rdA(a); v=eM?uint8_t(v+1):uint16_t(v+1); wrA(a,v); setZNa(v);} break;
-        case 0xFE: { uint32_t a=ea_absx();uint16_t v=rdA(a); v=eM?uint8_t(v+1):uint16_t(v+1); wrA(a,v); setZNa(v);} break;
+        case 0xFE: { uint32_t a=ea_absx();uint16_t v=rdA(a); v=eM?uint8_t(v+1):uint16_t(v+1); wrA(a,v); setZNa(v); cycles_ += !idxPen;} break; // RMW abs,X always pays the index cycle
         case 0xC6: { uint32_t a=ea_dp();  uint16_t v=rdA(a); v=eM?uint8_t(v-1):uint16_t(v-1); wrA(a,v); setZNa(v);} break;
         case 0xD6: { uint32_t a=ea_dpx(); uint16_t v=rdA(a); v=eM?uint8_t(v-1):uint16_t(v-1); wrA(a,v); setZNa(v);} break;
         case 0xCE: { uint32_t a=ea_abs(); uint16_t v=rdA(a); v=eM?uint8_t(v-1):uint16_t(v-1); wrA(a,v); setZNa(v);} break;
-        case 0xDE: { uint32_t a=ea_absx();uint16_t v=rdA(a); v=eM?uint8_t(v-1):uint16_t(v-1); wrA(a,v); setZNa(v);} break;
+        case 0xDE: { uint32_t a=ea_absx();uint16_t v=rdA(a); v=eM?uint8_t(v-1):uint16_t(v-1); wrA(a,v); setZNa(v); cycles_ += !idxPen;} break; // RMW abs,X always pays the index cycle
         // ── INX/INY/DEX/DEY ──
         case 0xE8: if (eX){x_=uint8_t(x_+1);setZN8(uint8_t(x_));}else{x_=uint16_t(x_+1);setZN16(x_);} break;
         case 0xC8: if (eX){y_=uint8_t(y_+1);setZN8(uint8_t(y_));}else{y_=uint16_t(y_+1);setZN16(y_);} break;
@@ -550,6 +550,7 @@ void CPU65816::step() {
             else        { p_ = (p_ & ~Status::C) | ((v & 1) ? Status::C : 0);  v = uint16_t(v >> 1) | (rot ? (cIn ? msb : 0) : 0); }
             if (eM) v = uint8_t(v);
             wrA(a, v); setZNa(v);
+            if ((opc & 0x10) && (opc & 0x0F) == 0x0E) cycles_ += !idxPen; // RMW abs,X always pays the index cycle
         } break;
         // ── BIT ──
         case 0x89: { uint16_t v = immA(); uint16_t r = (eM?uint8_t(a_):a_) & v; p_ = (p_ & ~Status::Z) | (( (eM?uint8_t(r):r)==0)?Status::Z:0); } break; // BIT #imm: only Z

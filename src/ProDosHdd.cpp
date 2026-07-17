@@ -17,7 +17,12 @@ bool ProDosHdd::loadImage(const std::string& path) {
     img_.assign((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
     // .2mg images carry a 64-byte header; a raw .hdv/.po is a multiple of 512.
     headerBytes_ = 0;
+    writeProtect_ = false;
     if (img_.size() >= 64 && img_[0] == '2' && img_[1] == 'I' && img_[2] == 'M' && img_[3] == 'G') {
+        // 2IMG flags dword at offset 16 (LE); bit 31 = volume locked / write-protected.
+        const uint32_t flags = uint32_t(img_[16]) | (uint32_t(img_[17]) << 8)
+                             | (uint32_t(img_[18]) << 16) | (uint32_t(img_[19]) << 24);
+        writeProtect_ = (flags & 0x80000000u) != 0;
         img_.erase(img_.begin(), img_.begin() + 64);
         headerBytes_ = 64;
     }

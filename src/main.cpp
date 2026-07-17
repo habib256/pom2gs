@@ -320,7 +320,7 @@ int main(int argc, char** argv) {
         ImGuiIO& io = ImGui::GetIO();
         if (!io.WantTextInput)
             for (ImWchar ch : io.InputQueueCharacters)      // typed chars → $C000
-                if (ch >= 0x20 && ch < 0x7F) { uint8_t a = uint8_t(ch); if (a >= 'a' && a <= 'z') a -= 0x20; c.mem.keyDown(a); }
+                if (ch >= 0x20 && ch < 0x7F) c.mem.keyDown(uint8_t(ch));  // verbatim case: the IIgs ADB keyboard latches real ASCII (lowercase too)
         static const struct { ImGuiKey k; uint8_t code; } kSpecial[] = {  // Apple II key codes
             {ImGuiKey_Enter,0x0D},{ImGuiKey_KeypadEnter,0x0D},{ImGuiKey_Escape,0x1B},
             {ImGuiKey_LeftArrow,0x08},{ImGuiKey_RightArrow,0x15},

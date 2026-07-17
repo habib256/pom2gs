@@ -149,7 +149,14 @@ void Es5503::haltOsc(int o, int type, uint32_t& acc, int resshift) {
     const uint8_t partnerC = reg_[0xA0 + (o ^ 1)];
     int mode = (c >> 1) & 3;
     const int partnerMode = (partnerC >> 1) & 3;
-    if (mode == 2) mode = 0;                         // sync/AM loops like free-run (MAME)
+    if (mode == 2) {                                 // sync/AM: hard-sync the odd partner below, then loop like free-run
+        // MAME es5503.cpp halt_osc: an EVEN oscillator ending its wavetable resets
+        // the accumulator of the odd oscillator one below it (onum-1) if that
+        // partner is still running (control halt bit clear), locking the pair to
+        // the same period. Guard o>=1 to avoid indexing below oscillator 0.
+        if ((o & 1) == 0 && o >= 1 && !(reg_[0xA0 + (o - 1)] & 0x01)) acc_[o - 1] = 0;
+        mode = 0;
+    }
 
     if (mode != 0 || type != 0) {
         c |= 0x01;                                   // halt
@@ -193,7 +200,18 @@ int32_t Es5503::step1() {
         if (raw == 0x00) {
             haltOsc(o, 1, acc, resshift);            // zero byte = end-of-wave marker
         } else {
-            mix += (int32_t(raw) - 0x80) * vol(o);
+            // SYNC/AM (mode 2): an ODD oscillator amplitude-modulates its partner
+            // instead of sounding — its sample byte overwrites osc+1's volume
+            // register (guarded to a running partner). An EVEN mode-2 osc (and all
+            // other modes) mix normally. MAME es5503.cpp sound_stream_update
+            // MODE_SYNCAM: `m_oscillators[osc+1].vol = data ^ 0x80` with
+            // `data = byte ^ 0x80`, i.e. partner vol = the raw byte.
+            const int mode = (c >> 1) & 3;
+            if (mode == 2 && (o & 1)) {
+                if (o < 31 && !(ctrl(o + 1) & 0x01)) reg_[0x40 + (o + 1)] = raw;
+            } else {
+                mix += (int32_t(raw) - 0x80) * vol(o);
+            }
             if (altram >= uint32_t(kWaveSizes[szSel]) - 1)
                 haltOsc(o, 0, acc, resshift);        // end of table
         }

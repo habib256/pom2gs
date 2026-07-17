@@ -25,7 +25,7 @@ inline uint32_t rgb12(uint8_t lo, uint8_t hi) {
 // rendered orange instead of medium blue).
 const uint32_t kLoresPalette[16] = {
     0xFF000000, 0xFF3300DD, 0xFF990000, 0xFFDD22DD,  //  0 black   1 deep red  2 dk blue  3 purple
-    0xFF007700, 0xFF555555, 0xFFFF2222, 0xFFFFAA66,  //  4 dk green 5 dk grey   6 med blue 7 lt blue
+    0xFF227700, 0xFF555555, 0xFFFF2222, 0xFFFFAA66,  //  4 dk green 5 dk grey   6 med blue 7 lt blue
     0xFF005588, 0xFF0066FF, 0xFFAAAAAA, 0xFF8899FF,  //  8 brown    9 orange   10 lt grey 11 pink
     0xFF00DD11, 0xFF00FFFF, 0xFF99FF44, 0xFFFFFFFF };//  12 lt green 13 yellow 14 aqua    15 white
 }
@@ -38,12 +38,60 @@ bool VGC::setCharRom(const std::vector<uint8_t>& rom) {
 }
 
 const uint32_t* VGC::render(const IIgsMemory& mem) {
-    if (mem.shrEnabled())              renderSHR(mem);
-    else if (mem.textMode())           { if (mem.text80()) renderText80(mem); else renderText(mem); }
-    else if (mem.hires() && mem.dhires()) renderDHGR(mem);
+    if (mem.shrEnabled())              { renderSHR(mem); return fb_.data(); }
+    if (mem.textMode())                { if (mem.text80()) renderText80(mem); else renderText(mem); return fb_.data(); }
+    // Legacy graphics. In MIXED mode ($C053) the bottom 4 character rows show
+    // text drawn from the text page while the top 20 rows stay graphics — the
+    // status/score window of countless HGR/LORES games. (POM2 Apple2Display.)
+    if (mem.hires() && mem.dhires())   renderDHGR(mem);
     else if (mem.hires())              renderHGR(mem);
     else                               renderLores(mem);
+    if (mem.mixed())                   renderTextBand(mem, 20, 24);
     return fb_.data();
+}
+
+// Draw text rows [rowStart,rowEnd) OVER the existing framebuffer (no full-screen
+// clear) for the mixed-mode text window. Picks 40- or 80-column to match the
+// current softswitch, mirroring renderText / renderText80.
+void VGC::renderTextBand(const IIgsMemory& mem, int rowStart, int rowEnd) {
+    if (charRom_.empty()) return;
+    const uint8_t sc = mem.textColor();
+    const uint32_t fg = kLoresPalette[sc >> 4];
+    const uint32_t bg = kLoresPalette[sc & 0x0F];
+    // Paint the band background across the full width first (glyph gaps → bg).
+    for (int py = rowStart * 16; py < rowEnd * 16 && py < kH; ++py)
+        for (int x = 0; x < kW; ++x) fb_[size_t(py) * kW + x] = bg;
+
+    const bool col80 = mem.text80();
+    const uint8_t* main = mem.slowRam();               // bank $E0
+    const uint8_t* aux  = mem.slowRam() + 0x10000;     // bank $E1 (80-col even cols)
+    const int page = mem.textPage2() ? 0x0800 : 0x0400;
+    const int ncol = col80 ? 80 : 40;
+    for (int rowc = rowStart; rowc < rowEnd; ++rowc) {
+        int rbase = page + (rowc % 8) * 0x80 + (rowc / 8) * 0x28;
+        for (int colc = 0; colc < ncol; ++colc) {
+            uint8_t b = col80 ? ((colc & 1) ? main : aux)[rbase + colc / 2]
+                              : main[rbase + colc];
+            const uint8_t* glyph = &charRom_[(b * 8) & (charRom_.size() - 1)];
+            for (int gy = 0; gy < 8; ++gy) {
+                uint8_t bits = glyph[gy] & 0x7F;
+                for (int gx = 0; gx < 7; ++gx) {
+                    uint32_t c = (bits & (1 << gx)) ? fg : bg;
+                    int py = rowc * 16 + gy * 2;
+                    if (col80) {                        // 8-px cell, 1× glyph
+                        int px = colc * 8 + gx;
+                        fb_[size_t(py) * kW + px]       = c;
+                        fb_[size_t(py + 1) * kW + px]   = c;
+                    } else {                            // 16-px cell, 2× glyph
+                        int px = colc * 16 + gx * 2;
+                        for (int dy = 0; dy < 2; ++dy)
+                            for (int dx = 0; dx < 2; ++dx)
+                                fb_[size_t(py + dy) * kW + (px + dx)] = c;
+                    }
+                }
+            }
+        }
+    }
 }
 
 // //e address of text/lo-res row (interleaved) and hi-res row.
