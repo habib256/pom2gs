@@ -100,7 +100,7 @@ void Sony35::flush() {
         else std::fprintf(stderr, "Sony35: bad nibble data on track %d.%d — sector(s) lost\n", t >> 1, t & 1);
         trkDirty_[t] = false;
     }
-    if (!any || path_.empty() || writeProt_) return;
+    if (!any || path_.empty() || writeProt_ || !writeBack_) return;
     std::fstream f(path_, std::ios::in | std::ios::out | std::ios::binary);
     if (!f) { std::fprintf(stderr, "Sony35: cannot write back to %s\n", path_.c_str()); return; }
     f.seekp(std::streamoff(headerBytes_), std::ios::beg);

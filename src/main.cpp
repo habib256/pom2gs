@@ -78,7 +78,8 @@ static std::string findPath(const std::string& rel) {
 // disk35, iwm35 (0/1: 3.5" media on the real IWM Sony drive instead of the
 // SmartPort HLE). Sits next to run_emulator.sh (repo root). CLI args/flags
 // override it.
-struct Config { std::string boot, rom, hdd, disk35, disk35b, disk525; bool iwm35 = false; };
+struct Config { std::string boot, rom, hdd, disk35, disk35b, disk525;
+                bool iwm35 = false; bool writeBack = true; };
 static std::string trim(std::string s) {
     size_t a = s.find_first_not_of(" \t\r\n"), b = s.find_last_not_of(" \t\r\n");
     return a == std::string::npos ? std::string() : s.substr(a, b - a + 1);
@@ -99,6 +100,11 @@ static Config readConfig(std::string& usedPath) {
         else if (k == "disk525") c.disk525 = v;
         else if (k == "disk35b") c.disk35b = v;   // second Sony drive (needs iwm35)
         else if (k == "iwm35")   c.iwm35  = (v == "1" || v == "true" || v == "yes");
+        // writeback = 0 mounts every drive read-only on the HOST side: the guest
+        // still writes normally, but nothing is flushed to the image files. Use
+        // it when running from an archive you don't want a game's save/protection
+        // rewrite to touch. Default 1 (formats, saves and GS/OS installs persist).
+        else if (k == "writeback") c.writeBack = !(v == "0" || v == "false" || v == "no");
     }
     return c;
 }
@@ -131,8 +137,11 @@ int main(int argc, char** argv) {
         if (a == "--gsos" || a == "--finder") { forceGsos = true; if (i + 1 < argc && argv[i + 1][0] != '-') gsosDisk = argv[++i]; }
         else if (a == "--hdd") forceHdd = true;
         else if (a == "--iwm35") cfg.iwm35 = true;
+        else if (a == "--read-only" || a == "--no-writeback") cfg.writeBack = false;
         else pos.push_back(a);
     }
+    mem.setMediaWriteBack(cfg.writeBack);   // before any mount below
+    if (!cfg.writeBack) std::printf("Media: read-only (host write-back disabled)\n");
     mem.setIwm35(cfg.iwm35);   // before any loadDisk35 below
     if (cfg.iwm35) std::printf("3.5\" drive: real IWM/Sony (internal ROM firmware)\n");
     if (!cfg.disk525.empty()) {

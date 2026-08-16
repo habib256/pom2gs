@@ -25,6 +25,10 @@ IIgsMemory::IIgsMemory() {
 }
 
 void IIgsMemory::setFastRamKB(uint32_t kb) {
+    // Clamp to the FPI's real range. Also keeps fastRam_ non-empty, which
+    // fastCell()'s `idx %= fastRam_.size()` mirroring depends on.
+    if (kb < kMinFastRamKB) kb = kMinFastRamKB;
+    if (kb > kMaxFastRamKB) kb = kMaxFastRamKB;
     fastRamKB_ = kb;
     fastRam_.assign(size_t(kb) * 1024, 0);
 }
@@ -311,6 +315,7 @@ void IIgsMemory::saveState(std::ostream& os) const {
     os.write((const char*)slowRam_.data(), slowRam_.size());
     // MMU / soft switches.
     put(os, shadow_); put(os, speed_); put(os, state_); put(os, newvideo_); put(os, txtColor_);
+    put(os, langSel_); put(os, slotRomSel_); put(os, dmaReg_);
     put(os, altzp_); put(os, ramrd_); put(os, ramwrt_); put(os, page2_);
     put(os, store80_); put(os, hires_); put(os, intcxrom_); put(os, slotc3rom_);
     put(os, eightyCol_); put(os, altchar_); put(os, textMode_); put(os, mixed_); put(os, dhgr_);
@@ -344,10 +349,17 @@ void IIgsMemory::saveState(std::ostream& os) const {
 
 bool IIgsMemory::loadState(std::istream& is) {
     uint32_t kb = 0; get(is, kb);
+    // Validate BEFORE allocating: this field comes straight off disk, and a
+    // truncated/corrupt .pgss (an interrupted quick-save) turned it into a
+    // multi-terabyte fastRam_.assign() → uncaught std::bad_alloc → the emulator
+    // died on F8. The FPI's real range is 256 KB (stock) to 8 MB (ROM 03 max).
+    // (bug-hunt finding, August 2026 — fuzzing quick.pgss.)
+    if (!is.good() || kb < kMinFastRamKB || kb > kMaxFastRamKB) return false;
     if (kb != fastRamKB_) setFastRamKB(kb);
     is.read((char*)fastRam_.data(), fastRam_.size());
     is.read((char*)slowRam_.data(), slowRam_.size());
     get(is, shadow_); get(is, speed_); get(is, state_); get(is, newvideo_); get(is, txtColor_);
+    get(is, langSel_); get(is, slotRomSel_); get(is, dmaReg_);
     get(is, altzp_); get(is, ramrd_); get(is, ramwrt_); get(is, page2_);
     get(is, store80_); get(is, hires_); get(is, intcxrom_); get(is, slotc3rom_);
     get(is, eightyCol_); get(is, altchar_); get(is, textMode_); get(is, mixed_); get(is, dhgr_);
@@ -635,6 +647,7 @@ void IIgsMemory::reset() {
     std::fill(fastRam_.begin(), fastRam_.end(), 0);
     std::fill(slowRam_.begin(), slowRam_.end(), 0);
     shadow_ = 0; speed_ = 0; state_ = 0; newvideo_ = 0; txtColor_ = 0xF0;
+    langSel_ = 0; slotRomSel_ = 0; dmaReg_ = 0;
     altzp_ = ramrd_ = ramwrt_ = page2_ = store80_ = hires_ = false;
     intcxrom_ = false; slotc3rom_ = false; eightyCol_ = false; altchar_ = false;
     textMode_ = true; mixed_ = false; dhgr_ = false;
@@ -657,7 +670,14 @@ void IIgsMemory::reset() {
     clkState_ = CLK_IDLE;   // BRAM contents survive reset (battery-backed)
     mouseDX_ = mouseDY_ = 0; mouseBtn_ = false; mouseDataFull_ = false;
     mouseReadY_ = false; keyMod_ = 0; kbdIntPending_ = false;
-    slowPenMaster_ = 0;
+    // BOTH halves of the slow-side penalty accumulator. tick() computes its
+    // per-instruction delta as `slowPenMaster_ - slowPenSeen_`; zeroing only the
+    // first left the high-water mark behind, so the next tick() computed a
+    // negative delta, cast it to uint32_t and charged the video/DOC clocks ~4
+    // billion master ticks in one step. Latent today (the host loop's
+    // takeSlowPenalty() clears both every step, so a reset always lands on 0/0)
+    // but a trap for any future caller. (bug-hunt finding, August 2026.)
+    slowPenMaster_ = 0; slowPenSeen_ = 0;
     // $C031 DISKREG clears on reset (real hardware): drop the 35SEL/HDSEL
     // routing latched in the IWM, else a 5.25" boot after a 3.5" session
     // mis-routes the phase lines until the ROM's disk-port probe rewrites
@@ -918,6 +938,13 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         case 0x22: return txtColor_;                        // SCREENCOLOR (text fg/bg)
         case 0x23: return vgcint_;                          // VGCINT
         case 0x29: return newvideo_;
+        // LANGSEL / SLOTROMSEL / DMAREG are latches: they must read back what
+        // was written (MAME apple2gs.cpp c000_r cases 0x2b/0x2d). Falling
+        // through to the "floating bus" 0 below broke every read-modify-write
+        // of them. (bug-hunt finding, August 2026.)
+        case 0x2B: return langSel_;                         // LANGSEL (b7-5 char-ROM language, b4 PAL)
+        case 0x2D: return slotRomSel_;                      // SLOTROMSEL (per-slot card/internal ROM)
+        case 0x37: return dmaReg_;                          // DMAREG (DMA bank; shadow-all not modelled)
         case 0x2E: {                                        // VERTCNT (MAME apple2gs.cpp get_vpos)
             // The IIgs 9-bit vertical counter is preset so the first VISIBLE line
             // reads 0x100 (→ VERTCNT 0x80), not 0. POMIIGS vpos() is already the
@@ -1027,6 +1054,14 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x22: txtColor_ = v; return;                   // SCREENCOLOR (text fg/bg)
         case 0x23: vgcint_ = uint8_t((vgcint_ & 0xF0) | (v & 0x07)); updateVgcIrq(); return; // VGCINT enables (MAME: preserve 0xF0, store bits0-2)
         case 0x29: newvideo_ = v & 0xE1; return;            // NEWVIDEO (MAME 1707)
+        // MAME apple2gs.cpp c000_w: LANGSEL keeps b7-3 (`data & 0xf8`),
+        // SLOTROMSEL keeps b7-4+b2-1 (`data & 0xf6`). LANGSEL b7-5 pick the
+        // character-ROM language bank, read by the VGC. SLOTROMSEL is latched
+        // for read-back only: POMIIGS' slot routing is fixed (internal firmware
+        // + the HLE cards in slots 5/7), so honouring it would change nothing.
+        case 0x2B: langSel_    = uint8_t(v & 0xF8); return; // LANGSEL
+        case 0x2D: slotRomSel_ = uint8_t(v & 0xF6); return; // SLOTROMSEL
+        case 0x37: dmaReg_     = v; return;                 // DMAREG (latched; DMA/shadow-all not modelled)
         case 0x32:                                          // VGCINTCLEAR — write-0-to-clear per bit (MAME clear_vgcint)
             if (!(v & 0x40)) vgcint_ &= uint8_t(~0x40);     //   1-second status
             if (!(v & 0x20)) vgcint_ &= uint8_t(~0x20);     //   scanline status (writing the bit as 1 preserves it)
@@ -1064,11 +1099,19 @@ bool IIgsMemory::maybeShadow(uint8_t bank, uint16_t off, uint8_t v) {
     // writes (e.g. the Finder menu bar drawn to $01:2xxx) never reach $E1 and the
     // display shows a stale image. MAME apple2gs.cpp shadow_w.
     const bool shr = (bank == 1) && !(shadow_ & SHAD_SUPERHIRES);
+    // SHAD_AUXHIRES ($C035 bit 4) inhibits shadowing of the AUX (bank $01)
+    // hi-res regions specifically — it has no effect on bank $00. MAME
+    // apple2gs.cpp b1ram2000_w/b1ram4000_w (~3013-3030) gate the aux hi-res
+    // path on `(!HIRESPG1 && !AUXHIRES) || !SUPERHIRES`, while the main-bank
+    // b0ram2000_w/b0ram4000_w (~2962-2980) test HIRESPG1/2 alone. The bit was
+    // declared here but never read, so aux hi-res kept shadowing even when
+    // software asked for it to stop. (bug-hunt finding, August 2026.)
+    const bool auxHiresOk = (bank != 1) || !(shadow_ & SHAD_AUXHIRES);
     bool doit = false;
     if (off >= 0x0400 && off <= 0x07FF) doit = !(shadow_ & SHAD_TXTPG1);              // text/lores page 1
     else if (off >= 0x0800 && off <= 0x0BFF) doit = !(shadow_ & SHAD_TXTPG2);         // text/lores page 2 (VGC scans it from the slow side)
-    else if (off >= 0x2000 && off <= 0x3FFF) doit = !(shadow_ & SHAD_HIRESPG1) || shr;// hires page 1 / SHR
-    else if (off >= 0x4000 && off <= 0x5FFF) doit = !(shadow_ & SHAD_HIRESPG2) || shr;// hires page 2 / SHR
+    else if (off >= 0x2000 && off <= 0x3FFF) doit = (!(shadow_ & SHAD_HIRESPG1) && auxHiresOk) || shr;// hires page 1 / SHR
+    else if (off >= 0x4000 && off <= 0x5FFF) doit = (!(shadow_ & SHAD_HIRESPG2) && auxHiresOk) || shr;// hires page 2 / SHR
     else if (off >= 0x6000 && off <= 0x9FFF) doit = shr;                              // SHR upper half
     if (doit) slowRam_[(size_t(bank) * 0x10000) + off] = v;
     return doit;

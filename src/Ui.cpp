@@ -79,9 +79,14 @@ bool Ui::browseAccept(const std::string& path) {
 }
 
 void Ui::openLoad(int kind) {
+    if (kind < 0 || kind >= kLoadKinds) return;   // never index the sticky table out of range
     loadKind_ = kind;
     // Start in the last directory used for this kind (sticky across the session).
-    static std::string lastDir[4];
+    // One slot per load kind — sized from kLoadKinds, NOT a literal: the 5.25"
+    // entry (kind 4) was added after this array was written as `lastDir[4]`, so
+    // File > Load 5.25" Disk... read and wrote a whole std::string past the end
+    // (bug-hunt finding, August 2026).
+    static std::string lastDir[kLoadKinds];
     if (lastDir[kind].empty()) {
         namespace fs = std::filesystem;
         std::error_code ec;
@@ -316,6 +321,7 @@ void Ui::dialogs() {
         const char* label = loadKind_ == 0 ? "ROM image (.rom/.bin)"
                           : loadKind_ == 1 ? "Hard-disk image (.hdv/.po/.2mg)"
                           : loadKind_ == 3 ? "3.5\" disk to insert now (no reset)"
+                          : loadKind_ == 4 ? "5.25\" boot disk, slot 6 (cold reset)"
                                            : "3.5\" boot disk, slot 5 (cold reset)";
         ImGui::TextUnformatted(label);
 

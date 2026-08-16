@@ -67,6 +67,8 @@ hdd    = hdv/GSOS.hdv
 #disk35b = …   # second internal 3.5" drive (needs iwm35 = 1)
 #disk525 = …   # 5.25" on the slot-6 IWM (.dsk/.do/.po/.nib/.d13/.2mg/.woz —
                # boots via the $C600 PROM; writes persist to the image)
+#writeback = 0 # mount every drive read-only on the HOST side: the machine still
+               # writes normally, but nothing is flushed to the image files
 ```
 
 Edit it, or override per-run on the CLI (CLI > config > built-in):
@@ -74,8 +76,14 @@ Edit it, or override per-run on the CLI (CLI > config > built-in):
 ```bash
 ./run_emulator.sh              # uses pomiigs.cfg (default: GS/OS from the HDD)
 ./run_emulator.sh --hdd        # force the slot-7 ProDOS HDD (e.g. Total Replay)
+./run_emulator.sh --read-only  # never write back to the disk images (= writeback = 0)
 ./run_gsos.sh ["disk.2mg"]     # force the Finder from a 3.5" disk (--gsos / --finder [disk])
 ```
+
+**Writes persist by default** — formats, saved games and GS/OS installs are
+written back into the image file, and a title that saves during boot will modify
+it. Use `--read-only` (or `writeback = 0`) when booting from a collection you
+want left untouched.
 
 Disk images are copyrighted and not bundled — place your own GS/OS system disk
 under `disks35/` and hard disks under `hdv/`.

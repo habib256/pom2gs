@@ -35,6 +35,10 @@ class IIgsMemory
 {
 public:
     static constexpr uint32_t kAddrMask = 0x00FFFFFF;   // 24-bit / 16 MB
+    // Legal fast-side (FPI) RAM sizes: 256 KB stock … 8 MB (ROM 03 maximum,
+    // banks $00-$7F). Bounds every externally-supplied size — see loadState().
+    static constexpr uint32_t kMinFastRamKB = 256;
+    static constexpr uint32_t kMaxFastRamKB = 8192;
 
     // Shadow register ($C035) bits — 1 = inhibit that region's shadowing.
     // Cited: MAME apple2gs.cpp:235-241.
@@ -155,7 +159,11 @@ public:
     bool loadDisk525(const std::string& path) { return iwm_.loadDisk525(path); }
     void ejectDisk525() { iwm_.eject(); }
     // Mount a ProDOS hard-disk image (.hdv/.po/.2mg) on the slot-7 HDD card.
-    bool loadHdd(const std::string& path) { return hdd_.loadImage(path); }
+    bool loadHdd(const std::string& path) {
+        if (!hdd_.loadImage(path)) return false;
+        hdd_.setWriteBack(mediaWriteBack_);
+        return true;
+    }
     // Mount an 800K 3.5" image (.po/.2mg). Default = slot-5 SmartPort HLE
     // (block-level, ProDosHdd WDM-trap ROM). With setIwm35(true) the image
     // goes to the REAL IWM Sony 3.5" drive instead and the genuine internal
@@ -165,6 +173,7 @@ public:
     bool loadDisk35(const std::string& path, int drive = 0) {
         if (iwm35_) return iwm_.loadDisk35(path, drive);
         if (drive != 0 || !disk35_.loadImage(path)) return false;
+        disk35_.setWriteBack(mediaWriteBack_);
         // Hybrid mount: also insert a READ-ONLY copy into the real Sony/IWM
         // drive. Some protection loaders (Sensei, Space Cluster — the same
         // boot-block family) boot through the SmartPort HLE but then talk to
@@ -182,6 +191,21 @@ public:
         disk35_.eject(); disk35Changed_ = true; disk35SwitchIo_ = true;
         iwm_.ejectDisk35(0);                               // drop the hybrid shadow copy
     }
+    // Host write-back policy for ALL mounted media (5.25", 3.5", hard disk).
+    // ON (default) = a guest write reaches the image file, so formats, saves and
+    // GS/OS installs persist. OFF = writes still work inside the machine but are
+    // never flushed to disk, so booting a title cannot modify the user's image —
+    // what the headless harnesses (triage / screenshot) want, and what
+    // `writeback = 0` in pomiigs.cfg selects. Call before mounting; it also
+    // applies to drives already loaded.
+    void setMediaWriteBack(bool on) {
+        mediaWriteBack_ = on;
+        iwm_.setWriteBack(on);
+        hdd_.setWriteBack(on);
+        disk35_.setWriteBack(on);
+    }
+    bool mediaWriteBack() const { return mediaWriteBack_; }
+
     // Route 3.5" media to the real IWM Sony drive (vs SmartPort HLE).
     void setIwm35(bool on) { iwm35_ = on; }
     bool iwm35() const { return iwm35_; }
@@ -199,6 +223,7 @@ public:
         if (iwm35_) return iwm_.loadDisk35(path, drive);   // Sony35 arms its own switched flag
         if (drive != 0) return false;                      // HLE models a single unit
         bool ok = disk35_.loadImage(path);
+        disk35_.setWriteBack(mediaWriteBack_);
         disk35Changed_ = true; disk35SwitchIo_ = true;
         if (ok) iwm_.loadDisk35(path, 0, /*readOnly=*/true);   // keep the hybrid shadow in sync
         return ok;
@@ -233,6 +258,13 @@ public:
     bool    shrEnabled() const { return (newvideo_ & 0x80) != 0; }
     bool    text80()    const { return eightyCol_; }
     uint8_t textColor() const { return txtColor_; }              // $C022: fg = hi nibble, bg = lo
+    // ALTCHARSET ($C00E/$C00F): false = the //e PRIMARY set, where character
+    // codes $40-$7F are flashing rather than MouseText — the VGC has to remap
+    // them (see VGC::glyph). True = the alternate set, used verbatim.
+    bool    altCharSet() const { return altchar_; }
+    // Character-ROM language bank from $C02B LANGSEL bits 7-5. The 16 KB IIgs
+    // char ROM (344s0047) holds eight 2 KB banks, one per localisation.
+    int     charRomBank() const { return (langSel_ >> 5) & 7; }
     uint8_t borderColor() const { return clkCtl_ & 0x0F; }       // $C034 bits0-3 (16-colour index)
     bool    page2()     const { return page2_; }
     // CPU hardware-vector pull ($00FFE4-$00FFFF). On the IIgs these always read
@@ -276,6 +308,9 @@ private:
     uint8_t  state_  = 0;             // $C068 STATEREG composite
     uint8_t  newvideo_ = 0;           // $C029
     uint8_t  txtColor_ = 0xF0;        // $C022 SCREENCOLOR — white fg / black bg at boot
+    uint8_t  langSel_    = 0;         // $C02B LANGSEL (b7-5 char-ROM language, b4 PAL)
+    uint8_t  slotRomSel_ = 0;         // $C02D SLOTROMSEL (latched; routing is fixed)
+    uint8_t  dmaReg_     = 0;         // $C037 DMAREG (latched; DMA/shadow-all not modelled)
     // //e paging soft switches (Mega II).
     bool altzp_ = false, ramrd_ = false, ramwrt_ = false, page2_ = false;
     bool store80_ = false, hires_ = false, intcxrom_ = false, slotc3rom_ = false;
@@ -299,6 +334,7 @@ private:
     uint32_t sp5Calls_ = 0;   // slot-5 device-call counter (diagnostics)
     uint8_t  diskReg_ = 0;    // $C031 DISKREG (b6 = 35SEL, b7 = HDSEL) — mirrored into iwm_
     bool     iwm35_   = false; // 3.5" media on the real IWM Sony drive (vs SmartPort HLE)
+    bool     mediaWriteBack_ = true;   // persist guest writes to the image files
     // Single edge-tracked mirror of the DOC IRQ line — EVERY path that can change
     // the pend state must go through this (a direct setIrqLine call elsewhere would
     // desync docIrqLast_ and a later re-assert would be skipped).

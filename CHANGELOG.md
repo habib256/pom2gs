@@ -4,6 +4,96 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — bug-hunt pass (August 2026): 14 defects across UI, snapshot, CPU, VGC, MMU and disk
+A read-only audit (ASan/UBSan over the whole test suite, six boot scenarios, 356 3.5" + 860 5.25"
+images and 2 300 mutated disk images; register-by-register diffs against MAME `apple2gs.cpp` and
+KEGS). Grouped by what they broke:
+
+**Memory safety.**
+1. **`Ui::openLoad(4)` wrote a whole `std::string` past the end of `lastDir[]`.** The sticky
+   per-kind directory table was written `static std::string lastDir[4]` when there were four load
+   kinds; the 5.25" entry (kind 4) was added later. `File > Load 5.25" Disk...` therefore read a
+   garbage string (`.empty()` on a wild size field) and assigned to it — `operator=` can `free()`
+   an arbitrary pointer, so the *first* click could corrupt the heap. The table is now sized from
+   `Ui::kLoadKinds` and `openLoad` range-checks its argument. ASan never caught it: it does not
+   redzone dynamically-initialised non-POD globals, and `Ui.cpp` is in no test target.
+2. **A corrupt snapshot could request a terabyte of RAM.** `IIgsMemory::loadState` fed the
+   file's `fastRamKB_` field straight to `setFastRamKB` → `fastRam_.assign(kb * 1024, 0)`. Fuzzing
+   a truncated `states/quick.pgss` (an interrupted quick-save is enough) produced a 3.8 TB
+   allocation and an uncaught `std::bad_alloc`, i.e. F8 killed the emulator. The field is now
+   bounds-checked against the FPI's real range (`kMinFastRamKB`..`kMaxFastRamKB` = 256 KB..8 MB)
+   before allocating, and `setFastRamKB` clamps as well — which also guarantees `fastRam_` is never
+   empty, something `fastCell()`'s `idx %= fastRam_.size()` mirroring silently depended on.
+
+**65C816.**
+3. **Every hardware IRQ/NMI was billed 10/11 cycles instead of 7/8.** `serviceInt` added a flat
+   `+= 7` *on top of* the 3 (emulation) / 4 (native) stack-push cycles `pushB`/`pushW` already
+   count, while the two `vectorPull()` reads bypass `rd()`. Only the 2 internal + 2 vector cycles
+   remain to add, so the constant is 4 (WDC W65C816S datasheet; MAME `g65816cm.h`
+   `g65816i_interrupt_hardware` charges `CLK(7)`/`CLK(8)` as the total). BRK/COP take the same push
+   path and were already correct, which is what isolated it — a ~40 % surcharge on every interrupt,
+   stealing time from scanline- and DOC-IRQ-driven code.
+4. **`WAI` ($CB) was a no-op.** It now parks the CPU until an interrupt line is *asserted*,
+   independent of the I flag (I clear → the interrupt is taken and returns after the WAI; I set →
+   execution simply resumes there). Served at the top of `step()` at one bus cycle per poll so the
+   caller's `tick()` keeps advancing the video/DOC clocks that will raise the line. `setPC()`
+   cancels the stall, which is what keeps the shared-CPU Tom Harte harness correct.
+5. **`PLB` ($AB) wrapped the emulation-mode stack within page 1.** PHB/PLB/PHK are 65816-only
+   stack ops and use the RAW 16-bit stack, like PEA/PEI/PER/PHD/PLD/JSL/RTL. Only the pull shows
+   it: from S=$01FF a wrapping pull reads $0100, a raw one reads $0200 (final S is $0100 either way
+   because SPH is forced back at end of instruction). Caught by the Tom Harte `ab.e` vectors —
+   36/10 000, exactly the 1-in-256 that land on the page boundary. Found while re-validating the
+   CPU after (3) and (4); pre-existing.
+6. Removed `getCycleCountNow()`, a stub that always returned 0 and had no callers (the IIgs wall
+   clock is the MMU's master-tick counter, `IIgsMemory::audioCycles()`).
+
+**Video.** 7. **ALTCHARSET ($C00E/$C00F) was ignored, so flashing text rendered as MouseText.**
+Each 2 KB bank of the 16 KB char ROM (344s0047) holds the //e *alternate* set, where $40-$5F is
+MouseText. With ALTCHARSET off — the primary set, and the power-on state — codes $40-$7F are the
+*flashing* range and must be drawn as the inverse ($00-$3F) and normal ($80-$BF) glyphs on
+alternate phases (KEGS `video.c:1086-1094`). POMIIGS indexed the ROM with the raw code, so
+Applesoft `FLASH`, the DOS/ProDOS prompts and countless game menus drew MouseText glyphs instead of
+letters. `VGC::glyph()` now does the remap, with the ~1.9 Hz flash phase driven off the render
+frame counter. 8. **$C02B LANGSEL** is now honoured too, so the char ROM's seven other language
+banks are reachable (`IIgsMemory::charRomBank()`).
+
+**MMU.** 9. **`SHAD_AUXHIRES` ($C035 bit 4) was declared but never read** — aux (bank $01) hi-res
+kept shadowing even when software inhibited it. MAME `b1ram2000_w`/`b1ram4000_w` gate the aux path
+on `(!HIRESPG1 && !AUXHIRES) || !SUPERHIRES`; the main bank tests HIRESPG1/2 alone.
+10. **$C02B / $C02D / $C037 were write-ignored and read back $00**, breaking any read-modify-write
+of them. All three are latches now (LANGSEL `& 0xF8`, SLOTROMSEL `& 0xF6` — MAME `c000_w`; DMAREG
+verbatim). Slot routing stays fixed (internal firmware + the HLE cards in slots 5/7) and DMA /
+shadow-all are still unmodelled — these are read-back fidelity only. Snapshot format → v4.
+11. **`reset()` zeroed `slowPenMaster_` but not `slowPenSeen_`.** `tick()` computes its
+per-instruction delta as the difference, so the stale high-water mark would make the next tick
+charge the video/DOC clocks ~4 billion master ticks. Latent (the host loop's `takeSlowPenalty()`
+clears both every step, so a reset always landed on 0/0) but a trap for any future caller.
+
+**Disk / media.**
+12. **Images were refused unless their size matched exactly**, so a stray dump trailer made a
+    perfectly good disk unmountable — a whole family of archived `.dsk` files ends in `AF EC EE`,
+    giving 143 363 instead of 143 360 (Bandits, Crisis Mountain, The Eidolon, Koronis Rift in the
+    reference collection). `detect()` now trims a trailer of up to 256 bytes past a known raw size
+    and records it in the diagnostic. Placed after the self-describing envelopes (2IMG, WOZ) so it
+    cannot perturb their header-driven sizing, and the window is small enough that a genuinely
+    mis-sized file (Spy Hunter, 15 bytes short) is still rejected.
+13. **Guest writes always reached the user's image file, with no way to opt out.** A 5.25"
+    compatibility sweep silently rewrote a title that writes during boot ("Hacker's Challenge" in
+    the reference collection). New host-side write-back gate — `IIgsMemory::setMediaWriteBack`,
+    plumbed through `Iwm`/`Sony35`/`ProDosHdd`/`DiskImage` — distinct from write-protect: the guest
+    still writes normally (protection re-writes and save routines behave exactly as on real
+    hardware) but nothing is flushed to disk. `writeback = 0` in `pomiigs.cfg` / `--read-only` on
+    the CLI; **`tests/triage` and `tests/screenshot` now default to read-only** (`--writeback` opts
+    back in for install runs). Verified: a 1 200-image sweep no longer touches a single file.
+14. `Ui::dialogs()` labelled the 5.25" load dialog "3.5\" boot disk, slot 5".
+
+**Validation.** Suite 18/18. Tom Harte **2 680 000/2 680 000 across 268 opcode files** (up from the
+384k gate, and from 2 679 964/2 680 000 before (5)). Six boot scenarios unchanged (GS/OS still
+reaches the Finder desktop on HDD, 3.5" HLE and 3.5" LLE). Full-collection triage: the 356 3.5"
+titles classify **identically title-by-title**; the 860 5.25" titles differ only where intended
+(BADIMG 6 → 1). ASan/UBSan clean throughout, including 2 300 mutated disk images and 300 corrupted
+snapshots.
+
 ### Added — hybrid 3.5" mount: HLE-mounted disks are also visible to the IWM/Sony drive (Sensei, Space Cluster boot)
 An HLE-mounted 3.5" image (`loadDisk35`, `swapDisk35`) now also inserts a **read-only** copy into the
 real Sony/IWM drive. Rationale: on real hardware there is one medium reachable both through the
