@@ -33,8 +33,6 @@ void CPU65816::setIrqLine(int sourceId, bool asserted) {
     IRQ_.store(mask != 0 ? 1 : 0, std::memory_order_relaxed);
 }
 
-uint64_t CPU65816::getCycleCountNow() const { return 0; }   // M2 wires the bus clock
-
 void CPU65816::softReset() {
     // Reset always enters emulation mode with an 8-bit page-1 stack.
     emulation_ = true;
@@ -48,6 +46,7 @@ void CPU65816::softReset() {
     IRQ_.store(0, std::memory_order_relaxed);
     irqSourceMask_.store(0, std::memory_order_relaxed);
     NMI_ = 0;
+    waiting_ = false;          // RESET breaks a WAI stall
 }
 
 void CPU65816::hardReset() {
@@ -310,8 +309,28 @@ void CPU65816::step() {
         // masking IRQs: a VBL IRQ during that window pulled $00FFFE from LC RAM
         // ($0000) and derailed to $00:0000. (Diagnosed with tests/hdd_trace.)
         pc_ = uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec + 1)) << 8));
-        cycles_ += 7;
+        // A hardware interrupt costs 7 cycles in emulation mode, 8 in native
+        // (WDC W65C816S datasheet; MAME g65816cm.h g65816i_interrupt_hardware
+        // charges CLK(7)/CLK(8) as the TOTAL). Our pushB/pushW already count
+        // their bus cycles — 3 (emul: PCH, PCL, P) or 4 (native: + PBR) — and
+        // the two vectorPull() reads bypass rd(), so only 2 internal + 2 vector
+        // cycles remain to add. This used to add a flat 7 on top of the pushes,
+        // billing every IRQ/NMI 10/11 cycles instead of 7/8 — a ~40 % surcharge
+        // on every interrupt, which stole time from scanline/DOC-IRQ-driven
+        // code. BRK/COP take the same push path and were already correct.
+        // (bug-hunt finding, August 2026.)
+        cycles_ += 4;
     };
+    // WAI ($CB) parks the CPU until an interrupt is *asserted*. The wake is
+    // independent of the I flag: with I clear the interrupt is taken (returning
+    // to the instruction after WAI), with I set the CPU simply resumes there —
+    // the classic "wait for the beam / for the DOC" idiom. While parked the chip
+    // still burns bus cycles, so bill one per poll and let the caller's tick()
+    // advance the video/DOC clocks that will eventually raise the line.
+    if (waiting_) {
+        if (!NMI_ && !IRQ_.load(std::memory_order_relaxed)) { cycles_ = 1; return; }
+        waiting_ = false;
+    }
     if (NMI_) { NMI_ = 0; serviceInt(0xFFEA, 0xFFFA); return; }
     if (IRQ_.load(std::memory_order_relaxed) && !bit(p_, Status::I)) {
         serviceInt(0xFFEE, 0xFFFE); return;
@@ -593,11 +612,21 @@ void CPU65816::step() {
         case 0x7A: if(eX){uint8_t v=pullB();y_=v;setZN8(v);}else{y_=pullW();setZN16(y_);} break; // PLY
         case 0x08: pushB(uint8_t(p_ | (emulation_ ? 0x30 : 0))); break; // PHP
         case 0x28: { uint8_t v = pullB(); if (emulation_) p_ = v | Status::M | Status::X; else { p_ = v; if (bit(p_,Status::X)) { x_ &= 0xFF; y_ &= 0xFF; } } } break; // PLP
-        case 0x8B: pushB(dbr_); break;                          // PHB
-        case 0xAB: { uint8_t v = pullB(); dbr_ = v; setZN8(v);} break; // PLB
+        // PHB / PLB / PHK are 65816-only stack ops, so they use the RAW 16-bit
+        // stack like PEA/PEI/PER/PHD/PLD/JSL/RTL — not the 6502 page-1 wrap.
+        // Only the PULL shows it: from S=$01FF a wrapping pull reads $0100, a raw
+        // one reads $0200 (Tom Harte ab.e vectors 75/421/707/… — 36/10000, i.e.
+        // exactly the 1-in-256 vectors that land on the page boundary; final S is
+        // $0100 either way because SPH is forced back at end of instruction).
+        // The single-byte pushes are indistinguishable between the two models,
+        // and are written raw only so the three stay consistent.
+        // (bug-hunt finding, August 2026 — pre-existing, found while
+        // re-validating the CPU after the IRQ/WAI fixes.)
+        case 0x8B: pushBraw(dbr_); break;                          // PHB
+        case 0xAB: { uint8_t v = pullBraw(); dbr_ = v; setZN8(v);} break; // PLB
         case 0x0B: pushWraw(d_); break;                         // PHD
         case 0x2B: { d_ = pullWraw(); setZN16(d_);} break;      // PLD
-        case 0x4B: pushB(pbr_); break;                          // PHK
+        case 0x4B: pushBraw(pbr_); break;                       // PHK (see PHB/PLB above)
         case 0xF4: { uint16_t v = fetch16(); pushWraw(v);} break;  // PEA
         case 0xD4: { uint8_t o = fetch(); if ((d_ & 0xFF) != 0) ++cycles_;   // PEI: DP pointer read is full 16-bit (no page-0 wrap)
             uint16_t a0 = uint16_t(d_ + o); pushWraw(uint16_t(rd(a0) | (rd(uint16_t(a0 + 1)) << 8))); } break;
@@ -684,7 +713,11 @@ void CPU65816::step() {
             // ROM here would send GS/OS's COP calls to the ROM monitor and hang.
             pc_ = emulation_ ? uint16_t(m.read8(vec) | (m.read8(uint16_t(vec+1))<<8))
                              : uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec+1))<<8)); } break; // COP
-        case 0xCB: /* WAI */ cycles_ += 3; break;              // 3 cycles then wait (Tom Harte: 4 incl. fetch)
+        // WAI: 3 cycles (4 incl. the fetch — Tom Harte) and then the chip stalls
+        // until an interrupt line goes active; the wait itself is served at the
+        // top of step(). It used to be a plain NOP, so a `WAI`-based beam/DOC
+        // sync spun through its whole loop at full speed instead of parking.
+        case 0xCB: /* WAI */ waiting_ = true; cycles_ += 3; break;
         case 0xDB: /* STP */ running_ = false; cycles_ += 3; break; // 3 cycles then stop
 
         default: break;   // remaining opcodes land here until implemented

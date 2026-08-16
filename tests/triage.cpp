@@ -53,6 +53,12 @@ int main(int argc, char** argv) {
     IIgsMemory mem; CPU65816 cpu(&mem); VGC vgc;
     if (rom.empty() || !mem.loadRom(rom)) { std::printf("STATUS=NOROM | %s\n", disk); return 2; }
     mem.setCpu(&cpu); mem.reset();
+    // Triage sweeps a whole collection, so media is mounted READ-ONLY on the host
+    // side: the guest writes normally (protection checks and saves behave as they
+    // would on real hardware) but nothing is flushed to the image. Without this a
+    // sweep silently rewrote titles that write during boot — it modified
+    // "Hacker's Challenge" in the reference collection (bug-hunt, August 2026).
+    mem.setMediaWriteBack(false);
     if (!use525) mem.setIwm35(iwm35);   // default 3.5" = HLE SmartPort (the emulator's default)
     bool mounted = use525 ? mem.loadDisk525(disk) : mem.loadDisk35(disk);
     if (!mounted) { std::printf("STATUS=BADIMG | %s\n", disk); return 0; }

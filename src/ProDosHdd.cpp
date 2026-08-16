@@ -37,7 +37,7 @@ bool ProDosHdd::loadImage(const std::string& path) {
 // header) so a format / GS/OS install persists. Silently skipped if not
 // file-backed, write-protected, or out of range.
 void ProDosHdd::flushBlock(uint32_t blk) {
-    if (path_.empty() || writeProtect_) return;
+    if (path_.empty() || writeProtect_ || !writeBack_) return;
     const size_t off = size_t(blk) * kBlockBytes;
     if (off + kBlockBytes > img_.size()) return;
     std::fstream f(path_, std::ios::in | std::ios::out | std::ios::binary);

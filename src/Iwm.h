@@ -51,6 +51,7 @@ public:
     // 3.5" Sony drives (internal port, both drives — $C0EA/$C0EB select).
     bool loadDisk35(const std::string& path, int drive = 0, bool readOnly = false) {
         if (!d35_[drive & 1].loadImage(path)) return false;
+        d35_[drive & 1].setWriteBack(writeBack_);       // loadImage doesn't clear it, but be explicit
         if (readOnly) d35_[drive & 1].setWriteProtect(true);
         return true;
     }
@@ -62,6 +63,15 @@ public:
 
     // $C031 DISKREG (b6 = 35SEL, b7 = HDSEL) — MAME apple2gs.cpp:1995-2006.
     void setDiskReg(uint8_t v) { sel35_ = (v & 0x40) != 0; hdsel_ = (v & 0x80) != 0; }
+
+    // Host write-back gate for BOTH families (see ProDosHdd::setWriteBack).
+    // Applies to the drives now AND to anything mounted later.
+    void setWriteBack(bool on) {
+        writeBack_ = on;
+        disk525_.setWriteBackEnabled(on);
+        d35_[0].setWriteBack(on); d35_[1].setWriteBack(on);
+    }
+    bool writeBack() const { return writeBack_; }
 
     // $C0E0-$C0EF access (offset 0..15). Read returns the data/status latch;
     // write latches the data register. `cycle` is the absolute master-clock
@@ -97,6 +107,7 @@ private:
     // $C031 routing + the Sony drives.
     bool sel35_ = false;             // DISKREG b6: phases → 3.5" register protocol
     bool hdsel_ = false;             // DISKREG b7: Sony SEL line / head select
+    bool writeBack_ = true;          // persist guest writes to the image files
     Sony35 d35_[2];
 
     uint64_t wrBusyUntil_ = 0;       // handshake bit6 window after a data write

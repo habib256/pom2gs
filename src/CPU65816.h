@@ -97,13 +97,18 @@ public:
     void setDBR(uint8_t v) { dbr_ = v; }
     void setPBR(uint8_t v) { pbr_ = v; }
     void setP(uint8_t v)   { p_ = v; }
-    void setPC(uint16_t v) { pc_ = v; }        // back-door for the Klaus/Harte harness
+    // Back-door for the Klaus/Harte harness + the snapshot loader. Loading a PC
+    // from outside redirects execution, so it also cancels a pending WAI stall
+    // (otherwise one $CB vector would park the shared harness CPU for good).
+    void setPC(uint16_t v) { pc_ = v; waiting_ = false; }
     void setEmulationMode(bool e) { emulation_ = e; }
 
     // Sub-instruction cycle accounting — same contract as POM2 M6502 so the
     // speaker/DOC/VIA timestamp $C0xx accesses to sub-opcode precision.
-    int      getCurrentInstructionCycles() const { return cycles_; }
-    uint64_t getCycleCountNow() const;
+    // (POM2's absolute `getCycleCountNow()` has no equivalent here: the IIgs
+    // wall clock is the MMU's master-tick counter, IIgsMemory::audioCycles(),
+    // because the CPU's own cycles are 2.8/1.02 MHz-dependent. The stub that
+    // used to sit here always returned 0 and had no callers.)
 
 private:
     IIgsMemory* memory_ = nullptr;
@@ -117,6 +122,7 @@ private:
     std::atomic<int>      IRQ_{0};
     std::atomic<uint32_t> irqSourceMask_{0};
     int  NMI_ = 0;
+    bool waiting_ = false;         // WAI ($CB) stall — cleared by any asserted IRQ/NMI
 
     int  cycles_ = 0;
     bool running_ = false;

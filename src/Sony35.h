@@ -50,6 +50,11 @@ public:
     // Force write-protect (hybrid HLE mount: the SmartPort HLE owns the
     // backing file; this read-only Sony copy must never flush over it).
     void setWriteProtect(bool wp) { writeProt_ = wp; }
+    // Host write-back gate — see ProDosHdd::setWriteBack. OFF keeps the drive
+    // fully writable to the guest (tracks go dirty in memory as usual) but never
+    // touches the backing file, so a headless boot can't edit the user's image.
+    void setWriteBack(bool on) { writeBack_ = on; }
+    bool writeBack() const { return writeBack_; }
     const std::string& path() const { return path_; }
     bool motorOn() const { return motorOn_; }
 
@@ -83,6 +88,7 @@ private:
     size_t headerBytes_ = 0;             // .2mg header to skip on flush
     bool present_   = false;
     bool writeProt_ = false;
+    bool writeBack_ = true;              // persist dirty tracks to path_ (see setWriteBack)
     bool switched_  = false;             // disk-switched flag (set on insert/eject)
     bool motorOn_   = false;             // spindle (via command 4/$C)
     bool stepDir_   = false;             // 0 = inward (+1 cyl), 1 = outward (−1)

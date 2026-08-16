@@ -165,12 +165,17 @@ DiskImage::DetectResult DiskImage::detectFormat(const std::string& path,
     }
 
     const uint8_t* base = bytes.data() + baseOff;
-    const std::size_t n = totalLen - baseOff;
+    std::size_t n = totalLen - baseOff;
+    std::size_t trailerBytes = 0;   // junk past a known raw size (see the trim below)
 
     auto addMacBinaryNote = [&](DetectResult& res) {
         if (macBinaryStripped) {
             if (!res.diag.empty()) res.diag += "; ";
             res.diag += "MacBinary 128-byte header stripped";
+        }
+        if (trailerBytes) {
+            if (!res.diag.empty()) res.diag += "; ";
+            res.diag += std::to_string(trailerBytes) + "-byte trailer ignored";
         }
     };
 
@@ -304,6 +309,29 @@ DiskImage::DetectResult DiskImage::detectFormat(const std::string& path,
                        " bit-cell image (" + std::to_string(n) + " bytes)";
         addMacBinaryNote(r);
         return r;
+    }
+
+    // ── Trailing-junk tolerance ───────────────────────────────────────
+    // Placed AFTER the self-describing envelopes (2IMG, WOZ) so it can never
+    // perturb their header-driven sizing, and BEFORE the raw formats, which are
+    // identified purely by an exact byte count. A sizeable slice of the archived
+    // .dsk corpus carries a few stray bytes past the last sector — e.g. a whole
+    // family of dumps ends in `AF EC EE`, giving 143 363 instead of 143 360
+    // (Bandits, Crisis Mountain, The Eidolon, Koronis Rift …). The data before
+    // the trailer is a perfectly good image, so trim rather than refuse; the
+    // diagnostic records what was dropped. The window is deliberately small so a
+    // genuinely mis-sized (truncated or concatenated) file is still rejected.
+    // (bug-hunt finding, August 2026.)
+    {
+        const std::size_t knownSizes[] = {
+            static_cast<std::size_t>(kBytesPerImage),                // 143360 .dsk/.po
+            static_cast<std::size_t>(kTracks) * kNibblesPerTrack,    // 232960 .nib
+            static_cast<std::size_t>(kTracks) * 6384,                // 223440 .nib CNib2
+            static_cast<std::size_t>(kBytesPerImage13),              // 116480 13-sector
+        };
+        constexpr std::size_t kMaxTrailer = 256;
+        for (std::size_t s : knownSizes)
+            if (n > s && (n - s) <= kMaxTrailer) { trailerBytes = n - s; n = s; break; }
     }
 
     // ── Raw .nib — exactly 232 960 bytes (35 × 6656) ──────────────────

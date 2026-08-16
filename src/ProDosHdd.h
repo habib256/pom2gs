@@ -43,6 +43,13 @@ public:
     int  slot() const { return slot_; }
     size_t blockCount() const { return img_.size() / kBlockBytes; }
     bool writeProtected() const { return writeProtect_; }
+    // Host write-back gate. OFF = the guest still writes normally (the volume is
+    // NOT reported as write-protected, so software behaves exactly as it would
+    // on a writable disk), but nothing is persisted to the backing file. This is
+    // what the headless dev harnesses want: booting a game must never edit the
+    // user's image. Distinct from writeProtect_, which the guest can see.
+    void setWriteBack(bool on) { writeBack_ = on; }
+    bool writeBack() const { return writeBack_; }
     // A ProDOS boot block starts with byte 0 = $01. A blank/data volume ($00)
     // is a chain-to-slot-5 install target, not a boot device.
     bool bootable() const { uint8_t b[512]; return readBlock(0, b) && b[0] == 0x01; }
@@ -66,6 +73,7 @@ private:
     uint16_t selectedBlock_ = 0;
     uint32_t streamOffset_ = 0;
     bool writeProtect_ = false;
+    bool writeBack_ = true;               // persist writes to path_ (see setWriteBack)
     std::string path_;                    // backing file (for write-through)
     size_t headerBytes_ = 0;              // 64 for a .2mg, else 0
 

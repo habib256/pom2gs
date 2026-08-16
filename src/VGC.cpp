@@ -37,7 +37,30 @@ bool VGC::setCharRom(const std::vector<uint8_t>& rom) {
     return false;
 }
 
+// ── Character-generator lookup ───────────────────────────────────────────
+// The 16 KB IIgs char ROM (344s0047) is eight 2 KB banks — one localisation
+// each, selected by $C02B LANGSEL bits 7-5 — and every bank holds the 256
+// glyphs of the //e ALTERNATE character set: $00-$3F inverse, $40-$5F
+// MouseText, $60-$7F inverse lowercase, $80-$FF normal.
+//
+// With ALTCHARSET OFF ($C00E — the //e PRIMARY set, and the power-on state)
+// codes $40-$7F are not MouseText at all: they are the FLASHING range, drawn
+// as the inverse glyph ($00-$3F) and the normal glyph ($80-$BF) on alternate
+// flash phases. KEGS video.c:1086-1094 does exactly this remap (`val += ±0x40`).
+// POMIIGS used to index the ROM with the raw code, so every program that
+// printed flashing text — Applesoft FLASH, the DOS/ProDOS prompts, countless
+// game menus — drew MouseText glyphs instead of letters.
+// (bug-hunt finding, August 2026.)
+const uint8_t* VGC::glyph(uint8_t code, const IIgsMemory& mem) const {
+    if (!mem.altCharSet() && code >= 0x40 && code < 0x80)
+        code = uint8_t(code + (flashOn() ? 0x40 : 0xC0));   // +$40 normal / −$40 inverse
+    // Language bank (16 KB ROM only; the 4 KB/2 KB //e-style ROMs hold one set).
+    const size_t bank = (charRom_.size() >= 0x4000) ? size_t(mem.charRomBank()) * 0x800 : 0;
+    return &charRom_[(bank + size_t(code) * 8) % charRom_.size()];
+}
+
 const uint32_t* VGC::render(const IIgsMemory& mem) {
+    ++frameCount_;                     // drives the text flash phase
     if (mem.shrEnabled())              { renderSHR(mem); return fb_.data(); }
     if (mem.textMode())                { if (mem.text80()) renderText80(mem); else renderText(mem); return fb_.data(); }
     // Legacy graphics. In MIXED mode ($C053) the bottom 4 character rows show
@@ -72,9 +95,9 @@ void VGC::renderTextBand(const IIgsMemory& mem, int rowStart, int rowEnd) {
         for (int colc = 0; colc < ncol; ++colc) {
             uint8_t b = col80 ? ((colc & 1) ? main : aux)[rbase + colc / 2]
                               : main[rbase + colc];
-            const uint8_t* glyph = &charRom_[(b * 8) & (charRom_.size() - 1)];
+            const uint8_t* g = glyph(b, mem);
             for (int gy = 0; gy < 8; ++gy) {
-                uint8_t bits = glyph[gy] & 0x7F;
+                uint8_t bits = g[gy] & 0x7F;
                 for (int gx = 0; gx < 7; ++gx) {
                     uint32_t c = (bits & (1 << gx)) ? fg : bg;
                     int py = rowc * 16 + gy * 2;
@@ -255,10 +278,11 @@ void VGC::renderText(const IIgsMemory& mem) {
         int rbase = page + (rowc % 8) * 0x80 + (rowc / 8) * 0x28;
         for (int colc = 0; colc < 40; ++colc) {
             uint8_t b = e0[rbase + colc];
-            // Char-ROM glyph: primary set, 8 bytes/char, 7 pixels (bit 0 = left).
-            const uint8_t* glyph = &charRom_[(b * 8) & (charRom_.size() - 1)];
+            // Char-ROM glyph: 8 bytes/char, 7 pixels (bit 0 = left), ALTCHARSET
+            // + LANGSEL resolved by glyph().
+            const uint8_t* g = glyph(b, mem);
             for (int gy = 0; gy < 8; ++gy) {
-                uint8_t bits = glyph[gy] & 0x7F;
+                uint8_t bits = g[gy] & 0x7F;
                 for (int gx = 0; gx < 7; ++gx) {
                     uint32_t c = (bits & (1 << gx)) ? fg : bg;
                     int px = colc * 16 + gx * 2;
@@ -292,9 +316,9 @@ void VGC::renderText80(const IIgsMemory& mem) {
         for (int colc = 0; colc < 80; ++colc) {
             const uint8_t* bank = (colc & 1) ? main : aux;   // even = aux, odd = main
             uint8_t b = bank[rbase + colc / 2];
-            const uint8_t* glyph = &charRom_[(b * 8) & (charRom_.size() - 1)];
+            const uint8_t* g = glyph(b, mem);
             for (int gy = 0; gy < 8; ++gy) {
-                uint8_t bits = glyph[gy] & 0x7F;
+                uint8_t bits = g[gy] & 0x7F;
                 for (int gx = 0; gx < 7; ++gx) {
                     uint32_t c = (bits & (1 << gx)) ? fg : bg;
                     int px = colc * 8 + gx;              // 8-px cell, 7-px glyph

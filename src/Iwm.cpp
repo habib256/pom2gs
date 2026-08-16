@@ -22,9 +22,11 @@ Iwm::Iwm() {}
 bool Iwm::loadDisk525(const std::string& path) {
     flushDisk525();                        // don't lose a previous disk's writes
     bool ok = disk525_.loadFile(path);
-    // POM2's DiskIICard opts into write-back explicitly; we do the same —
-    // the file's own write-protect (WOZ INFO / read-only) still gates it.
-    if (ok) disk525_.setWriteBackEnabled(true);
+    // POM2's DiskIICard opts into write-back explicitly; we do the same — the
+    // file's own write-protect (WOZ INFO / read-only) still gates it, and so
+    // does our host policy (setWriteBack), which the headless harnesses turn
+    // off so a compatibility sweep can't rewrite the user's images.
+    if (ok) disk525_.setWriteBackEnabled(writeBack_);
     bitPos525_ = 0; latchValid525_ = false; nibClock525_ = 0;
     return ok;
 }

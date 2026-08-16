@@ -59,6 +59,13 @@ private:
     std::vector<uint32_t> fb_;
     std::vector<uint8_t>  charRom_;   // Mega II 344s0047 (16 KB)
     HgrMode hgrMode_ = HgrMode::CompositeNtsc;
+    // Text flash phase. The //e inverts flashing characters roughly every 16
+    // fields (KEGS video.c:639-643 g_flash_count >= 16), i.e. ~1.9 Hz at 60 Hz.
+    // Advanced once per render() — the renderer runs one frame per host frame.
+    uint32_t frameCount_ = 0;
+    bool flashOn() const { return ((frameCount_ / 16) & 1) != 0; }
+    // Character code → char-ROM glyph, honouring ALTCHARSET and $C02B LANGSEL.
+    const uint8_t* glyph(uint8_t code, const IIgsMemory& mem) const;
     void renderSHR(const IIgsMemory& mem);
     void renderText(const IIgsMemory& mem);    // 40-column text
     void renderText80(const IIgsMemory& mem);  // 80-column text (aux/main interleaved)

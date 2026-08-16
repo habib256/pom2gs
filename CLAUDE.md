@@ -74,7 +74,7 @@ its hardware logic into these files. 🟢 = working + pinned test.
 
 | Subsystem | Files | Status | Source |
 |---|---|---|---|
-| **65C816 CPU** (emul + native, 24-bit, all opcodes) | `CPU65816.h/.cpp` | 🟢 384k Tom Harte vectors (64 families ×2 modes; MVN/MVP excluded) | MAME `g65816/`, WDC datasheet |
+| **65C816 CPU** (emul + native, 24-bit, all opcodes) | `CPU65816.h/.cpp` | 🟢 2.68M Tom Harte vectors (134 families ×2 modes; MVN/MVP excluded) | MAME `g65816/`, WDC datasheet |
 | **MMU** — FPI + Mega II (16 MB banks, shadow, speed, //e main/aux redirect on `$00`+`$E0`, STATEREG, VBL/Mega II IRQ timing) | `IIgsMemory.h/.cpp` | 🟢 | MAME `apple2gs.cpp`, KEGS |
 | **ADB GLU** (keyboard/mouse/modifiers, HLE) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 IRQ kbd/mouse, ⌘-menu shortcuts (`adb_test`) | MAME `apple2gs.cpp` ADB GLU |
 | **Battery RAM + RTC** ($C033/$C034 serial) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 Control Panel shows host local time; BRAM r/w | KEGS clock.c, MAME |
@@ -148,7 +148,7 @@ cold boot clears fast RAM with the `00 FF` pattern and re-seeds BRAM defaults.
 **Broadly working — GS/OS boots.** Nine differential bug-sweep passes brought
 POMIIGS to broad KEGS/MAME/GSSquared parity:
 
-- 65C816 🟢 (384k Tom Harte vectors), FPI/Mega II MMU 🟢 (shadow, speed,
+- 65C816 🟢 (2.68M Tom Harte vectors), FPI/Mega II MMU 🟢 (shadow, speed,
   //e main/aux redirect, STATEREG, VBL + Mega II quarter-second IRQ).
 - VGC 🟢 Super Hi-Res + SCB/palettes, legacy text (authentic char ROM),
   HGR/DHGR (NTSC + RGB). Ensoniq DOC 🟢 (synthLAB music validated).

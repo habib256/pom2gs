@@ -13,7 +13,8 @@
 
 namespace {
 constexpr char     kMagic[4] = {'P', 'G', 'S', 'S'};
-constexpr uint32_t kVersion  = 3;   // v3: + SCC 8530 state (WR file, regPtr, rx/tx FIFOs)
+constexpr uint32_t kVersion  = 4;   // v4: + $C02B LANGSEL / $C02D SLOTROMSEL / $C037 DMAREG latches
+                                    // v3: + SCC 8530 state (WR file, regPtr, rx/tx FIFOs)
 
 template <typename T> void put(std::ostream& os, const T& v) { os.write((const char*)&v, sizeof v); }
 template <typename T> void get(std::istream& is, T& v)       { is.read((char*)&v, sizeof v); }

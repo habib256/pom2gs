@@ -72,9 +72,12 @@ private:
     AudioOut&   audio_;
 
     // Modal state.
+    // Load kinds, in openLoad()/browseAccept() order. kLoadKinds sizes every
+    // per-kind table — add a kind here and the tables grow with it.
+    static constexpr int kLoadKinds = 5;   // 0 ROM · 1 HDD · 2 3.5" · 3 hot-swap · 4 5.25"
     bool  pendingAbout_ = false;
     bool  pendingLoad_  = false;
-    int   loadKind_     = 0;             // 0 = ROM, 1 = hard disk, 2 = 3.5" disk, 3 = hot-swap
+    int   loadKind_     = 0;
     char  pathBuf_[512] = {0};
     // Universal media browser (the Load dialog): current directory + entries.
     std::string browseDir_;
