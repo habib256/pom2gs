@@ -683,7 +683,8 @@ void IIgsMemory::reset() {
     // mis-routes the phase lines until the ROM's disk-port probe rewrites
     // $C031 (bug-hunt finding, July 2026).
     diskReg_ = 0;
-    iwm_.setDiskReg(0);
+    iwm_.reset();          // controller latches clear on /RESET (media stays put)
+    iwm_.setDiskReg(0);    // ...then re-apply the cleared $C031 routing
     // Media-change one-shots don't survive a reboot either — a fresh boot
     // re-identifies volumes anyway; keep parity with loadState().
     disk35Changed_ = false; disk35SwitchIo_ = false;

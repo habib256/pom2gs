@@ -210,6 +210,32 @@ int main() {
         }
     }
 
+    // ── 5. Machine reset clears the CONTROLLER latches, not the media ────
+    // The IWM's /RESET pin is tied to the system reset (MAME iwm.cpp
+    // device_reset): ENABLE, drive select, Q6/Q7 and the MODE register clear.
+    // They used to survive, so F5 during disk access left ENABLE asserted —
+    // speedFast() then saw a permanently spinning Disk II and pinned the
+    // machine at 1.02 MHz — and a latched Q7 turned the next $C0EC read into
+    // the write handshake instead of disk data.
+    {
+        check("reload for the reset check", mem.loadDisk525(path));
+        ioWrite(mem, 0x08, 0);                       // ENABLE off (MODE needs it)
+        ioWrite(mem, 0x0E, 0);                       // Q7 off
+        ioWrite(mem, 0x0D, 0);                       // Q6 on
+        ioWrite(mem, 0x0F, 0x1F);                    // Q7 on → write MODE = $1F
+        ioWrite(mem, 0x09, 0);                       // ENABLE on, Q7 still latched
+        ioRead(mem, 0x0E);                           // Q7 off so status is readable
+        check("pre-reset: ENABLE + MODE latched", (ioRead(mem, 0x0D) & 0x3F) == 0x3F);
+
+        mem.reset();
+
+        ioRead(mem, 0x0E);                           // Q7 off (already, post-reset)
+        const uint8_t st = ioRead(mem, 0x0D);        // Q6 on → status register
+        check("reset: ENABLE (bit5) cleared", (st & 0x20) == 0);
+        check("reset: MODE register cleared", (st & 0x1F) == 0);
+        check("reset: media still mounted", mem.iwm().hasDisk());
+    }
+
     std::remove(path);
     if (fails) { std::printf("iwm525_test: %d FAILURES\n", fails); return 1; }
     std::printf("iwm525_test: all checks passed\n");

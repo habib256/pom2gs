@@ -8,6 +8,7 @@
 // iwm_read_status35 / iwm_do_action35.
 
 #include "Sony35.h"
+#include "TwoImg.h"
 #include <cstdio>
 #include <fstream>
 
@@ -48,14 +49,18 @@ bool Sony35::loadImage(const std::string& path) {
     std::ifstream in(path, std::ios::binary);
     if (!in) return false;
     std::vector<uint8_t> img((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    // 2IMG envelope: offset/length/flags all come from the header, not from a
+    // hard-coded 64 — see TwoImg.h and the matching note in ProDosHdd::loadImage
+    // (a non-64 data offset loaded every sector shifted, and flush() then wrote
+    // the 800K image back over the wrong part of the user's file).
     size_t hdr = 0;
     bool wp = false;
-    if (img.size() >= 64 && img[0] == '2' && img[1] == 'I' && img[2] == 'M' && img[3] == 'G') {
-        const uint32_t flags = uint32_t(img[16]) | (uint32_t(img[17]) << 8)
-                             | (uint32_t(img[18]) << 16) | (uint32_t(img[19]) << 24);
-        wp = (flags & 0x80000000u) != 0;
-        img.erase(img.begin(), img.begin() + 64);
-        hdr = 64;
+    const pom2::TwoImgPayload tw = pom2::twoImgProbe(img.data(), img.size());
+    if (tw.is2img) {
+        wp  = tw.writeProtected;
+        hdr = tw.offset;
+        img.erase(img.begin(), img.begin() + std::ptrdiff_t(tw.offset));
+        img.resize(tw.length);
     }
     if (img.size() < kImageBytes) return false;      // 800K only (KEGS warns; we refuse)
     img.resize(kImageBytes);

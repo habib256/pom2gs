@@ -215,6 +215,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(smartport_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME smartport_test COMMAND smartport_test)
 
+    # 2IMG envelope (dataOffset / dataLength / lock flag) on the BLOCK loaders.
+    add_executable(twoimg_test tests/twoimg_test.cpp src/ProDosHdd.cpp src/Sony35.cpp)
+    target_include_directories(twoimg_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME twoimg_test COMMAND twoimg_test)
+
     # Hard-disk boot fixes: emulation-mode ROM vector pull + slot-7 chain +
     # block-write persistence (GS/OS boots to the Finder with a HDD mounted).
     add_executable(hdd_test tests/hdd_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)

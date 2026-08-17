@@ -78,6 +78,32 @@ public:
     // tick (14.318 MHz) so the bit/nibble streams advance with time.
     uint8_t access(uint8_t offset, bool isWrite, uint8_t writeVal, uint64_t cycle);
 
+    // System reset: the IWM's /RESET pin is tied to the machine's, so the
+    // CONTROLLER state clears — phases, ENABLE, drive select, the Q6/Q7 latches,
+    // the MODE register and the read latch (MAME iwm.cpp device_reset). The
+    // MEDIA and the head's physical position do not: a reset doesn't eject a
+    // disk or move the arm, so `disk525_`/`d35_`/`halfTrack_`/`bitPos525_` are
+    // deliberately untouched. $C031's 35SEL/HDSEL live outside the IWM (the
+    // Mega II latch), so IIgsMemory::reset clears those via setDiskReg(0).
+    //
+    // Without this, F5 while a drive was spinning left ENABLE asserted for good:
+    // speedFast() then saw a permanently "spinning" Disk II and pinned the
+    // machine at 1.02 MHz, and a latched Q7 made the next $C0EC read return the
+    // write handshake instead of disk data.
+    // (bug-hunt finding, August 2026 — pinned by iwm525_test.)
+    void reset() {
+        endWrite525();
+        d35_[0].endWrite(); d35_[1].endWrite();
+        phase_[0] = phase_[1] = phase_[2] = phase_[3] = 0;
+        motorOn_ = false;
+        drive_   = 0;
+        q6_ = q7_ = false;
+        dataReg_ = 0;
+        mode_    = 0;
+        latchValid525_ = false;
+        wrBusyUntil_   = 0;
+    }
+
 private:
     // ── 5.25" drive (Disk II mechanism over POM2 DiskImage) ──────────────
     DiskImage disk525_;

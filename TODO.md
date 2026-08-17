@@ -339,7 +339,10 @@ needs the following, in rough priority order.
   costs 5 master (fast) or 14 (slow) by the *live* $C036 bit7, so **mid-frame
   speed switches** are honoured. //e slow-mode runs at 1.022 MHz (measured in
   Total Replay). Per-access **slow-side penalty**: Mega II accesses (banks
-  $E0/$E1, $Cxxx I/O + LC, shadowed writes) add +9 master (5→14) in fast mode.
+  $E0/$E1, $Cxxx I/O + LC, shadowed writes) add +9 master (5→14) in fast mode —
+  and *only* while the CPU is genuinely at 2.8 MHz: with a motor-detect slot's
+  Disk II spinning the FPI already holds the machine at 1.02 MHz, so there is no
+  differential to charge (MAME `update_speed`).
   Gates: `speed_test`, `slowside_test`. Minor remaining nuance: Mega II
   fast/slow *phase-sync* sub-cycle alignment (we model the 1 MHz cost only).
 - 🟡 IRQ set: **VBL** (tick edge), **¼-second + 1-second** timers (frame-driven,

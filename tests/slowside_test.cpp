@@ -63,6 +63,29 @@ int main() {
     for (int i = 0; i < 100; ++i) (void)mem.read8(slowRam);
     expect("slow-mode slow reads", mem.takeSlowPenalty(), 0);
 
+    // ── Disk II motor-detect drop: bit7 set but the FPI is at 1 MHz ──────
+    // $C036 bit7 (fast) + bit2 (slot-6 motor detect). While the 5.25" motor
+    // spins, speedFast() is false — the host loop bills every CPU cycle 14
+    // master ticks — so there is NO fast/slow differential left to charge.
+    // Gating chargeSlow() on the raw bit7 instead billed 14+9 = 23 master per
+    // slow access and starved the RWTS read loop.
+    mem.write8(io036(), 0x80 | 0x04);
+    mem.takeSlowPenalty();
+    if (!mem.speedFast()) { std::printf("FAIL motor-off should be fast\n"); ++fails; }
+    for (int i = 0; i < 5; ++i) (void)mem.read8(slowRam);
+    expect("motor off, fast", mem.takeSlowPenalty(), 45);
+
+    (void)mem.read8(uint32_t(0xE0) << 16 | 0xC0E9);      // $C0E9: 5.25" motor ON
+    mem.takeSlowPenalty();
+    if (mem.speedFast()) { std::printf("FAIL motor-on should force 1 MHz\n"); ++fails; }
+    for (int i = 0; i < 5; ++i) (void)mem.read8(slowRam);
+    expect("motor on, forced 1 MHz", mem.takeSlowPenalty(), 0);
+
+    (void)mem.read8(uint32_t(0xE0) << 16 | 0xC0E8);      // $C0E8: motor OFF again
+    mem.takeSlowPenalty();
+    for (int i = 0; i < 5; ++i) (void)mem.read8(slowRam);
+    expect("motor off again, fast", mem.takeSlowPenalty(), 45);
+
     if (fails) { std::printf("slowside_test: %d failure(s)\n", fails); return 1; }
     std::printf("OK: slow-side penalty (+9 master/access, fast mode only)\n");
     return 0;

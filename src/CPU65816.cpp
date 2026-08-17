@@ -42,7 +42,13 @@ void CPU65816::softReset() {
     d_ = 0;
     sp_ = 0x0100 | (sp_ & 0xFF);
     x_ &= 0xFF; y_ &= 0xFF;
-    if (memory_) pc_ = uint16_t(memory_->read8(0x00FFFC) | (memory_->read8(0x00FFFD) << 8));
+    // RESET is a vector pull like IRQ/NMI/ABORT: the FPI forces $00FFFC/FFFD to
+    // ROM regardless of the language card (see IIgsMemory::vectorPull and the
+    // note in serviceInt). Reading it through the normal bus only happened to
+    // work because every current caller resets the MMU first (which parks the LC
+    // in read-ROM mode); a bare softReset() with LC RAM banked in — what the
+    // "RAM survives" contract invites — pulled an uninitialised RAM vector.
+    if (memory_) pc_ = uint16_t(memory_->vectorPull(0xFFFC) | (memory_->vectorPull(0xFFFD) << 8));
     IRQ_.store(0, std::memory_order_relaxed);
     irqSourceMask_.store(0, std::memory_order_relaxed);
     NMI_ = 0;

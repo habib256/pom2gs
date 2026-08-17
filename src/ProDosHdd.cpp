@@ -5,6 +5,7 @@
 // ProDOSHardDiskCard (AppleWin lineage). Source: Apple ProDOS 8 Tech Ref.
 
 #include "ProDosHdd.h"
+#include "TwoImg.h"
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
@@ -15,16 +16,23 @@ bool ProDosHdd::loadImage(const std::string& path) {
     std::ifstream in(path, std::ios::binary);
     if (!in) return false;
     img_.assign((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-    // .2mg images carry a 64-byte header; a raw .hdv/.po is a multiple of 512.
+    // .2mg images carry an envelope; a raw .hdv/.po is a multiple of 512.
+    // The envelope's own dataOffset/dataLength/flags fields are authoritative —
+    // see TwoImg.h. This used to hard-code "skip 64 bytes, run to EOF" and test
+    // only flags bit 31, so (a) an image whose data offset isn't 64 loaded every
+    // block shifted AND flushBlock() then patched the backing file at the same
+    // wrong offset, and (b) a trailing comment/creator chunk read back as extra
+    // phantom blocks. The lock test also diverged from DiskImage's (the lenient
+    // bit-0 rule), which is exactly the drift TwoImg.h exists to prevent.
+    // (bug-hunt finding, August 2026 — pinned by twoimg_test.)
     headerBytes_ = 0;
     writeProtect_ = false;
-    if (img_.size() >= 64 && img_[0] == '2' && img_[1] == 'I' && img_[2] == 'M' && img_[3] == 'G') {
-        // 2IMG flags dword at offset 16 (LE); bit 31 = volume locked / write-protected.
-        const uint32_t flags = uint32_t(img_[16]) | (uint32_t(img_[17]) << 8)
-                             | (uint32_t(img_[18]) << 16) | (uint32_t(img_[19]) << 24);
-        writeProtect_ = (flags & 0x80000000u) != 0;
-        img_.erase(img_.begin(), img_.begin() + 64);
-        headerBytes_ = 64;
+    const pom2::TwoImgPayload tw = pom2::twoImgProbe(img_.data(), img_.size());
+    if (tw.is2img) {
+        writeProtect_ = tw.writeProtected;
+        headerBytes_  = tw.offset;
+        img_.erase(img_.begin(), img_.begin() + std::ptrdiff_t(tw.offset));
+        img_.resize(tw.length);
     }
     // Round down to a whole number of blocks.
     img_.resize((img_.size() / kBlockBytes) * kBlockBytes);
