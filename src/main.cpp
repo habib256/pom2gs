@@ -253,6 +253,7 @@ int main(int argc, char** argv) {
         if (!mem.loadDisk35(rp)) return false;
         mem.ejectHdd();
         ui.disk35Path = rp;             // seed the 3.5" browser/menu, not the HDD slot
+        ui.hddPath.clear();             // slot 7 is now empty — don't label a disk that isn't there
         mem.reset(); cpu.hardReset();
         return true;
     };
@@ -270,6 +271,10 @@ int main(int argc, char** argv) {
         if (!mem.loadDisk525(rp)) return false;
         mem.ejectHdd(); mem.ejectDisk35();
         ui.disk525Path = rp;
+        // Both other drives were just emptied; leaving their paths set made the
+        // status bar name an absent hard disk and put a tick next to a 3.5" image
+        // that is no longer in the drive.
+        ui.hddPath.clear(); ui.disk35Path.clear();
         mem.reset(); cpu.hardReset();
         return true;
     };

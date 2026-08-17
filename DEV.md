@@ -381,7 +381,9 @@ Model (all cited in the sources):
 - **Write path** — nibble-level: data writes land on the track stream right
   after the address field the firmware just read; dirty tracks are
   de-nibblised back to sectors on motor-off / step / eject / exit and patched
-  into the backing file (.po in place, .2mg past the 64-byte header).
+  into the backing file (.po in place, .2mg at the header's own **dataOffset** —
+  *not* a hard-coded 64; see `TwoImg.h` / `twoimg_test`, which also owns the
+  lock-flag rule the three loaders once each got wrong on their own).
 
 **Three boot-blockers, all timing semantics (root-caused with an IWM access
 trace against the ROM's own read routines):**

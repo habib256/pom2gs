@@ -340,8 +340,16 @@ private:
     // desync docIrqLast_ and a later re-assert would be skipped).
     void mirrorDocIrq();
     static constexpr int kSlowExtraMaster = 9;   // 14 (slow cycle) − 5 (fast cycle)
-    // Charge one slow-side access (no-op unless in 2.8 MHz fast mode).
-    void chargeSlow() { if (speed_ & SPEED_HIGH) slowPenMaster_ += kSlowExtraMaster; }
+    // Charge one slow-side access (no-op unless the CPU is actually running at
+    // 2.8 MHz). The gate must be speedFast(), NOT the raw $C036 bit7: while a
+    // motor-detect slot has a spinning Disk II the FPI holds the whole machine
+    // at 1.02 MHz, so the caller already bills every CPU cycle 14 master ticks
+    // and there is no fast/slow differential left to charge. Testing bit7 alone
+    // billed each slow access 14+9 = 23 master — a 64 % surcharge on exactly the
+    // $C0EC/$C6xx-heavy RWTS loops the 1 MHz drop exists to keep bit-accurate,
+    // so the nibble stream ran away from the CPU during 5.25" transfers.
+    // (bug-hunt finding, August 2026 — pinned by slowside_test.)
+    void chargeSlow() { if (speedFast()) slowPenMaster_ += kSlowExtraMaster; }
     // ADB GLU (HLE — $C024-$C027). The ROM's ADB self-test sends command bytes
     // to DATAREG ($C026), waits for CMDFULL ($C027 bit0) to clear, then waits
     // for data-ready ($C027 bit5) and reads the response. We accept commands

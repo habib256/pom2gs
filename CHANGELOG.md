@@ -4,6 +4,54 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Fixed — bug-hunt pass (August 2026, follow-up): timing, 2IMG containers, IWM reset
+A second read-only audit over the same ground (whole suite under ASan/UBSan — clean; register
+diffs re-checked against MAME `apple2gs.cpp` `update_speed`/`c000_r` and `es5503.cpp`
+`halt_osc`/`sound_stream_update`, which confirmed the DOC wavetable-end test and the SYNC/AM
+partner reset already match MAME verbatim). Five defects, each pinned:
+
+1. **The slow-side penalty double-billed the Disk II 1 MHz drop.** `chargeSlow()` gated on the
+   raw `$C036` bit 7, but `speedFast()` — the gate the host loop and `tick()` actually use — also
+   goes false while a motor-detect slot has a spinning Disk II (MAME `update_speed`:
+   `(m_speed & SPEED_HIGH) && !(m_speed & m_motors_active)`). In that state every CPU cycle is
+   already billed 14 master ticks, so there is no fast/slow differential left to charge; the extra
+   +9 made each slow access cost 23 master, a 64 % surcharge on exactly the `$C0EC`/`$C6xx`-heavy
+   RWTS loops the 1 MHz drop exists to keep bit-accurate. The nibble stream ran away from the CPU
+   for the whole of a 5.25" transfer. `chargeSlow()` now gates on `speedFast()`.
+   (`slowside_test` grew a motor-on/motor-off leg.)
+
+2. **The block loaders ignored the 2IMG envelope they were reading.** `ProDosHdd::loadImage` and
+   `Sony35::loadImage` each hand-rolled "magic ⇒ payload at byte 64, running to EOF, locked iff
+   flags bit 31" instead of using `TwoImg.h`, the file that exists precisely because all three
+   loaders once misread this word. Three consequences: a `dataOffset` other than 64 loaded every
+   block shifted **and** made `flushBlock()`/`flush()` patch the backing file at the same wrong
+   offset (silent corruption of the user's image); a trailing comment/creator chunk read back as
+   phantom blocks; and the lock test diverged from `DiskImage`'s, so one `.2mg` mounted
+   write-protected as a 5.25" image and writable as a hard disk. A 52-byte-header `.2mg` — the
+   spec's shortest legal form, which `DiskImage` accepts — did not mount on the 3.5" path at all.
+   Both now go through a shared `pom2::twoImgProbe()`, which is deliberately lenient: a header
+   whose own offset/length fields are unusable falls back to the legacy 64/EOF behaviour, so
+   nothing that mounted before stops mounting. (New `twoimg_test`.)
+
+3. **The IWM kept its latches across a machine reset.** `IIgsMemory::reset()` reset the DOC and the
+   SCC but not the disk controller, whose `/RESET` pin is tied to the system's (MAME `iwm.cpp`
+   `device_reset`). Reset while a drive was spinning left ENABLE asserted for good, so `speedFast()`
+   saw a permanently spinning Disk II and pinned the machine at 1.02 MHz; a latched Q7 turned the
+   next `$C0EC` read into the write handshake instead of disk data. `Iwm::reset()` now clears the
+   phases, ENABLE, drive select, Q6/Q7, the MODE register and the read latch — and deliberately
+   *not* the media or the head position, which a reset does not disturb. (`iwm525_test`.)
+
+4. **`CPU65816::softReset()` read the reset vector through the normal bus.** RESET is a vector pull
+   like IRQ/NMI, so `$00FFFC/FFFD` must come from ROM regardless of the language card — the same VP
+   rule `serviceInt` already follows. It only worked because every current caller resets the MMU
+   first (parking the LC in read-ROM mode); a bare `softReset()`, which the "RAM survives" contract
+   invites, pulled an uninitialised RAM vector. Now uses `vectorPull()`.
+
+5. **UI media state desynced from the drives.** `File > Load 5.25" Disk...` seeded its browser from
+   the *3.5"* directory, and a 5.25"/3.5" load that ejects the other drives left their paths set —
+   so the status bar named an absent hard disk and the "3.5\" Drive" menu ticked an image that was
+   no longer inserted.
+
 ### Fixed — bug-hunt pass (August 2026): 14 defects across UI, snapshot, CPU, VGC, MMU and disk
 A read-only audit (ASan/UBSan over the whole test suite, six boot scenarios, 356 3.5" + 860 5.25"
 images and 2 300 mutated disk images; register-by-register diffs against MAME `apple2gs.cpp` and

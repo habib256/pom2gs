@@ -90,7 +90,12 @@ void Ui::openLoad(int kind) {
     if (lastDir[kind].empty()) {
         namespace fs = std::filesystem;
         std::error_code ec;
-        const std::string& seed = (kind == 0) ? romPath : (kind >= 2 ? disk35Path : hddPath);
+        // Seed from the media of the SAME kind — kind 4 (5.25") used to start in
+        // the 3.5" directory, which is usually a different folder entirely.
+        const std::string& seed = (kind == 0) ? romPath
+                                : (kind == 1) ? hddPath
+                                : (kind == 4) ? disk525Path
+                                              : disk35Path;
         if (!seed.empty()) lastDir[kind] = fs::path(seed).parent_path().string();
     }
     browseTo(lastDir[kind]);
