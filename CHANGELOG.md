@@ -5,6 +5,14 @@ Resolved items + the **why** behind non-obvious decisions.
 ## [Unreleased] — Milestone 0: foundation
 
 ### Docs — doc/code consistency pass 2 (August 2026)
+Follow-up corrections after the sweep below: `DEV.md`'s preamble still told
+readers that sections marked *(planned)* are design notes — no section carries
+that marker any more, every one opens with a real status line. `TODO.md`'s M2
+gate still read "Needs VBL/timer to progress" (VBL + the Mega II ¼/1-second
+timers ship, pinned by `irq_test`), and the GS/OS-to-HDD section was still
+headed 🟡 PRIORITY while its own body says the install round-trip is DONE — now
+🟢 with the two leftovers tagged 🔴 per the legend.
+
 Second sweep, over the ground pass 1 did not cover: subsystem headers,
 `CMakeLists.txt`, the build prerequisites and the stated conventions. Again no
 behaviour change; all 18 buildable gates green.

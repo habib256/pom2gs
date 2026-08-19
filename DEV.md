@@ -3,7 +3,8 @@
 Implementation deep-dives. Each section: **what the hardware does → how
 POMIIGS models it → the MAME `apple2gs.cpp` (or chip driver) citation → the
 pinned test**. This file grows one section per subsystem as milestones land
-(see `TODO.md`). Sections marked *(planned)* are design notes, not yet code.
+(see `TODO.md`). Each section opens with a parenthesised status line saying how
+far that subsystem actually is and which gate pins it.
 
 ## Table of contents
 

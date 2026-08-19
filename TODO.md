@@ -3,10 +3,12 @@
 Active backlog + **MAME↔POMIIGS parity dashboard** + milestone roadmap.
 Legend: 🔴 not started · 🟡 in progress · 🟢 done + pinned test · ⚪ out of scope.
 
-## 🟡 PRIORITY — GS/OS + hard disk (install to HDD)
+## 🟢 RESOLVED — GS/OS + hard disk (install to HDD)
 
-**Goal:** boot the System 6 install disk (3.5", slot 5) with a hard disk present,
-format it, and install GS/OS onto it — then boot GS/OS from the HDD.
+**Goal (met):** boot the System 6 install disk (3.5", slot 5) with a hard disk
+present, format it, and install GS/OS onto it — then boot GS/OS from the HDD.
+The full round-trip works; the two 🔴 items under "Remaining (nice-to-have)"
+below are conveniences, not blockers.
 
 **✅ FULL INSTALL WORKS (July 2026):** the System 6 Installer walks all 7 disks and
 installs GS/OS to a blank HDD **in full**. Last blocker was **3.5" disk-swap detection
@@ -58,12 +60,12 @@ device scan terminates; extended-STATUS **4-byte block count**; extended SmartPo
    shipped `hdv/GSOS.hdv` now carries one (byte 0 = `$01`).
 
 **Remaining (nice-to-have):**
-3. **SmartPort FORMAT (`$03`)** for initialising a raw HDD from the Installer /
-   Advanced Disk Utility (currently the target must be a pre-formatted ProDOS volume via
-   `tools/make_prodos_hdd.py`).
-4. **In-emulator "make bootable"** — model whatever GS/OS call would write the boot block
-   during a real install, so `--boot-from` isn't needed. BRAM startup-slot persistence to
-   a file is a related follow-up.
+- 🔴 **SmartPort FORMAT (`$03`)** for initialising a raw HDD from the Installer /
+  Advanced Disk Utility (currently the target must be a pre-formatted ProDOS volume via
+  `tools/make_prodos_hdd.py`).
+- 🔴 **In-emulator "make bootable"** — model whatever GS/OS call would write the boot block
+  during a real install, so `--boot-from` isn't needed. BRAM startup-slot persistence to
+  a file is a related follow-up.
 
 ## 🟢 RESOLVED — GS/OS runtime bugs (July 2026, see CHANGELOG "BASIC.System")
 
@@ -187,7 +189,7 @@ self-test, then the visible/audible subsystems.
 |---|---|---|---|
 | **M0** | Foundation | Repo, CMake (native + WASM), doc suite, subsystem map | 🟢 `cmake && make` builds an ImGui window. No separate headless target: the `tests/` harnesses (screenshot, triage, *_trace) link the emulator without ImGui/GL |
 | **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on 134 opcode families × 2 modes (2.68M vectors, regs+RAM+**cycles**). MVN/MVP excluded (cycle-cap granularity, see DEV). Extending corpus to full 256 = ongoing |
-| **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟡 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → speed-calibration loop ($FF:FCDC). Needs VBL/timer to progress. Verify: `boot_trace` |
+| **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟢 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → banner → disk boot; shadow write-through, per-access slow-side penalty, STATEREG, VBL + Mega II ¼/1-second timers all in. Gates: `slowside_test`, `speed_test`, `irq_test`; verify with `boot_trace`. Remaining nuance: Mega II fast/slow phase-sync sub-cycle alignment |
 | **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); HGR + DHGR colour (NTSC + RGB, dhgr_test); 80-column text (text80_test); per-line scanline IRQ done (irq_test). Mid-frame render splits (3200-colour) = follow-up |
 | **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing done (`adb_test`: IRQ keyboard + mouse, ⌘-menu shortcuts). BRAM host-file persistence + ROM 01 banner = follow-ups |
 | **M5** | Disk (IWM) + **//e legacy** | POM2-lineage IWM + native `Sony35` 3.5" LLE. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. (SWIM: out of scope — Mark Twain prototype only, never shipped; ROM 01 **and** 03 use the IWM, MAME apple2gs.cpp:15/3891.) | 🟡 IWM 5.25" read path + //e HGR/LORES video done; **real IWM 3.5" Sony LLE done** (`Sony35`, `iwm35 = 1` — GS/OS boots to the Finder via the genuine slot-5 ROM firmware). 5.25" write + WOZ done (`iwm525_test`), NTSC/RGB colour done (`dhgr_test`); 3.5" FORMAT/tach calibration = follow-up |
