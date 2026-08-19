@@ -850,7 +850,8 @@ uint8_t IIgsMemory::slotRomRead(uint16_t off) {
 uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     (void)bank;
     const uint8_t r = off & 0xFF;
-    if (std::getenv("ADBDBG") && cpu_ && r >= 0x24 && r <= 0x27) {   // TEMP diag
+    static const bool adbDbg = std::getenv("ADBDBG") != nullptr;   // dev diag, see DEV.md
+    if (adbDbg && cpu_ && r >= 0x24 && r <= 0x27) {
         static long k = 0;
         if (++k <= 120 || k % 1000 == 0)
             std::fprintf(stderr, "[ADB] rd $C0%02X @ %02X:%04X (#%ld)\n", r, cpu_->getPBR(), cpu_->getPC(), k);
@@ -1005,7 +1006,8 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
 }
 
 void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
-    if (std::getenv("ADBDBG") && cpu_) {                        // TEMP diag
+    static const bool adbDbg = std::getenv("ADBDBG") != nullptr;   // dev diag, see DEV.md
+    if (adbDbg && cpu_) {
         const uint8_t rr = off & 0xFF;
         if (rr >= 0x24 && rr <= 0x27) { static long k = 0;
             if (++k <= 120 || k % 1000 == 0)

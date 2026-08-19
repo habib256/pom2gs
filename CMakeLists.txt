@@ -60,6 +60,9 @@ set(HEADERS
     src/CPU65816.h
     src/IIgsMemory.h
     src/Iwm.h
+    src/DiskImage.h
+    src/TwoImg.h
+    src/Logger.h
     src/Sony35.h
     src/Es5503.h
     src/Scc8530.h
@@ -105,8 +108,10 @@ else()
     endif()
 endif()
 
-# ─── Headless target (no ImGui/GL — CI, CLI, tests) — POM2 convention ────
-# add_executable(pomiigs_headless src/pomiigs_headless.cpp ...)   # enable in M2
+# ─── Headless surface (no ImGui/GL — CI, CLI) ────────────────────────────
+# POM2 has a dedicated pomiigs_headless target; POMIIGS never needed one — the
+# tests/ harnesses below (screenshot, triage, boot_trace, gsos_trace, hdd_trace)
+# link the emulator without ImGui/GL and cover the same ground.
 
 # ─── Tests (CTest) ───────────────────────────────────────────────────────
 # The CPU816 gate. Test data is user-fetched (large): run

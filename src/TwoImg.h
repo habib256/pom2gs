@@ -3,9 +3,10 @@
 // Ported verbatim from POM2 (the Apple II-family sibling emulator).
 //
 // 2IMG (.2mg) container — the ONE definition of the flags-word semantics,
-// shared by the three loaders (DiskImage 5.25", Disk35Image 800K,
-// Block512Backing HDV). Spec: DiskImage_2MG_Info.txt; cross-checked
-// against CiderPress (`kFlagLocked = 0x80000000`) and AppleWin.
+// shared by the three loaders that open a .2mg: DiskImage (5.25"), Sony35
+// (800K 3.5") and ProDosHdd (HDV) — POM2 names them DiskImage / Disk35Image /
+// Block512Backing. Spec: DiskImage_2MG_Info.txt; cross-checked against
+// CiderPress (`kFlagLocked = 0x80000000`) and AppleWin.
 //
 //   bit 31   locked (write-protect)
 //   bit  8   volume-number-valid

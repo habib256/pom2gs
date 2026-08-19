@@ -10,9 +10,11 @@
 // The 16-bit CPU of the Apple IIgs. Emulation mode (E=1) is a 65C02 superset
 // and REPLACES POM2's separate M6502 (POMIIGS ships one CPU, not two).
 //
-// Interface deliberately mirrors POM2 `M6502` so `EmulationController` forks
-// cleanly: constructed with a bus pointer, `run(maxCycles) -> actualCycles`,
-// wire-OR IRQ source mask, soft/hard reset, snapshot register accessors.
+// Interface deliberately mirrors POM2 `M6502` — constructed with a bus pointer,
+// `run(maxCycles) -> actualCycles`, wire-OR IRQ source mask, soft/hard reset,
+// snapshot register accessors — so POM2 code ports across unchanged. (POM2's
+// `EmulationController` itself was NOT forked: the frame loop lives in
+// main.cpp + Ui. See TODO.md "Reuse-from-POM2 checklist".)
 //
 // The opcode table returns *architectural* cycle counts (WDC datasheet). The
 // 2.8 MHz-fast / 1.02 MHz-slow effective clock and the slow-side access

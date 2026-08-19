@@ -74,10 +74,16 @@ static std::string findPath(const std::string& rel) {
 }
 
 // ── Config file (pomiigs.cfg) ────────────────────────────────────────────
-// Plain `key = value`, `#` comments. Keys: boot (gsos|finder|hdd), rom, hdd,
-// disk35, iwm35 (0/1: 3.5" media on the real IWM Sony drive instead of the
-// SmartPort HLE). Sits next to run_emulator.sh (repo root). CLI args/flags
-// override it.
+// Plain `key = value`, `#` comments. Sits next to run_emulator.sh (repo root).
+// CLI args/flags override it. Every key readConfig() understands:
+//   boot      gsos|finder → Finder from the slot-5 3.5"; hdd (default) → slot-7 HDD
+//   rom       ROM image (else probe roms/iigs-rom03.rom then rom01)
+//   hdd       ProDOS hard disk for slot 7 (.hdv/.2mg/.po)
+//   disk35    800K disk for the slot-5 3.5" drive (.2mg/.po/.dsk)
+//   disk35b   second internal 3.5" drive — needs iwm35 = 1
+//   disk525   5.25" disk for the slot-6 IWM (.dsk/.do/.po/.nib/.d13/.2mg/.woz)
+//   iwm35     0/1: 3.5" media on the real IWM/Sony drive instead of the SmartPort HLE
+//   writeback 0/1 (default 1): flush guest writes back to the image files
 struct Config { std::string boot, rom, hdd, disk35, disk35b, disk525;
                 bool iwm35 = false; bool writeBack = true; };
 static std::string trim(std::string s) {

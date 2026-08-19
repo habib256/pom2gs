@@ -226,9 +226,9 @@ DiskImage::DetectResult DiskImage::detectFormat(const std::string& path,
             return r;
         }
 
-        // Flags-word semantics live in TwoImg.h (shared with Disk35Image
-        // and Block512Backing — the lock bit was misread identically in
-        // all three loaders once; one definition now).
+        // Flags-word semantics live in TwoImg.h (shared with Sony35 and
+        // ProDosHdd — the lock bit was misread identically in all three
+        // loaders once; one definition now).
         const uint8_t vol = pom2::twoImgVolume(flags);
         const bool    wp  = pom2::twoImgWriteProtected(flags);
 

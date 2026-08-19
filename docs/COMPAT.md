@@ -29,7 +29,8 @@ page) · `CRASH_MON` (fell into the ROM monitor) · `HANG` (PC frozen) ·
 | HANG | 150 | 150 | 150 | 150 |
 
 **+30 real games** unblocked by one fix (see below): of the ~180 genuinely
-bootable disks, **~80% now reach graphics**. Wins include Winter Games,
+bootable disks, **~80% reached graphics after that fix alone** (144; the later
+passes in this file take it to 151). Wins include Winter Games,
 Questron II, King's Quest IV, Police Quest, Leisure Suit Larry, Tunnels of
 Armageddon, Global Express Atlas, MathTalk, Roadwar 2000, Warlock, and the
 long-standing Block Out / Beyond Zork / World Tour Golf failures. No working
@@ -54,7 +55,8 @@ AppleTalk firmware (`IIgsMemory::slotRomRead`).
 (Disk 2-9 of a set) or stripped images with no `PRODOS` system file in the
 root directory. Their boot block correctly prints "UNABLE TO LOAD PRODOS" and
 halts at `$00:0955`, exactly as real hardware would. These are **not**
-emulator bugs. Of the 180 genuinely-bootable disks, **63% reach graphics**.
+emulator bugs. Of the ~180 genuinely-bootable disks, 114 reached graphics
+before the fix below (63%) and 151 do now (~84%, last column of the table).
 
 **The real bug bucket = the ~45 crashes on bootable disks.** They cluster
 hard: Block Out, World Tour Golf, Beyond Zork, Dream Zone, Manhunter,

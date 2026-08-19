@@ -4,6 +4,127 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Docs — doc/code consistency pass 2 (August 2026)
+Follow-up corrections after the sweep below: `DEV.md`'s preamble still told
+readers that sections marked *(planned)* are design notes — no section carries
+that marker any more, every one opens with a real status line. `TODO.md`'s M2
+gate still read "Needs VBL/timer to progress" (VBL + the Mega II ¼/1-second
+timers ship, pinned by `irq_test`), and the GS/OS-to-HDD section was still
+headed 🟡 PRIORITY while its own body says the install round-trip is DONE — now
+🟢 with the two leftovers tagged 🔴 per the legend.
+
+Second sweep, over the ground pass 1 did not cover: subsystem headers,
+`CMakeLists.txt`, the build prerequisites and the stated conventions. Again no
+behaviour change; all 18 buildable gates green.
+
+- **`CLAUDE.md` stated a convention that does not exist and points the wrong
+  way.** "**`emuCycles` everywhere** — events carry a **CPU-cycle** stamp" — but
+  there is no `emuCycles` symbol in POMIIGS (it is POM2's), and stamping in CPU
+  cycles is *precisely* the defect the master-tick timebase fixed (VBL at
+  ~164 Hz, every VBL-clocked game 2.8× fast). The real contract is
+  `IIgsMemory::videoCycles_` / `audioCycles()` in **14.31818 MHz master ticks**,
+  which is what the beam walk, `Es5503::tickMaster`, the ADB valves, the paddle
+  RC timers and the speaker stamps all actually read. Rewritten in `CLAUDE.md`
+  and `DEV.md § Clock & threading`.
+- **`VGC.h` claimed text is "drawn with the vendored 8x8 font".** No font is
+  vendored — `setCharRom` needs the user's `roms/iigs-char.rom` and every text
+  renderer returns early without it (`VGC.cpp:80/273/309`), which is what
+  `README.md` says. The same block still had LORES/HGR/DHGR "staged in next";
+  all three ship with gates.
+- **`Es5503.h` contradicted itself**: `drainResampled` was documented as ZOH
+  resampling, while the implementation and the `drainPrev_` field comment do
+  **linear interpolation** — with an inline note that ZOH from 26 kHz to
+  44.1 kHz stair-steps audibly. Its `hostRate` argument is also unused (the
+  occupancy ratio carries it). The file header presented `render()` as the main
+  path when it is the test/offline one, and gave the oscillator count as
+  `(reg $E1 >> 1) + 1`, dropping the `& 0x1F`.
+- **`TODO.md`'s "Open questions" were all three answered by shipped code** —
+  flat 8 MB fast-side array, master-tick DOC production, and the PGSS v4
+  snapshot format. Rewritten as "Answered questions" keeping the reasoning.
+- **Parity dashboard**: `$C035` write-through was still "partial" and aux-HGR
+  bit 4 a "follow-up"; `maybeShadow` has covered both since the August bug-hunt
+  pass (`IIgsMemory.cpp:1105-1117`).
+- **Build prerequisites were documented nowhere.** `setup_imgui.sh` is credited
+  with fetching "deps" in both `README.md` and `CLAUDE.md`; it clones Dear ImGui
+  and makes `build/`, nothing else. GLFW 3.3+ and OpenGL are system packages
+  `CMakeLists.txt` resolves via `find_package`/pkg-config — now stated.
+- **`DEV.md` listed a CPU gate that does not exist** ("Klaus Dormann in E-mode
+  as a fast smoke gate"); there is no such harness under `tests/`. Documented
+  `--examples` / `--verbose` on the harness that does exist instead.
+- **`TODO.md` M0** claimed a headless CMake target; `CMakeLists.txt` only has a
+  commented placeholder ("enable in M2", long past). The headless surface is the
+  `tests/` harnesses — said so in both places.
+- **`CLAUDE.md` overstated the POM2 reuse** ("slot bus, Mockingboard, CRT/NTSC
+  stack"): slot bus and Mockingboard are 🔴 not started and `CrtEffectStack` was
+  never ported. Narrowed to what is genuinely shared.
+- Smaller drift: `Ui.h`'s menu roster omitted the `3.5" Drive` menu and named
+  two of the eight `on*` callbacks; `CPU65816.h` justified its interface by
+  `EmulationController` forking "cleanly" when that fork was declined;
+  `TwoImg.h` and `DiskImage.cpp` named POM2's `Disk35Image`/`Block512Backing`
+  for what are `Sony35`/`ProDosHdd` here; `CMakeLists.txt`'s `HEADERS` listed
+  every header except `DiskImage.h`/`TwoImg.h`/`Logger.h`.
+- Fixed a regression from pass 1: the `disk525` example in `pomiigs.cfg` used a
+  `disks525/` directory, but the repo's convention is `disks54/`
+  (`tests/iwm525_test.cpp:190` probes it).
+
+### Docs — doc/code consistency pass (August 2026)
+A read-only sweep of every claim in `CLAUDE.md` / `README.md` / `DEV.md` /
+`TODO.md` / `docs/COMPAT.md` / `pomiigs.cfg` against the source. No behaviour
+changed; the whole gate suite stayed green. What was wrong and why it mattered:
+
+- **`$C031` DISKREG bits were swapped in `DEV.md § Memory`** (b7 = drive select,
+  b6 = head select) against the code, `Iwm.h` and the Disk section (b6 = 35SEL
+  drive select, b7 = HDSEL). Anyone porting from the Memory section would have
+  routed the Sony drive off the wrong bit.
+- **`CLAUDE.md § Reset architecture` described POM2's three-class soft/hard/cold
+  split as if implemented.** POMIIGS has exactly one path — `Ui::doReset()` →
+  `IIgsMemory::reset()` + `CPU65816::hardReset()`, a cold reset. The "clears fast
+  RAM with the `00 FF` pattern and re-seeds BRAM defaults" claim was doubly
+  wrong: `reset()` fills RAM with `$00`, and BRAM is never seeded (nor persisted
+  — `DEV.md` also claimed it was written "to a host file").
+- **`CLAUDE.md` I/O map** listed a phantom `$C044-$C047` "mouse delta" range and
+  omitted most of what the MMU actually decodes. Rebuilt from the `ioRead`/
+  `ioWrite` switches: ADB GLU `$C024-$C027`, `$C02B` LANGSEL, `$C02E/$C02F`
+  beam counters, `$C031` DISKREG, `$C033` CLOCKDATA, `$C032` VGCINTCLEAR, the
+  `$C071-$C07F` reserved-reads-ROM window, `$C0E0-$C0EF` IWM. `$C037` is now
+  marked *latched only* (neither DMA nor ROM 03 shadow-all is modelled) in the
+  three places that implied otherwise.
+- **`TODO.md` still credited DIB subtype `$80`** for the GS/OS disk-swap fix.
+  The code and `smartport_test` pin **`$C0`** — the `$80` value was superseded by
+  the Silent Service whitelist fix recorded in `docs/COMPAT.md`. Same section
+  pointed at an `SP35LOG` trace "since removed"; the live one is `POMSP_LOG=1`.
+- **`TODO.md` backlog contradicted its own parity dashboard**: scanline
+  interrupts, battery RAM/RTC, slot internal firmware and save states were all
+  listed 🔴 "not started" while the dashboard, `DEV.md` and the gates report them
+  done. Retagged with what is *actually* still open in each (mid-frame render
+  splits, BRAM file persistence, rewind ring). The reuse-from-POM2 checklist got
+  the same treatment (`Memory` paging, `DiskImage`/WOZ/2mg and `Apple2Display`
+  had shipped; `CliDispatcher`/`EmulationController` was decided against).
+- **`README.md`** omitted the File ▸ Load/Eject 5.25" Disk entries and the
+  `--iwm35` flag, and never mentioned the positional `<rom> [<hdd>]` arguments.
+- **Stale code comments**: `setFastRamKB` said "Default 1 MB" (it is 8 MB);
+  `classifyDiskForSlot` cited a `DiskLibrary_ImGui.cpp` and a `--kiosk` flag that
+  exist only in POM2 (and the helper is unused here — now says so);
+  `readConfig`'s key list was missing `disk35b`, `disk525` and `writeback`;
+  `run_gsos.sh` still called the default HDD "Total Replay" after the shipped
+  config moved to `hdv/GSOS.hdv`.
+- **Counts**: the subsystem map says 14 subsystems (the table has 14 rows, not
+  11), and the status line says twelve bug-sweep passes (this file records
+  twelve, not nine). `docs/COMPAT.md` quoted 63% and ~80% "reach graphics" for
+  different columns of the same table without saying which; both are now
+  anchored, and `TODO.md` carries the final 151 (~84%) instead of stopping at
+  149.
+- **Added** `DEV.md § Dev environment variables` — `POMDBG`, `POMWAV`,
+  `POMSP_LOG`, `ADBDBG` and the harness flags/env were undocumented and only
+  findable by grepping. `pomiigs.cfg` grew commented `iwm35` / `disk35b` /
+  `disk525` stanzas so the shipped file matches what `readConfig` parses and what
+  the README shows. Fixed the broken `#disk--iwm--swim` TOC anchor and a
+  two-line `##` heading in `TODO.md` that rendered as two headings.
+
+One non-comment change: the `ADBDBG` tap called `std::getenv()` on **every**
+`$C0xx` read and write (the `POMSP_LOG` tap in the same file caches it in a
+`static`). Now cached the same way — same output, no per-access `getenv`.
+
 ### Fixed — bug-hunt pass (August 2026, follow-up): timing, 2IMG containers, IWM reset
 A second read-only audit over the same ground (whole suite under ASan/UBSan — clean; register
 diffs re-checked against MAME `apple2gs.cpp` `update_speed`/`c000_r` and `es5503.cpp`

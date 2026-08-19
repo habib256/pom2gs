@@ -45,9 +45,14 @@ cycle-stamped events, one-subsystem-per-file, and **MAME as the source of truth*
 
 ## Quick Start
 
+Prerequisites: a C++17 compiler, CMake ≥ 3.16, and the **GLFW 3.3+** and
+**OpenGL** development packages (e.g. `libglfw3-dev libgl-dev` on Debian/Ubuntu,
+`brew install glfw` on macOS). `setup_imgui.sh` does not install these — it only
+clones Dear ImGui, which is not vendored in git.
+
 ```bash
 git clone <this repo> && cd POMIIGS
-./setup_imgui.sh                    # fetch Dear ImGui + deps (one-time)
+./setup_imgui.sh                    # clone Dear ImGui into ./imgui (one-time)
 cd build && cmake .. && make -j
 cd .. && ./run_emulator.sh          # cwd = repo root so roms/ probes resolve
 ```
@@ -76,8 +81,13 @@ Edit it, or override per-run on the CLI (CLI > config > built-in):
 ```bash
 ./run_emulator.sh              # uses pomiigs.cfg (default: GS/OS from the HDD)
 ./run_emulator.sh --hdd        # force the slot-7 ProDOS HDD (e.g. Total Replay)
+./run_emulator.sh --iwm35      # 3.5" media on the real IWM/Sony drive (= iwm35 = 1)
 ./run_emulator.sh --read-only  # never write back to the disk images (= writeback = 0)
+                               #   (--no-writeback is an accepted alias)
 ./run_gsos.sh ["disk.2mg"]     # force the Finder from a 3.5" disk (--gsos / --finder [disk])
+
+# Positional arguments, in order: <rom> [<hard disk>] — they override `rom =` / `hdd =`.
+./run_emulator.sh roms/iigs-rom01.rom "hdv/Total Replay v6.0.hdv"
 ```
 
 **Writes persist by default** — formats, saved games and GS/OS installs are
@@ -96,17 +106,19 @@ The IIgs ROM is copyrighted; drop your own dump in `roms/`:
 - `roms/iigs-rom01.rom` — 128 KB (Apple IIgs ROM 01, 1986) — best compatibility
 - `roms/iigs-char.rom` — 16 KB (Mega II character generator, MAME `344s0047.bin`,
   SHA1 `5a5a77c8ec45632aea1a57cd9c9257f7f6e44668`) — required for text rendering.
-  Super Hi-Res needs no font.
+  A 4 KB or 2 KB //e character ROM also loads. Super Hi-Res needs no font.
 
 ## Controls
 
 A Dear ImGui **menu bar** drives the machine: **File** (Load ROM… / Load Hard
-Disk… / Load 3.5" Disk… / Quit), a **3.5" Drive** quick-swap menu (insert/eject
-disks mid-run without a reset, so the Installer can prompt for the next disk),
+Disk… / Load 3.5" Disk… / Load 5.25" Disk… / Eject 5.25" Disk / Quit), a
+**3.5" Drive** quick-swap menu (insert/eject disks mid-run without a reset, so
+the Installer can prompt for the next disk),
 **Machine** (Run·Pause / Reset / Save State / Load State), **Video** (HGR·DHGR
 colour: Composite NTSC ↔ Clean RGB, and window scale), **Audio** (mute + volume),
-and **Help** (About). A bottom **status bar** shows run state, the CPU PBR:PC +
-mode, the shadow/speed registers, audio level, and the loaded ROM. Shortcuts
+and **Help** (About). The right end of the menu bar reports the live video mode
+and host FPS; a bottom **status bar** shows run state, the CPU PBR:PC + mode,
+the shadow/speed registers, audio level, and the loaded ROM. Shortcuts
 (chosen to avoid the Apple II keyboard):
 
 | Key | Action |
