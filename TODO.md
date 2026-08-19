@@ -1,7 +1,7 @@
 # TODO.md
 
 Active backlog + **MAME↔POMIIGS parity dashboard** + milestone roadmap.
-Legend: 🔴 not started · 🟡 in progress · 🟢 done + pinned test.
+Legend: 🔴 not started · 🟡 in progress · 🟢 done + pinned test · ⚪ out of scope.
 
 ## 🟡 PRIORITY — GS/OS + hard disk (install to HDD)
 
@@ -11,12 +11,15 @@ format it, and install GS/OS onto it — then boot GS/OS from the HDD.
 **✅ FULL INSTALL WORKS (July 2026):** the System 6 Installer walks all 7 disks and
 installs GS/OS to a blank HDD **in full**. Last blocker was **3.5" disk-swap detection
 with a writable HDD mounted** — GS/OS answered the Installer from its cached VCR and
-never re-read the drive after a menu swap+OK. Fix: **3.5" SmartPort DIB subtype `$80`**
-(`smartportStatus`) — bit7 = disk-switched-capable ("poll me") WITHOUT bit6 (the
-Apple-3.5 driver bit that `$C0` set → "AppleDisk3.5 requires a driver" crash under our
-HLE). `$00` UniDisk lacked bit7 so GS/OS never polled. Now GS/OS polls STATUS, sees
-bit0, hits `$2E`, re-mounts. Pinned by `smartport_test` (subtype `$80`); root-caused
-with a temporary `SP35LOG` SmartPort trace (since removed). See CHANGELOG.
+never re-read the drive after a menu swap+OK. Fix: a **3.5" SmartPort DIB subtype with
+bit7 set** (`smartportStatus`) — bit7 = disk-switched-capable ("poll me"); the `$00`
+UniDisk value lacked it so GS/OS never polled. Now GS/OS polls STATUS, sees bit0, hits
+`$2E`, re-mounts. The subtype first shipped as `$80`, then moved to **`$C0`** (extended
++ disk-switched, what KEGS and a real Apple 3.5 report) when Silent Service's loader
+turned out to whitelist exactly `$00`/`$C0` — see `docs/COMPAT.md § SmartPort
+DIB/CONTROL fixes`. `$C0` is what the code and `smartport_test` pin today. Root-caused
+with the SmartPort dispatch trace, still available as `POMSP_LOG=1` (see
+`DEV.md § Dev environment variables`). See CHANGELOG.
 
 **✅ Unblocked (July 2026):** GS/OS now boots **all the way to the Finder desktop
 with a hard disk mounted** on slot 7 (blank or formatted) — the first time GS/OS +
@@ -44,7 +47,7 @@ device scan terminates; extended-STATUS **4-byte block count**; extended SmartPo
 **Round-trip install → boot-from-HDD: DONE.**
 1. ✅ **Drive the install in the UI** — Easy Update installs the System Folder to
    `hdv/GSOS.hdv` (writes persist) across all 7 disks, hot-swapped via the "3.5\" Drive"
-   menu. The `$80` subtype fix (above) made the disk-swap prompts advance.
+   menu. The disk-switched subtype fix (above) made the disk-swap prompts advance.
 2. ✅ **Boot GS/OS *from* the HDD** — `boot = hdd` starts GS/OS to the Finder straight
    from `hdv/GSOS.hdv` (SHR on at ~750k steps, ~141k toolbox dispatches, desktop drawn,
    no derail — headless `hdd_trace none hdv/GSOS.hdv`). **Gotcha found & fixed:** Easy
@@ -104,8 +107,10 @@ gaps** — and fixed (MAME `apple2gs.cpp` + KEGS `moremem.c` cited):
   normal user action and every normal launch/quit path works; **workaround: launch
   BASIC.System (or any .SYSTEM app), not the kernel file.**
 
-## 🟡 GAMES COMPATIBILITY PASS (July 2026, first-ever — collection at
-## /media/gistarcade/SHARE/roms/apple2gs/, 361 images, 1.6 GB)
+## 🟡 GAMES COMPATIBILITY PASS (July 2026, first-ever)
+
+Collection at `/media/gistarcade/SHARE/roms/apple2gs/` — 361 images, 1.6 GB, of
+which 341 are GS 3.5" disks (the set `tests/triage` sweeps, see `docs/COMPAT.md`).
 
 First 8-game headless triage (`screenshot --disk35 <game> --frames 700`):
 
@@ -121,7 +126,7 @@ First 8-game headless triage (`screenshot --disk35 <game> --frames 700`):
 | Beyond Zork | ✅ boots (was ❌ BRK @ 00/0006 — **fixed**) |
 
 **Full 341-image triage now runs** via `tests/triage` (see `docs/COMPAT.md`):
-of ~180 genuinely-bootable GS disks, ~80% reach graphics. The Block Out /
+of ~180 genuinely-bootable GS disks, **151 (~84%) reach graphics**. The Block Out /
 Beyond Zork BRK — and ~28 more titles with the identical crash — were a
 **slot-7 AppleTalk false-positive**: a shared cracked loader scans `$00:C7F9`
 for "ATLK"; POMIIGS served the internal AppleTalk firmware there where an
@@ -132,7 +137,10 @@ Follow-up sweep on the remaining clusters (July 2026): **OK_GFX 144→149** —
 SmartPort HLE identity bytes fixed ($C5FB extended bit → Dungeon Master; DIB
 subtype $C0 → Silent Service; ctl $06 → $21 → Marble Madness's protection
 fallback) + triage's CRASH_ZP heuristic gated on !gfx (Pirates!/Silent
-Service run legit code from zero page). See `docs/COMPAT.md` + CHANGELOG.
+Service run legit code from zero page), then **149→151** with the hybrid Sony
+mount (an HLE-mounted 3.5" image is also inserted read-only into the real
+IWM/Sony drive, so direct-IWM loaders — Sensei, Space Cluster — see the same
+medium). See `docs/COMPAT.md` + CHANGELOG.
 Interactive play test (sound + mouse): File → "Load 3.5\" Disk..." boots the
 game disk directly (ejects the HDD + cold reset).
 
@@ -180,12 +188,12 @@ self-test, then the visible/audible subsystems.
 | **M0** | Foundation | Repo, CMake (native/WASM/headless), doc suite, subsystem map | 🟢 `cmake && make` builds an ImGui window |
 | **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on 134 opcode families × 2 modes (2.68M vectors, regs+RAM+**cycles**). MVN/MVP excluded (cycle-cap granularity, see DEV). Extending corpus to full 256 = ongoing |
 | **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟡 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → speed-calibration loop ($FF:FCDC). Needs VBL/timer to progress. Verify: `boot_trace` |
-| **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); HGR + DHGR colour (NTSC + RGB, dhgr_test); per-line scanline IRQ done (irq_test); 80col next |
-| **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing + BRAM persistence + ROM 01 banner = follow-ups |
-| **M5** | Disk (IWM) + **//e legacy** | POM2-lineage IWM + native `Sony35` 3.5" LLE. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. (SWIM: out of scope — Mark Twain prototype only, never shipped; ROM 01 **and** 03 use the IWM, MAME apple2gs.cpp:15/3891.) | 🟡 IWM 5.25" read path + //e HGR/LORES video done; **real IWM 3.5" Sony LLE done** (`Sony35`, `iwm35 = 1` — GS/OS boots to the Finder via the genuine slot-5 ROM firmware). 3.5" FORMAT/tach + 5.25" write + NTSC-colour = follow-ups |
+| **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); HGR + DHGR colour (NTSC + RGB, dhgr_test); 80-column text (text80_test); per-line scanline IRQ done (irq_test). Mid-frame render splits (3200-colour) = follow-up |
+| **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing done (`adb_test`: IRQ keyboard + mouse, ⌘-menu shortcuts). BRAM host-file persistence + ROM 01 banner = follow-ups |
+| **M5** | Disk (IWM) + **//e legacy** | POM2-lineage IWM + native `Sony35` 3.5" LLE. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. (SWIM: out of scope — Mark Twain prototype only, never shipped; ROM 01 **and** 03 use the IWM, MAME apple2gs.cpp:15/3891.) | 🟡 IWM 5.25" read path + //e HGR/LORES video done; **real IWM 3.5" Sony LLE done** (`Sony35`, `iwm35 = 1` — GS/OS boots to the Finder via the genuine slot-5 ROM firmware). 5.25" write + WOZ done (`iwm525_test`), NTSC/RGB colour done (`dhgr_test`); 3.5" FORMAT/tach calibration = follow-up |
 | **M6** | Ensoniq 5503 DOC | `Es5503` — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$C03F) | 🟢 MAME es5503 parity (July 2026): swap mode + partner start + retrigger quirk, $E0 IRQ protocol, native-rate pitch (894886/(N+2) Hz→host), GLU bit6/bit5 decode + $C03D read latch FIXED (were swapped/missing → DOC was silent). Gate: doc_test (16 checks). Interactive gate = synthLAB music |
 | **M7** | Serial + slots | `Scc8530` serial | 🟡 SCC loopback (scc_test gate); slot bus / SmartPort / Mockingboard reuse from POM2 = follow-up |
-| **M8** | Polish | WASM build (Emscripten) | 🟡 `./build_wasm.sh` → POMIIGS.html/.js/.wasm (emscripten main loop); snapshot/rewind, CLI, packaging = follow-ups |
+| **M8** | Polish | WASM build (Emscripten) | 🟡 `./build_wasm.sh` → POMIIGS.html/.js/.wasm (emscripten main loop; audio = silent stub). Snapshot done (F7/F8, `snapshot_test`) and the CLI/config are in; rewind ring + packaging = follow-ups |
 
 ## Parity dashboard (MAME `apple2gs.cpp` → POMIIGS)
 
@@ -215,18 +223,29 @@ Shared hardware where POM2's implementation ports/links directly. Verify each
 still behaves under the IIgs bus (slow-side timing, 24-bit addresses) before
 ticking:
 
-- 🔴 `M6502` — legacy 6502/65C02 not needed (65C816 covers emulation mode) —
+- ⚪ `M6502` — legacy 6502/65C02 not needed (65C816 covers emulation mode) —
   **decision: drop; the 816 in E-mode is the fallback.**
-- 🔴 `Memory` IIe paging / language card → fold into `IIgsMemory` slow side
-- 🔴 `Apple2Display` (text/LORES/HGR/DHGR) + `NtscPostProcessor` + `CrtEffectStack`
+- 🟢 `Memory` IIe paging / language card — folded into the `IIgsMemory` slow side
+  (`physBank01` main/aux redirect, `lcSwitch`, `slowLcRead`/`slowLcWrite`).
+  Gates: `slowside_test`, `speed_test`.
+- 🟡 `Apple2Display` (text/LORES/HGR/DHGR) + `NtscPostProcessor` — the modes and
+  the composite decoder are ported into `VGC` / `VGCNtsc.h` (gates `vgc_test`,
+  `dhgr_test`, `dhgr_page_test`, `text80_test`). `CrtEffectStack` (scanlines /
+  bloom / curvature) is **not** ported.
 - 🟡 `AudioDevice` / `SpeakerDevice` — folded into `AudioOut` (miniaudio host +
   cycle-exact speaker + DOC mix). `Mockingboard` / `Ssi263` = follow-up.
-- 🔴 `IWMDevice` / `DiskImage` / `Block512Backing` / WOZ / 2mg
+- 🟢 `IWMDevice` / `DiskImage` / WOZ / 2mg — `DiskImage.{h,cpp}` + `TwoImg.h`
+  ported verbatim and driven by `Iwm` bit-by-bit (gates `iwm525_test`,
+  `twoimg_test`). `Block512Backing` was not needed: `ProDosHdd` backs blocks
+  natively.
 - 🟢 `SmartPortCard` / `Sony35Drive` / `Disk35Image` — covered natively: slot-5
   SmartPort HLE (`ProDosHdd`) + real IWM/Sony 3.5" LLE (`Sony35`, `iwm35 = 1`)
 - 🔴 `SlotBus` / `SlotPeripheral` (wire-OR IRQ)
-- 🔴 `MachineSnapshot` / `RewindBuffer`
-- 🔴 `CliDispatcher` / `EmulationController` (fork, retune clock to 2.8/1.02)
+- 🟡 `MachineSnapshot` / `RewindBuffer` — `Snapshot.{h,cpp}` saves/loads the whole
+  machine (F7/F8, `snapshot_test`); the rewind ring is not written.
+- ⚪ `CliDispatcher` / `EmulationController` — **decision: not forked.** Flag +
+  `pomiigs.cfg` parsing lives in `main.cpp`, and the frame loop (master-tick
+  budget, 2.8/1.02 MHz) in `main.cpp` + `Ui`.
 
 ## Post-M8 backlog — specialist gap analysis (what makes it a *real* IIgs)
 
@@ -299,9 +318,10 @@ needs the following, in rough priority order.
   path was incomplete — `$C071-$C07F` now returns internal ROM (the native
   vector stubs live there: IRQ `$FFEE`=`$C074`=`CLV/JML $E10010`), and native
   vector pulls read ROM even under LC RAM (`IIgsMemory::vectorPull`). GS/OS now
-  runs stably past the welcome screen. Remaining to reach the Finder desktop:
-  ADB **mouse**, and whatever the VBL-timed boot loop (`$FF/A5Ex`) is waiting on
-  (next boot-file load / desktop bring-up).
+  runs stably past the welcome screen, and (per the milestone above) all the way
+  to the Finder desktop. Remaining: the toolbox itself is never reimplemented —
+  this entry stays 🟡 only because ROM-LLE coverage is verified by observation
+  (`gsos_trace`), not by a gate.
 - ⚪ **SWIM** — dropped: never shipped on a production IIgs (Mark Twain
   prototype only); ROM 01 and 03 both drive the IWM (MAME apple2gs.cpp:15).
 - 🟡 **ADB mouse interrupt + keyboard modifiers** — mouse motion/button raise
@@ -320,7 +340,10 @@ needs the following, in rough priority order.
   directional host motion).
 
 **P3 — VGC completeness (games / demos / apps)**
-- 🔴 **Scanline interrupts** (SCB bit6) — split modes (640 menu + 320 gfx).
+- 🟢 **Scanline interrupts** (SCB bit6) — per-line beam walk latches `$C023` bit5
+  and raises the VGC IRQ; `$C032` writes + `$C02E`/`$C02F` reads acknowledge.
+  Gate: `irq_test`. 🔴 still open: the *renderer* draws whole frames, so mid-frame
+  split modes (640 menu + 320 gfx, 3200-colour pictures) don't show yet.
 - 🟢 SHR **colour-fill** mode (SCB bit5 — index-0 repeats the previous pixel)
   and **border colour** ($C034, drawn as an authentic frame around the display).
   Gate: `shr_test`.
@@ -353,15 +376,23 @@ needs the following, in rough priority order.
   native/emulation vector table lives in the `$C071-$C07F` reserved-reads-ROM
   region ($FFEE=$C074=`CLV/JML $E10010`), and native vector pulls read ROM under
   LC RAM — so GS/OS's VBL IRQ reaches the ROM Interrupt Mgr instead of crashing.
-  Remaining: **ADB**, **SCC**, **Mega II mouse** IRQs have no active source yet
-  (keyboard is the $C000 latch, SCC is loopback, no mouse — see P2); scan-line is
-  IRQ-only (the renderer doesn't split a frame mid-screen yet — see P3).
+  **ADB** now has a real source too: keyboard and mouse events raise
+  `IRQ_SRC_ADB` (gate `adb_test`, see P2). Remaining: **SCC** has no active
+  source (loopback only), the hardware-accurate ADB interrupt *enable* still uses
+  the native+VBL proxy instead of the µC model, and scan-line is IRQ-only (the
+  renderer doesn't split a frame mid-screen yet — see P3).
 
 **P5 — Peripherals / infra**
-- 🔴 **Battery RAM + RTC** (Control Panel persistence; currently $C033/$C034 stub).
-- 🔴 Slot **internal firmware** $C100-$CFFF (returns 0 today).
+- 🟢 **Battery RAM + RTC** — full `$C033`/`$C034` serial protocol, host local time,
+  256-byte BRAM read/write. 🔴 still open: persisting BRAM to a host file and
+  seeding Control Panel defaults (so startup-slot choices survive a restart).
+- 🟢 Slot **internal firmware** `$C100-$CFFF` — `slotRomRead` serves the bank-`$FF`
+  ROM image for unclaimed slots plus the `$C800` window (an *empty* slot 7 reads
+  `$00`, see the AppleTalk false-positive in `docs/COMPAT.md`).
 - 🔴 Real **SCC** serial (modem/printer/AppleTalk) — loopback only.
-- 🔴 **Mockingboard**, save-states/debugger, configurable RAM/slots/Control Panel.
+- 🟢 **Save states** — F7/F8 → `states/quick.pgss` (`Snapshot.h/.cpp`,
+  `snapshot_test`).
+- 🔴 **Mockingboard**, rewind ring, debugger, configurable RAM/slots/Control Panel.
 
 ## Open questions
 

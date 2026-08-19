@@ -4,6 +4,64 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Docs — doc/code consistency pass (August 2026)
+A read-only sweep of every claim in `CLAUDE.md` / `README.md` / `DEV.md` /
+`TODO.md` / `docs/COMPAT.md` / `pomiigs.cfg` against the source. No behaviour
+changed; the whole gate suite stayed green. What was wrong and why it mattered:
+
+- **`$C031` DISKREG bits were swapped in `DEV.md § Memory`** (b7 = drive select,
+  b6 = head select) against the code, `Iwm.h` and the Disk section (b6 = 35SEL
+  drive select, b7 = HDSEL). Anyone porting from the Memory section would have
+  routed the Sony drive off the wrong bit.
+- **`CLAUDE.md § Reset architecture` described POM2's three-class soft/hard/cold
+  split as if implemented.** POMIIGS has exactly one path — `Ui::doReset()` →
+  `IIgsMemory::reset()` + `CPU65816::hardReset()`, a cold reset. The "clears fast
+  RAM with the `00 FF` pattern and re-seeds BRAM defaults" claim was doubly
+  wrong: `reset()` fills RAM with `$00`, and BRAM is never seeded (nor persisted
+  — `DEV.md` also claimed it was written "to a host file").
+- **`CLAUDE.md` I/O map** listed a phantom `$C044-$C047` "mouse delta" range and
+  omitted most of what the MMU actually decodes. Rebuilt from the `ioRead`/
+  `ioWrite` switches: ADB GLU `$C024-$C027`, `$C02B` LANGSEL, `$C02E/$C02F`
+  beam counters, `$C031` DISKREG, `$C033` CLOCKDATA, `$C032` VGCINTCLEAR, the
+  `$C071-$C07F` reserved-reads-ROM window, `$C0E0-$C0EF` IWM. `$C037` is now
+  marked *latched only* (neither DMA nor ROM 03 shadow-all is modelled) in the
+  three places that implied otherwise.
+- **`TODO.md` still credited DIB subtype `$80`** for the GS/OS disk-swap fix.
+  The code and `smartport_test` pin **`$C0`** — the `$80` value was superseded by
+  the Silent Service whitelist fix recorded in `docs/COMPAT.md`. Same section
+  pointed at an `SP35LOG` trace "since removed"; the live one is `POMSP_LOG=1`.
+- **`TODO.md` backlog contradicted its own parity dashboard**: scanline
+  interrupts, battery RAM/RTC, slot internal firmware and save states were all
+  listed 🔴 "not started" while the dashboard, `DEV.md` and the gates report them
+  done. Retagged with what is *actually* still open in each (mid-frame render
+  splits, BRAM file persistence, rewind ring). The reuse-from-POM2 checklist got
+  the same treatment (`Memory` paging, `DiskImage`/WOZ/2mg and `Apple2Display`
+  had shipped; `CliDispatcher`/`EmulationController` was decided against).
+- **`README.md`** omitted the File ▸ Load/Eject 5.25" Disk entries and the
+  `--iwm35` flag, and never mentioned the positional `<rom> [<hdd>]` arguments.
+- **Stale code comments**: `setFastRamKB` said "Default 1 MB" (it is 8 MB);
+  `classifyDiskForSlot` cited a `DiskLibrary_ImGui.cpp` and a `--kiosk` flag that
+  exist only in POM2 (and the helper is unused here — now says so);
+  `readConfig`'s key list was missing `disk35b`, `disk525` and `writeback`;
+  `run_gsos.sh` still called the default HDD "Total Replay" after the shipped
+  config moved to `hdv/GSOS.hdv`.
+- **Counts**: the subsystem map says 14 subsystems (the table has 14 rows, not
+  11), and the status line says twelve bug-sweep passes (this file records
+  twelve, not nine). `docs/COMPAT.md` quoted 63% and ~80% "reach graphics" for
+  different columns of the same table without saying which; both are now
+  anchored, and `TODO.md` carries the final 151 (~84%) instead of stopping at
+  149.
+- **Added** `DEV.md § Dev environment variables` — `POMDBG`, `POMWAV`,
+  `POMSP_LOG`, `ADBDBG` and the harness flags/env were undocumented and only
+  findable by grepping. `pomiigs.cfg` grew commented `iwm35` / `disk35b` /
+  `disk525` stanzas so the shipped file matches what `readConfig` parses and what
+  the README shows. Fixed the broken `#disk--iwm--swim` TOC anchor and a
+  two-line `##` heading in `TODO.md` that rendered as two headings.
+
+One non-comment change: the `ADBDBG` tap called `std::getenv()` on **every**
+`$C0xx` read and write (the `POMSP_LOG` tap in the same file caches it in a
+`static`). Now cached the same way — same output, no per-access `getenv`.
+
 ### Fixed — bug-hunt pass (August 2026, follow-up): timing, 2IMG containers, IWM reset
 A second read-only audit over the same ground (whole suite under ASan/UBSan — clean; register
 diffs re-checked against MAME `apple2gs.cpp` `update_speed`/`c000_r` and `es5503.cpp`

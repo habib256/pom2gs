@@ -526,9 +526,11 @@ private:
 
 /// Slot-routing class for a disk image — which kind of card/slot the image
 /// belongs in. Coarser than `DiskImage::ImageKind`: it only answers "5.25"
-/// Disk II vs 800K Sony 3.5" vs ProDOS hard-disk (HDV)", which is what the
-/// 1-click "insert + boot" path (Disk Library UI and the `--kiosk` / CLI
-/// positional disk launcher) needs to pick a target slot.
+/// Disk II vs 800K Sony 3.5" vs ProDOS hard-disk (HDV)", which is what a
+/// 1-click "insert + boot" path needs to pick a target slot.
+/// Ported with the rest of POM2's `DiskImage`; POMIIGS does not call it yet —
+/// its UI routes by explicit menu entry (File ▸ Load Hard Disk… / 3.5" / 5.25")
+/// and the `mediaMatch` filter in `Ui.cpp`; the config keys name the slot outright.
 enum class DiskSlotClass {
     Unknown,    // extension/size not recognised — caller reports an error
     Floppy525,  // 5.25" Disk II: .dsk/.do/.nib/.woz/.d13, or .po @143360
@@ -536,10 +538,9 @@ enum class DiskSlotClass {
     Hdv,        // ProDOS hard disk: .hdv/.2mg > 800K, 512-aligned
 };
 
-/// Classify `path` for slot routing by file extension + size. Mirrors the
-/// per-tab predicates the Disk Library scanner uses (accept525 / accept35 /
-/// acceptHdv in DiskLibrary_ImGui.cpp) so the UI and the CLI launcher route
-/// identically. Returns `Unknown` if the file is missing or unrecognised.
+/// Classify `path` for slot routing by file extension + size. Mirrors POM2's
+/// per-tab Disk Library predicates (accept525 / accept35 / acceptHdv).
+/// Returns `Unknown` if the file is missing or unrecognised.
 DiskSlotClass classifyDiskForSlot(const std::string& path);
 
 #endif // POMIIGS_DISKIMAGE_H

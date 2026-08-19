@@ -13,9 +13,10 @@ pinned test**. This file grows one section per subsystem as milestones land
 - [Sound — Ensoniq 5503 DOC](#sound--ensoniq-5503-doc)
 - [ADB](#adb)
 - [Clock / Battery RAM](#clock--battery-ram)
-- [Disk — IWM](#disk--iwm--swim)
+- [Disk — IWM](#disk--iwm)
 - [Serial — SCC 8530](#serial--scc-8530)
 - [Clock & threading](#clock--threading)
+- [Dev environment variables](#dev-environment-variables)
 
 ---
 
@@ -151,10 +152,12 @@ Key registers (all in `$C0xx`, cited to `apple2gs.cpp` when implemented):
   on-board IWM.
 - **`$C068` STATEREG** — packs the classic MMU softswitches (ALTZP, PAGE2,
   RAMRD, RAMWRT, RDROM, LCBNK2, INTCXROM) into one byte for GS/OS.
-- **`$C037` DMA/shadow-all** (ROM 03).
-- **`$C031` DISKREG** — on the IIgs this is the disk register (`diskReg_` b7 =
-  3.5" drive select, b6 = head select), **not** a speaker mirror. The classic
-  Apple II's partial `$C030-$C03F` decode toggled the speaker on `$C031` too;
+- **`$C037` DMAREG** (DMA bank / ROM 03 shadow-all) — latched and read back,
+  but neither DMA nor shadow-all is modelled.
+- **`$C031` DISKREG** — on the IIgs this is the disk register (`diskReg_` b6 =
+  35SEL, the 3.5" drive select; b7 = HDSEL, the Sony SEL / head select), **not**
+  a speaker mirror. The classic Apple II's partial `$C030-$C03F` decode toggled
+  the speaker on `$C031` too;
   on the IIgs only `$C030` toggles the speaker, and mirroring it onto `$C031`
   put a beep's toggles in the same cycle → the "random cracks" bug. Only
   `$C030` toggles; `$C031` is a readable/writable DISKREG.
@@ -294,7 +297,9 @@ in `main.cpp` — Command/Option/Control suppress ImGui's `InputQueueCharacters`
 so the combo's letter is now delivered via `IsKeyPressed` while a shortcut
 modifier is held (the `$C025` bits are set from LeftAlt=⌘/RightAlt=option each
 frame). A hardware-accurate mouse-int *enable* (replacing the native+VBL proxy)
-still needs the full ADB µC command model — the `Adb.cpp` subsystem.
+still needs the full ADB µC command model (today the GLU lives in
+`IIgsMemory`; splitting it into its own `Adb` subsystem is the planned
+follow-up).
 
 **Two other fixes were load-bearing for the banner boot** (both surfaced by the
 boot trace):
@@ -321,19 +326,23 @@ time-set writes are dropped by design.)*
 256 bytes of battery-backed **BRAM** (Control Panel settings), reached through
 the clock/BRAM interface shared with the ADB GLU. **Extended-BRAM address
 decode:** `(cmd&7)<<5 | (data>>2)&0x1F` (3+5 bits) — see the Memory section.
-BRAM persists across all resets and to a host file. **MAME reference**:
+BRAM persists across all resets (`reset()` leaves `bram_` alone), but it is
+not yet written to a host file and not seeded with Control Panel defaults —
+see `TODO.md`. **MAME reference**:
 clock/BRAM state machine in `apple2gs.cpp` / `macrtc`.
 
 ---
 
 ## Disk — IWM
 
-*(GS/OS boots from a hard disk. `src/Iwm` nibblises a 143 360-B .dsk/.do/.po
-(6-and-2 GCR, DOS 3.3 / ProDOS interleave) into per-track streams timed by CPU
-cycles at `$C0E0-$C0EF` (slot 6). The 3.5" / block path is a SmartPort HLE
-(`src/ProDosHdd`, `smartportTrap`): the slot-5 ROM's `$Cn50` ProDOS-block and
-`$Cn53` SmartPort dispatch entries are WDM traps handled in C++. Gates:
-`disk35_test`, `smartport_test`, `hdd_test`; trace `hdd_trace`.)*
+*(GS/OS boots from a hard disk. `src/Iwm` drives the `$C0E0-$C0EF` port (slot 6)
+against POM2's ported `src/DiskImage` bit-cell model — .dsk/.do/.po/.nib/.d13/
+.2mg and WOZ 1/2+FLUX, read **and** write. The 3.5" / block path has two
+implementations: the default SmartPort HLE (`src/ProDosHdd`, `smartportTrap` —
+the slot-5 ROM's `$Cn50` ProDOS-block and `$Cn53` SmartPort dispatch entries are
+WDM traps handled in C++), and the low-level Sony drive (`src/Sony35`,
+`iwm35 = 1`). Gates: `disk35_test`, `smartport_test`, `hdd_test`, `iwm525_test`,
+`iwm35_test`, `twoimg_test`; trace `hdd_trace`.)*
 
 **Every production IIgs — ROM 01 and ROM 03 — uses the IWM.** The SWIM
 (Super Woz Integrated Machine, IWM-superset adding MFM/1.44M) only ever
@@ -441,8 +450,9 @@ applied on emission (a $FF run ≥ 5 gets 10 cells — without this every writte
 gap $FF drifted the splice 2 cells). Validated end-to-end: **Choplifter
 (.dsk) boots to gameplay and A.E. — a protected WOZ original — boots to its
 title screen** via the internal $C600 PROM; RWTS-style sector write + file
-write-back pinned by `iwm525_test` (gate) — mount via `disk525 =` /
-File ▸ Load 5.25" Disk / `--disk525`.
+write-back pinned by `iwm525_test` (gate) — mount via `disk525 =` in
+`pomiigs.cfg` or File ▸ Load 5.25" Disk… (the headless `screenshot` / `triage`
+harnesses take `--disk525 <image>`).
 
 **Two hardware behaviours the boot ROM depends on (root-caused by tracing
 the $C600 PROM instruction flow):**
@@ -485,6 +495,8 @@ modelled. Host hooks `hostRx`/`hostTx` bridge to a real port later. Slot
 bus / SmartPort / Mockingboard reuse from POM2 is the remaining M7 work.
 Source of truth: MAME `machine/z80scc.cpp`.
 
+---
+
 ## Clock & threading
 
 The emulation worker + ImGui UI live in `src/Ui.cpp` / `src/main.cpp` (no
@@ -493,3 +505,34 @@ separate `EmulationController` class was forked). Master clock
 architectural cycles → master ticks using the *current* speed register
 (fast = ×5, slow = ×14) and adds the slow-side penalty per access
 (`chargeSlow`). `emuCycles` stamps every CPU→audio/UI event.
+
+---
+
+## Dev environment variables
+
+Diagnostic taps compiled into the normal build — all opt-in, all off unless the
+variable is set. Kept because each one has root-caused real bugs; documented
+here so they don't get rediscovered by grepping.
+
+| Variable | Where | What it does |
+|---|---|---|
+| `POMDBG=1` | `main.cpp` | Once-per-second health line on stderr: wall FPS (60 = keeping up), slot-5 device calls/s (the GS/OS removable poll's liveness — ~1-4/s at an idle Finder, 0 = the poll is dead and disk swaps won't mount), DOC samples/s (~26320 with 32 oscillators), audio underruns/drops (each one is an audible crackle) and ring fill. |
+| `POMWAV=<path>` | `Audio.cpp` | Record the mixed output to a WAV for offline crackle analysis (header patched in the destructor, so exit cleanly). |
+| `POMSP_LOG=1` | `IIgsMemory.cpp` | One line per SmartPort `$Cn53` dispatch (command, param list, block, buffer, error). This is the trace that root-caused the DIB / CONTROL / identity-byte game-loader bugs in `docs/COMPAT.md`. |
+| `ADBDBG=1` | `IIgsMemory.cpp` | Log every `$C024-$C027` ADB GLU read/write with the issuing `PBR:PC` (first 120, then every 1000th). |
+
+Headless harnesses under `tests/` add their own flags:
+
+- `screenshot <rom> <out.png>` — `--frames N`, `--char <file>`, `--hdd <img>`,
+  `--disk35 <img>`, `--disk35b <img>`, `--disk525 <img>`, `--iwm35`,
+  `--writeback`. Env: `MOUSE_JIGGLE`, `MOUSE_DIR`, `KEY_INJECT`, `KEY_MOD`,
+  `FRAMETICK`.
+- `triage <rom> <disk>` — `--frames N`, `--disk35` / `--disk525` (which drive
+  the single positional disk goes in; default 3.5"), `--iwm35`, `--char <file>`,
+  `--png <out>`. Env: `TRIAGE_BRK`.
+- `gsos_trace` — env `GSOS_WINDOW`, `KEY_INJECT`, `KEY_MOD`, `KEY_OA`,
+  `MOUSE_JIGGLE`; `hdd_trace` — env `WATCH43`.
+
+`screenshot` and `triage` mount every image **read-only** by default
+(`screenshot` opts in with `--writeback`, `triage` never writes), so a triage
+sweep can never edit the user's disk collection.

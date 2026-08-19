@@ -57,7 +57,8 @@ public:
     // Load a IIgs ROM (128 KB → banks $FE-$FF; 256 KB → $FC-$FF). Returns
     // false if the size is not a supported ROM image.
     bool loadRom(const std::vector<uint8_t>& rom);
-    void setFastRamKB(uint32_t kb);   // total FPI RAM (banks $00+). Default 1 MB.
+    void setFastRamKB(uint32_t kb);   // total FPI RAM (banks $00+). Default 8 MB
+                                      // (fastRamKB_), clamped to [256 KB, 8 MB].
     void reset();                     // power-on-ish: clears RAM, resets MMU state
 
     // Advance the video/timing clock by `cpuCycles` (call after each CPU step).
