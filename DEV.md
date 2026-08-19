@@ -99,7 +99,9 @@ The **WDC 65C816** is a 16-bit superset of the 65C02. Design notes for
 **Gate**: `tomharte_65816` — Tom Harte
 [SingleStepTests/65816](https://github.com/SingleStepTests/65816) (both `v1`
 E-mode and native vectors), reusing POM2's hand-rolled JSON scanner harness
-(`tomharte_cpu_test`). Also Klaus Dormann in E-mode as a fast smoke gate.
+(`tomharte_cpu_test`). `--examples N` / `--verbose` dump failing vectors.
+(POM2 also runs Klaus Dormann's 6502 suite as a fast smoke gate; POMIIGS has
+no such harness — the Tom Harte corpus is the only CPU gate here.)
 
 **MAME reference**: `cpu/g65816/` (the 816 core) + the wiring in
 `apple2gs.cpp`.
@@ -504,7 +506,11 @@ separate `EmulationController` class was forked). Master clock
 **14.31818 MHz**; fast CPU budget = 2.8 MHz. `IIgsMemory` converts
 architectural cycles → master ticks using the *current* speed register
 (fast = ×5, slow = ×14) and adds the slow-side penalty per access
-(`chargeSlow`). `emuCycles` stamps every CPU→audio/UI event.
+(`chargeSlow`). The running total lives in `IIgsMemory::videoCycles_` and is
+**the** timebase: the beam walk, the DOC (`tickMaster`), the ADB valves, the
+paddle RC timers and the speaker's `$C030` toggle stamps all read it, the last
+via `audioCycles()`. (POM2 calls its equivalent `emuCycles` and counts CPU
+cycles; POMIIGS cannot — see `CLAUDE.md § Conventions`.)
 
 ---
 

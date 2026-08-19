@@ -45,9 +45,14 @@ cycle-stamped events, one-subsystem-per-file, and **MAME as the source of truth*
 
 ## Quick Start
 
+Prerequisites: a C++17 compiler, CMake ≥ 3.16, and the **GLFW 3.3+** and
+**OpenGL** development packages (e.g. `libglfw3-dev libgl-dev` on Debian/Ubuntu,
+`brew install glfw` on macOS). `setup_imgui.sh` does not install these — it only
+clones Dear ImGui, which is not vendored in git.
+
 ```bash
 git clone <this repo> && cd POMIIGS
-./setup_imgui.sh                    # fetch Dear ImGui + deps (one-time)
+./setup_imgui.sh                    # clone Dear ImGui into ./imgui (one-time)
 cd build && cmake .. && make -j
 cd .. && ./run_emulator.sh          # cwd = repo root so roms/ probes resolve
 ```

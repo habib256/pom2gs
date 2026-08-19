@@ -6,8 +6,12 @@
 //   * Super Hi-Res (320/640 × 200) from $E1:2000 + SCB ($9D00) + palettes
 //     ($9E00) — the IIgs signature mode.
 //   * Legacy 40/80-column text from $E0/$E1 $0400 (//e interleaved layout),
-//     drawn with the vendored 8x8 font.
-// Legacy LORES/HGR/DHGR are staged in next (reuse POM2's decode).
+//     drawn with the AUTHENTIC Mega II character ROM the user supplies as
+//     roms/iigs-char.rom (344s0047, 16 KB; a 4 KB or 2 KB //e generator also
+//     loads). NO font is vendored — with no char ROM, text is skipped.
+//   * Legacy LORES (40×48), HGR (280×192) and DHGR (140×192, 16 colour),
+//     dispatched by the //e mode switches; NTSC composite artifact decode in
+//     VGCNtsc.h (POM2 port), or clean RGB.
 //
 // Output is a fixed 640×400 buffer (SHR 200 lines doubled; text 24×16 rows).
 // Source of truth: Apple IIgs Hardware Reference (VGC) + MAME apple2gs video.

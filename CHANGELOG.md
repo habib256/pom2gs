@@ -4,6 +4,61 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Docs — doc/code consistency pass 2 (August 2026)
+Second sweep, over the ground pass 1 did not cover: subsystem headers,
+`CMakeLists.txt`, the build prerequisites and the stated conventions. Again no
+behaviour change; all 18 buildable gates green.
+
+- **`CLAUDE.md` stated a convention that does not exist and points the wrong
+  way.** "**`emuCycles` everywhere** — events carry a **CPU-cycle** stamp" — but
+  there is no `emuCycles` symbol in POMIIGS (it is POM2's), and stamping in CPU
+  cycles is *precisely* the defect the master-tick timebase fixed (VBL at
+  ~164 Hz, every VBL-clocked game 2.8× fast). The real contract is
+  `IIgsMemory::videoCycles_` / `audioCycles()` in **14.31818 MHz master ticks**,
+  which is what the beam walk, `Es5503::tickMaster`, the ADB valves, the paddle
+  RC timers and the speaker stamps all actually read. Rewritten in `CLAUDE.md`
+  and `DEV.md § Clock & threading`.
+- **`VGC.h` claimed text is "drawn with the vendored 8x8 font".** No font is
+  vendored — `setCharRom` needs the user's `roms/iigs-char.rom` and every text
+  renderer returns early without it (`VGC.cpp:80/273/309`), which is what
+  `README.md` says. The same block still had LORES/HGR/DHGR "staged in next";
+  all three ship with gates.
+- **`Es5503.h` contradicted itself**: `drainResampled` was documented as ZOH
+  resampling, while the implementation and the `drainPrev_` field comment do
+  **linear interpolation** — with an inline note that ZOH from 26 kHz to
+  44.1 kHz stair-steps audibly. Its `hostRate` argument is also unused (the
+  occupancy ratio carries it). The file header presented `render()` as the main
+  path when it is the test/offline one, and gave the oscillator count as
+  `(reg $E1 >> 1) + 1`, dropping the `& 0x1F`.
+- **`TODO.md`'s "Open questions" were all three answered by shipped code** —
+  flat 8 MB fast-side array, master-tick DOC production, and the PGSS v4
+  snapshot format. Rewritten as "Answered questions" keeping the reasoning.
+- **Parity dashboard**: `$C035` write-through was still "partial" and aux-HGR
+  bit 4 a "follow-up"; `maybeShadow` has covered both since the August bug-hunt
+  pass (`IIgsMemory.cpp:1105-1117`).
+- **Build prerequisites were documented nowhere.** `setup_imgui.sh` is credited
+  with fetching "deps" in both `README.md` and `CLAUDE.md`; it clones Dear ImGui
+  and makes `build/`, nothing else. GLFW 3.3+ and OpenGL are system packages
+  `CMakeLists.txt` resolves via `find_package`/pkg-config — now stated.
+- **`DEV.md` listed a CPU gate that does not exist** ("Klaus Dormann in E-mode
+  as a fast smoke gate"); there is no such harness under `tests/`. Documented
+  `--examples` / `--verbose` on the harness that does exist instead.
+- **`TODO.md` M0** claimed a headless CMake target; `CMakeLists.txt` only has a
+  commented placeholder ("enable in M2", long past). The headless surface is the
+  `tests/` harnesses — said so in both places.
+- **`CLAUDE.md` overstated the POM2 reuse** ("slot bus, Mockingboard, CRT/NTSC
+  stack"): slot bus and Mockingboard are 🔴 not started and `CrtEffectStack` was
+  never ported. Narrowed to what is genuinely shared.
+- Smaller drift: `Ui.h`'s menu roster omitted the `3.5" Drive` menu and named
+  two of the eight `on*` callbacks; `CPU65816.h` justified its interface by
+  `EmulationController` forking "cleanly" when that fork was declined;
+  `TwoImg.h` and `DiskImage.cpp` named POM2's `Disk35Image`/`Block512Backing`
+  for what are `Sony35`/`ProDosHdd` here; `CMakeLists.txt`'s `HEADERS` listed
+  every header except `DiskImage.h`/`TwoImg.h`/`Logger.h`.
+- Fixed a regression from pass 1: the `disk525` example in `pomiigs.cfg` used a
+  `disks525/` directory, but the repo's convention is `disks54/`
+  (`tests/iwm525_test.cpp:190` probes it).
+
 ### Docs — doc/code consistency pass (August 2026)
 A read-only sweep of every claim in `CLAUDE.md` / `README.md` / `DEV.md` /
 `TODO.md` / `docs/COMPAT.md` / `pomiigs.cfg` against the source. No behaviour

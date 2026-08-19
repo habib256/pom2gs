@@ -4,9 +4,11 @@ Orientation **always-loaded index** — keep terse, defer detail to other docs.
 
 POMIIGS is an **Apple IIgs** emulator. It is the 16-bit sibling of
 [POM2](../POM2/) (the Apple II-family emulator) and deliberately reuses POM2's
-architecture, conventions, and — where the hardware is shared (IWM, disk
-formats, legacy //e video, slot bus, Mockingboard, CRT/NTSC stack) — its
-actual code.
+architecture, conventions, and — where the hardware is shared — its actual
+code: `DiskImage`/`TwoImg`/`Logger` (5.25" bit cells, WOZ, 2IMG) are ported
+verbatim, and the legacy //e video + NTSC composite decode came across into
+`VGC`/`VGCNtsc.h`. The slot bus, Mockingboard and POM2's CRT effect stack are
+**not** ported (see `TODO.md § Reuse-from-POM2 checklist`).
 
 - `README.md` — user walkthrough (build, ROM/disk placement, keys, CLI).
 - `DEV.md` — implementation deep-dives (MAME-parity ports, internals, gotchas, pinned tests).
@@ -44,18 +46,26 @@ Primary hardware docs to cite directly: *Apple IIgs Hardware Reference* &
 - **One concern per file** — each `.cpp/.h` pair owns one subsystem.
 - **MAME = source of truth** — cite `apple2gs.cpp` file + line range in a
   comment; pin with a smoke test under `tests/`.
-- **`emuCycles` everywhere** — CPU → audio/UI events carry a CPU-cycle stamp,
-  not wall-clock. The IIgs makes this doubly important: the CPU runs at
-  **2.8 MHz fast / 1.0 MHz slow** and switches per-access (see Memory), so a
-  wall-clock stamp is meaningless.
+- **One timebase: master ticks** — every CPU → audio/UI/video event is stamped
+  with `IIgsMemory::videoCycles_` (exposed as `audioCycles()`), a running count
+  of **14.31818 MHz master-clock ticks**. POM2 stamps in CPU cycles; the IIgs
+  cannot, because the CPU switches between **2.8 MHz fast and 1.02 MHz slow**
+  per access (see Memory) — a CPU-cycle stamp is not a duration. Counting raw
+  CPU cycles is precisely the bug that fired VBL at ~164 Hz and ran every
+  VBL-clocked game 2.8× too fast (see `CHANGELOG.md`).
 - **Docs in English** — reference language for all Markdown.
 - **License**: GPLv3 (POM2 is GPL; MAME/GSSquared/KEGS are GPL). ROMs are
   **user-provided** and never committed.
 
 ## Build & run
 
+System packages first: a C++17 compiler, CMake ≥ 3.16, and the **GLFW 3.3+ and
+OpenGL** dev packages (CMakeLists finds them via `find_package`/pkg-config).
+`setup_imgui.sh` installs none of that — it only clones Dear ImGui and makes
+`build/`.
+
 ```bash
-./setup_imgui.sh             # one-time deps + clones imgui/
+./setup_imgui.sh             # one-time: clones imgui/ + creates build/
 cd build && cmake .. && make # → build/POMIIGS
 ./run_emulator.sh            # cwd = repo root so roms/ probes resolve
 ```

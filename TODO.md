@@ -185,7 +185,7 @@ self-test, then the visible/audible subsystems.
 
 | # | Milestone | Deliverable | Gate |
 |---|---|---|---|
-| **M0** | Foundation | Repo, CMake (native/WASM/headless), doc suite, subsystem map | 🟢 `cmake && make` builds an ImGui window |
+| **M0** | Foundation | Repo, CMake (native + WASM), doc suite, subsystem map | 🟢 `cmake && make` builds an ImGui window. No separate headless target: the `tests/` harnesses (screenshot, triage, *_trace) link the emulator without ImGui/GL |
 | **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on 134 opcode families × 2 modes (2.68M vectors, regs+RAM+**cycles**). MVN/MVP excluded (cycle-cap granularity, see DEV). Extending corpus to full 256 = ongoing |
 | **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟡 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → speed-calibration loop ($FF:FCDC). Needs VBL/timer to progress. Verify: `boot_trace` |
 | **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); HGR + DHGR colour (NTSC + RGB, dhgr_test); 80-column text (text80_test); per-line scanline IRQ done (irq_test). Mid-frame render splits (3200-colour) = follow-up |
@@ -200,8 +200,8 @@ self-test, then the visible/audible subsystems.
 | Hardware | MAME reference | POMIIGS | State |
 |---|---|---|---|
 | 65C816 CPU | `cpu/g65816/` | `CPU65816` | 🟢 2.68M Tom Harte vectors green (134 families ×2 modes; MVN/MVP excluded) |
-| FPI speed/shadow regs ($C035-$C037) | `apple2gs.cpp` | `IIgsMemory` | 🟡 shadow/speed stored; write-through partial |
-| Mega II slow-side + I/O shadow | `apple2gs.cpp` | `IIgsMemory` | 🟡 $E0/$E1 RAM + I/O; text/HGR/**SHR** shadow ($01→$E1, SuperHiRes over Hi-Res ranges); aux-HGR bit4 = follow-up |
+| FPI speed/shadow regs ($C035-$C037) | `apple2gs.cpp` | `IIgsMemory` | 🟢 SHADOW write-through for every region + SPEED motor-detect coupling (`speed_test`, `slowside_test`). $C037 DMAREG is latched only — DMA / ROM 03 shadow-all not modelled |
+| Mega II slow-side + I/O shadow | `apple2gs.cpp` | `IIgsMemory` | 🟢 $E0/$E1 RAM + I/O; text/HGR/**SHR** shadow ($01→$E1, SuperHiRes over Hi-Res ranges) and the aux-HGR inhibit ($C035 bit4, MAME `b1ram2000_w`) |
 | STATEREG ($C068) | `apple2gs.cpp` | `IIgsMemory` | 🟢 compose/decompose |
 | VGC Super Hi-Res + SCB/palette | `apple2gs.cpp` | `VGC` | 🟢 320/640 render (vgc_test) |
 | VGC scanline / VBL interrupt | `apple2gs.cpp` | `IIgsMemory` | 🟢 VBL status + flag; **per-line SCB bit-6 scanline IRQ** fired from the tick() beam walk, $C02E/$C02F reads acknowledge (MAME :1674-1683), pinned in `irq_test`. Mid-frame render splits (3200-colour) = follow-up |
@@ -394,10 +394,25 @@ needs the following, in rough priority order.
   `snapshot_test`).
 - 🔴 **Mockingboard**, rewind ring, debugger, configurable RAM/slots/Control Panel.
 
-## Open questions
+## Answered questions
 
-- ROM 03 up to 8 MB RAM: model as flat fast-side array or paged expansion card?
-- DOC oscillator IRQ cadence vs POM2's `emuCycles` audio bus — confirm the
-  cycle-stamp path survives the DOC's own 894.886 kHz sample clock.
-- Native-mode vector pull vs POM2 snapshot format — extend `SnapshotIO` for
-  the 816's wider register file (16-bit A/X/Y, DBR, PBR, D, 16-bit SP).
+The three questions this section opened with have all been settled by shipped
+code — kept here because the *reasoning* is load-bearing:
+
+- **ROM 03's 8 MB: flat array or paged expansion card?** → **Flat.**
+  `fastRam_` is one `std::vector` covering banks `$00-$7F`, sized by
+  `setFastRamKB` (default 8192 KB, clamped to [256 KB, 8 MB]). A 1 MB backing
+  wrapped bank indices and corrupted the zero page — that was the last blocker
+  before the Finder desktop drew.
+- **DOC IRQ cadence vs a cycle-stamped audio bus.** → POM2's CPU-cycle
+  `emuCycles` stamp does not survive the IIgs's per-access clock switching, so
+  POMIIGS stamps in **master ticks** instead and the DOC produces one native
+  sample every `16×(oscs+2)` of them (`tickMaster`). Per-frame batch rendering
+  merged 3-4 timer IRQs into 1 at 60 Hz and played music ~3× too slow; the
+  master-tick production path fixed it. See `CLAUDE.md § Conventions`.
+- **Snapshot format for the 816's wider register file.** → `Snapshot.{h,cpp}`
+  ("PGSS" + version, currently v4) writes 16-bit A/X/Y/SP/D/PC plus DBR, PBR, P
+  and the E flag, then delegates to `IIgsMemory::saveState`. A version mismatch
+  is refused outright rather than half-loaded. Gate: `snapshot_test`.
+
+Still genuinely open: see the 🔴 items in the backlog above.

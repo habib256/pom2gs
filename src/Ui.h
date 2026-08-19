@@ -2,14 +2,16 @@
 // VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
 //
 // ── Emulator UI (Dear ImGui) ─────────────────────────────────────────────
-// The desktop chrome: a top main-menu bar (File / Machine / Video / Audio /
-// Help), the screen window, a bottom status bar, and the modal dialogs.
+// The desktop chrome: a top main-menu bar (File / 3.5" Drive / Machine /
+// Video / Audio / Help), the screen window, a bottom status bar, and the modal
+// dialogs.
 // Structure mirrors POM1's MainWindow_Menu — one file owns the menu so
 // main.cpp keeps only the emulation/input/GL loop.
 //
 // The UI never reads files itself: path resolution + file I/O live in main and
-// are injected as onLoadRom / onLoadHdd callbacks. Everything else it drives
-// directly on the emulator objects it holds by reference.
+// are injected as the on* callbacks below (load ROM/HDD/3.5"/5.25", eject, 3.5"
+// hot-swap, save/load state). Everything else it drives directly on the
+// emulator objects it holds by reference.
 
 #ifndef POMIIGS_UI_H
 #define POMIIGS_UI_H

@@ -7,13 +7,14 @@
 // $C03C-$C03F). Oscillators run free-run / one-shot / sync / swap and
 // generate IRQs. A sample byte of 0 is the end-of-wave marker (halts the
 // oscillator). Output = (sample - 0x80) * volume, mixed across active
-// oscillators. Enabled-oscillator count = (reg $E1 >> 1) + 1.
+// oscillators. Enabled-oscillator count = ((reg $E1 >> 1) & 0x1F) + 1.
 //
 // The chip's native sample rate depends on that count:
 //   docRate = clock/8 / (oscs+2)   (clock = 7.15909 MHz → 894886/(N+2) Hz)
-// render() steps the oscillators at the native rate and zero-order-hold
-// resamples to the host rate (setOutputRate) so pitch and tempo are correct
-// for any oscillator count (GS/OS enables all 32 → 26.3 kHz).
+// so pitch and tempo stay correct for any oscillator count (GS/OS enables all
+// 32 → 26.3 kHz). Two paths run the oscillators at that native rate:
+// tickMaster() + drainResampled() in production (sample-accurate IRQs), and
+// render() as the batch test/offline path.
 //
 // Source of truth: MAME sound/es5503.cpp; Ensoniq 5503 datasheet.
 
@@ -50,8 +51,12 @@ public:
     // TEMPO from a timer oscillator's IRQs — per-frame batch rendering merged
     // those IRQs (3-4 → 1 at 60 Hz) and played everything ~3× too slow.
     void tickMaster(uint32_t masterTicks);
-    // Drain the produced samples, resampled (ZOH) to hostRate, into out[n];
-    // holds the last level if the ring runs dry (frame jitter).
+    // Drain the produced samples into out[n], spreading exactly what the ring
+    // holds across the frame (self-balancing — a fixed ratio drifts against the
+    // emulated production rate) and LINEARLY interpolating between native
+    // samples: plain ZOH from 26 kHz to 44.1 kHz stair-steps audibly. Holds the
+    // last level if the ring runs dry (frame jitter). `hostRate` is unused —
+    // the occupancy ratio already carries it; kept for call-site symmetry.
     void drainResampled(int16_t* out, int n, uint32_t hostRate);
 
     // True while any enabled oscillator is running (for tests).
