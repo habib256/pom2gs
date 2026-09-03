@@ -3,6 +3,54 @@
 Active backlog + **MAME↔POMIIGS parity dashboard** + milestone roadmap.
 Legend: 🔴 not started · 🟡 in progress · 🟢 done + pinned test · ⚪ out of scope.
 
+## 🟡 IN PROGRESS — Cycle-accuracy qualification suite (September 2026)
+
+**Goal:** turn the strongest publicly documented Apple IIgs diagnostics, timing
+probes and demos into reproducible POMIIGS tests, with provenance, licensing,
+fixed inputs, machine-readable verdicts and hardware-derived oracles. A title
+merely booting or producing a plausible final framebuffer is not a cycle-level
+pass.
+
+- 🟢 Build a versioned test catalog covering CPU, FPI/CYA, Mega II, VGC,
+  interrupts, shadowing, ADB, SCC, DOC, IWM/Sony, SmartPort and RTC.
+- 🟡 Extend 65816 qualification: 🟢 the harness now compares every active bus
+  transaction (address/data plus VDA/VPA/VPB/RWB/E/M/X/MLB) by default, while
+  retaining the independent total-cycle check; 🔴 microsequence the inactive
+  cycles, replace broad exclusions with issue-linked `xfail` cases, and rehost
+  the MIT gilyon generator plus Klaus/Bruce-Clark functional cross-checks.
+- 🟡 Turn Crazy Cycles, Fancy Lores and a legally usable 3200-colour fixture
+  into deterministic raster checkpoints; keep FTA/Ninjaforce media
+  user-supplied until redistribution terms are explicit.
+- 🟡 Integrate the MiSTer Apple-IIgs custom diagnostics (`MMU_TEST`, `GSQMMU`,
+  ROM selftest slices, SCC, ADB, floppy and RTC): 🟢 pinned fetch, safe
+  subtree-only extraction and an explicit Merlin32/CiderPress2 build adapter
+  now produce a tool/output-hashed manifest under the ignored output tree;
+  🔴 boot all disks under POMIIGS and establish deterministic PASS goldens.
+- 🟡 Make **TextFunk Viewer** a first-class beam-race gate: deterministic boot,
+  scripted screen selection, consecutive-frame captures and comparison against
+  a real-IIgs golden. Passing requires a live scanout model; rendering only the
+  final text-page memory is explicitly insufficient.
+- 🟡 Catalog the hardware-verified VidModes and FloatBus archives with exact
+  provenance, sizes and SHA-256. Their sources have no explicit licence, so the
+  harness records them as `reference-only` and never auto-downloads them.
+  Implement execution after permission is established, then verify CPU-visible video fetch bytes,
+  `$C02E/$C02F`, HBL/VBL position and scanner phase against a hardware trace.
+- 🔴 Replace the approximate 910-master-tick scanline model with the measured
+  Mega II cadence: 64×14 + one stretched 16-tick cycle = **912 ticks/line**,
+  side-sync alignment every 25 lines, and 5-tick DRAM refresh windows every 50
+  master ticks. Gate every timing change against GS/OS, Total Replay and disk
+  regressions.
+- 🔴 Automate ROM 01/03 built-in selftests at native 2.8 MHz, including the ROM
+  01 text-page-2-shadow prerequisite, and archive the exact final status code.
+- 🔴 Add **TrueGS** and Apple IIgs Diagnostics as user-supplied acceptance
+  workloads; record results without redistributing proprietary disk images.
+- 🔴 Add frame/trace differential runs against MAME, KEGS/GSplus and real IIgs
+  captures. Goldens must record machine profile, ROM revision, input schedule,
+  frame/master-tick number and SHA-256.
+- 🟢 Separate gates into `unit`, `cycle`, `external-open`, and
+  `external-user-supplied`; missing external assets must report SKIP, never a
+  false PASS.
+
 ## 🟢 RESOLVED — GS/OS + hard disk (install to HDD)
 
 **Goal (met):** boot the System 6 install disk (3.5", slot 5) with a hard disk

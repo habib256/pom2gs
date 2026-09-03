@@ -33,6 +33,9 @@ tests/CMakeCache.txt
 tests/cmake_install.cmake
 tests/CTestTestfile.cmake
 tests/Makefile
+__pycache__/
+tests/cycle_accuracy/cache/
+tests/cycle_accuracy/out/
 
 # User-provided ROMs (IIgs ROM 01 / ROM 03 are copyrighted — never commit)
 roms/*.rom

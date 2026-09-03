@@ -116,18 +116,24 @@ endif()
 # ─── Tests (CTest) ───────────────────────────────────────────────────────
 # The CPU816 gate. Test data is user-fetched (large): run
 #   tests/fetch_tomharte_65816.sh <dir>
-# and point the test at it via POMIIGS_TOMHARTE_DIR. Absent data → soft skip.
+# and point the test at it via POMIIGS_TOMHARTE_DIR. Absent data → CTest SKIP.
 option(POMIIGS_TESTS "Build the test targets" ON)
 if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     enable_testing()
+    find_package(Python3 3.9 COMPONENTS Interpreter REQUIRED)
+    add_test(NAME cycle_accuracy_catalog
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cycle_suite.py)
+
     add_executable(tomharte_65816 tests/tomharte_65816.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(tomharte_65816 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME tomharte_65816_selftest COMMAND tomharte_65816 --self-test)
     set(POMIIGS_TOMHARTE_DIR "" CACHE PATH "Directory of SingleStepTests/65816 .json vectors")
     # MVN/MVP ($54/$44) are excluded: Tom Harte caps block moves at 100 cycles
     # (partial execution), which an instruction-stepped core can't match — see
     # DEV.md § CPU. Their per-byte semantics are covered by the emulator loop.
     add_test(NAME tomharte_65816
              COMMAND tomharte_65816 "${POMIIGS_TOMHARTE_DIR}" --skip 44,54)
+    set_tests_properties(tomharte_65816 PROPERTIES SKIP_RETURN_CODE 77)
 
     # Dev tool (not a gate): load a real ROM and trace how far it boots.
     add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)

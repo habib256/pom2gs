@@ -33,6 +33,22 @@ void CPU65816::setIrqLine(int sourceId, bool asserted) {
     IRQ_.store(mask != 0 ? 1 : 0, std::memory_order_relaxed);
 }
 
+void CPU65816::recordBusCycle(uint32_t address, uint8_t value, bool write, uint8_t roles) {
+    if (!busTraceEnabled_) return;
+    BusCycle cycle;
+    cycle.address = address & IIgsMemory::kAddrMask;
+    cycle.value = value;
+    cycle.write = write;
+    cycle.vda = (roles & BUS_DATA) != 0;
+    cycle.vpa = (roles & BUS_PROGRAM) != 0;
+    cycle.vpb = (roles & BUS_VECTOR) != 0;
+    cycle.e = emulation_;
+    cycle.m = emulation_ || (p_ & Status::M) != 0;
+    cycle.x = emulation_ || (p_ & Status::X) != 0;
+    cycle.mlb = (roles & BUS_LOCK) != 0;
+    busTrace_.push_back(cycle);
+}
+
 void CPU65816::softReset() {
     // Reset always enters emulation mode with an 8-bit page-1 stack.
     emulation_ = true;
@@ -92,11 +108,43 @@ void CPU65816::step() {
     if (eX) { x_ &= 0xFF; y_ &= 0xFF; }
 
     // ── raw bus helpers (24-bit) ─────────────────────────────────────────
-    auto rd = [&](uint32_t a) -> uint8_t { ++cycles_; return m.read8(a); };
-    auto wr = [&](uint32_t a, uint8_t v) { ++cycles_; m.write8(a, v); };
+    auto rd = [&](uint32_t a) -> uint8_t {
+        ++cycles_;
+        const uint8_t v = m.read8(a);
+        recordBusCycle(a, v, false, BUS_DATA);
+        return v;
+    };
+    auto wr = [&](uint32_t a, uint8_t v) {
+        ++cycles_;
+        m.write8(a, v);
+        recordBusCycle(a, v, true, BUS_DATA);
+    };
+
+    // A few control-flow paths already account for their bus cycles in a
+    // table/addend.  These wrappers expose those accesses without charging the
+    // same cycle twice.  VPB is orthogonal to VDA on a vector pull.
+    auto rdDataUncounted = [&](uint32_t a) -> uint8_t {
+        const uint8_t v = m.read8(a);
+        recordBusCycle(a, v, false, BUS_DATA);
+        return v;
+    };
+    auto rdVectorUncounted = [&](uint16_t a, bool forceRom) -> uint8_t {
+        const uint8_t v = forceRom ? m.vectorPull(a) : m.read8(a);
+        recordBusCycle(a, v, false, BUS_DATA | BUS_VECTOR);
+        return v;
+    };
 
     // Program-counter fetch in the program bank (PC wraps within the bank).
-    auto fetch = [&]() -> uint8_t { uint8_t v = rd((uint32_t(pbr_) << 16) | pc_); pc_ = uint16_t(pc_ + 1); return v; };
+    bool opcodeFetch = true;
+    auto fetch = [&]() -> uint8_t {
+        const uint32_t a = (uint32_t(pbr_) << 16) | pc_;
+        ++cycles_;
+        const uint8_t v = m.read8(a);
+        recordBusCycle(a, v, false, uint8_t(BUS_PROGRAM | (opcodeFetch ? BUS_DATA : 0)));
+        opcodeFetch = false;
+        pc_ = uint16_t(pc_ + 1);
+        return v;
+    };
     auto fetch16 = [&]() -> uint16_t { uint16_t lo = fetch(); return uint16_t(lo | (fetch() << 8)); };
 
     // 16-bit data read/write with the "bank increment" wrap used by absolute/
@@ -314,7 +362,8 @@ void CPU65816::step() {
         // ProDOS-8 block driver (e.g. enumerating a slot-7 hard disk) WITHOUT
         // masking IRQs: a VBL IRQ during that window pulled $00FFFE from LC RAM
         // ($0000) and derailed to $00:0000. (Diagnosed with tests/hdd_trace.)
-        pc_ = uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec + 1)) << 8));
+        pc_ = uint16_t(rdVectorUncounted(vec, true) |
+                       (rdVectorUncounted(uint16_t(vec + 1), true) << 8));
         // A hardware interrupt costs 7 cycles in emulation mode, 8 in native
         // (WDC W65C816S datasheet; MAME g65816cm.h g65816i_interrupt_hardware
         // charges CLK(7)/CLK(8) as the TOTAL). Our pushB/pushW already count
@@ -650,12 +699,12 @@ void CPU65816::step() {
         case 0x82: { int16_t off = int16_t(fetch16()); pc_ = uint16_t(pc_ + off);} break; // BRL
         // ── jumps ──
         case 0x4C: pc_ = fetch16(); break;                                   // JMP abs
-        case 0x6C: { uint16_t p0 = fetch16(); pc_ = uint16_t(m.read8(p0) | (m.read8(uint16_t(p0+1))<<8)); cycles_+=2; } break; // JMP (abs)
-        case 0x7C: { uint16_t p0 = fetch16(); uint16_t ptr = uint16_t(p0 + (eX?(x_&0xFF):x_)); pc_ = uint16_t(m.read8((uint32_t(pbr_)<<16)|ptr) | (m.read8((uint32_t(pbr_)<<16)|uint16_t(ptr+1))<<8)); cycles_+=2; } break; // JMP (abs,X)
+        case 0x6C: { uint16_t p0 = fetch16(); pc_ = uint16_t(rdDataUncounted(p0) | (rdDataUncounted(uint16_t(p0+1))<<8)); cycles_+=2; } break; // JMP (abs)
+        case 0x7C: { uint16_t p0 = fetch16(); uint16_t ptr = uint16_t(p0 + (eX?(x_&0xFF):x_)); pc_ = uint16_t(rdDataUncounted((uint32_t(pbr_)<<16)|ptr) | (rdDataUncounted((uint32_t(pbr_)<<16)|uint16_t(ptr+1))<<8)); cycles_+=2; } break; // JMP (abs,X)
         case 0x5C: { uint16_t a = fetch16(); uint8_t b = fetch(); pc_ = a; pbr_ = b; } break; // JML long
-        case 0xDC: { uint16_t p0 = fetch16(); uint8_t lo=m.read8(p0),mid=m.read8(uint16_t(p0+1)),hi=m.read8(uint16_t(p0+2)); pc_=uint16_t(lo|(mid<<8)); pbr_=hi; cycles_+=3;} break; // JML [abs]
+        case 0xDC: { uint16_t p0 = fetch16(); uint8_t lo=rdDataUncounted(p0),mid=rdDataUncounted(uint16_t(p0+1)),hi=rdDataUncounted(uint16_t(p0+2)); pc_=uint16_t(lo|(mid<<8)); pbr_=hi; cycles_+=3;} break; // JML [abs]
         case 0x20: { uint16_t a = fetch16(); pushW(uint16_t(pc_ - 1)); pc_ = a; } break; // JSR abs
-        case 0xFC: { uint16_t a = fetch16(); pushW(uint16_t(pc_ - 1)); uint16_t ptr=uint16_t(a+(eX?(x_&0xFF):x_)); pc_=uint16_t(m.read8((uint32_t(pbr_)<<16)|ptr)|(m.read8((uint32_t(pbr_)<<16)|uint16_t(ptr+1))<<8)); } break; // JSR (abs,X)
+        case 0xFC: { uint16_t a = fetch16(); pushW(uint16_t(pc_ - 1)); uint16_t ptr=uint16_t(a+(eX?(x_&0xFF):x_)); pc_=uint16_t(rdDataUncounted((uint32_t(pbr_)<<16)|ptr)|(rdDataUncounted((uint32_t(pbr_)<<16)|uint16_t(ptr+1))<<8)); } break; // JSR (abs,X)
         case 0x22: { uint16_t a = fetch16(); uint8_t b = fetch(); pushBraw(pbr_); pushWraw(uint16_t(pc_ - 1)); pc_ = a; pbr_ = b; } break; // JSL long
         case 0x60: pc_ = uint16_t(pullW() + 1); break;                       // RTS
         case 0x6B: { uint16_t a = pullWraw(); uint8_t b = pullBraw(); pc_ = uint16_t(a + 1); pbr_ = b; } break; // RTL
@@ -704,8 +753,8 @@ void CPU65816::step() {
             pushB(uint8_t(p_ | (emulation_ ? 0x30 : 0x00)));   // native: push P as-is (no B)
             p_ |= Status::I; p_ &= ~Status::D;
             uint16_t vec = emulation_ ? 0xFFFE : 0xFFE6; pbr_ = 0;
-            pc_ = emulation_ ? uint16_t(m.read8(vec) | (m.read8(uint16_t(vec+1))<<8))
-                             : uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec+1))<<8)); } break; // BRK
+            pc_ = uint16_t(rdVectorUncounted(vec, !emulation_) |
+                           (rdVectorUncounted(uint16_t(vec+1), !emulation_)<<8)); } break; // BRK
         case 0x02: { fetch();
             if (!emulation_) pushB(pbr_);
             pushW(pc_);
@@ -717,8 +766,8 @@ void CPU65816::step() {
             // its emulation-mode COP calls through it, unlike the IRQ/BRK vector
             // ($00/FFFE) which it leaves null and expects to reach ROM. Reading
             // ROM here would send GS/OS's COP calls to the ROM monitor and hang.
-            pc_ = emulation_ ? uint16_t(m.read8(vec) | (m.read8(uint16_t(vec+1))<<8))
-                             : uint16_t(m.vectorPull(vec) | (m.vectorPull(uint16_t(vec+1))<<8)); } break; // COP
+            pc_ = uint16_t(rdVectorUncounted(vec, !emulation_) |
+                           (rdVectorUncounted(uint16_t(vec+1), !emulation_)<<8)); } break; // COP
         // WAI: 3 cycles (4 incl. the fetch — Tom Harte) and then the chip stalls
         // until an interrupt line goes active; the wait itself is served at the
         // top of step(). It used to be a plain NOP, so a `WAI`-based beam/DOC

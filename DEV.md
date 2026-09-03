@@ -24,7 +24,8 @@ far that subsystem actually is and which gate pins it.
 ## CPU — 65C816
 
 *(Core complete. All 256 opcodes in `CPU65816.cpp`, gated by the Tom Harte
-SingleStepTests/65816 corpus (registers + RAM + cycle count) — see the pinned
+SingleStepTests/65816 corpus (registers + RAM + cycle count, with active bus
+transactions now checked pin-by-pin) — see the pinned
 `tomharte_65816` test — minus the two deliberate exclusions below. The suite is
 re-run as a differential oracle each bug-sweep pass; it caught real defects
 static review missed: the WAI/STP cycle count (+3) and the (dp,X) emulation-mode
@@ -65,13 +66,17 @@ non-stack/non-index opcodes).
 *internal* (non-bus) cycles the datasheet spends — implied/accumulator ops +1,
 pushes +1, pulls +2, XBA +2, REP/SEP/BRL/PER/PEI +1. Control-flow internal cycles
 (JSR/RTS/RTL/JSL/RTI/BRK/COP) match the datasheet; WAI/STP consume 4
-(3 internal + fetch), not 1.
+(3 internal + fetch), not 1. With tracing enabled, each VDA/VPA/VPB-active
+transaction retains its address, data, RWB, E/M/X and MLB state. Inactive
+cycles still exist only as count-table entries, so their pin/address state is
+the remaining microsequencing gap.
 
 **Test.** `tomharte_65816 <dir>` (harness in `tests/`, fetch via
 `tests/fetch_tomharte_65816.sh`). Each vector's `e` field selects the mode; P
 is compared with the phantom bits (`0x30`) masked only in emulation mode
 (native M/X are real flags). `--no-cycles` isolates state from timing;
-`--only hh` / `--max N` scope a run.
+`--no-bus` isolates state/timing from active-bus tracing; `--only hh` /
+`--max N` scope a run.
 
 The **WDC 65C816** is a 16-bit superset of the 65C02. Design notes for
 `CPU65816.h/.cpp`:

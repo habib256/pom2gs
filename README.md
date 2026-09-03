@@ -43,12 +43,18 @@ cycle-stamped events, one-subsystem-per-file, and **MAME as the source of truth*
 | [Clemens IIGS](https://github.com/samkusin/clemens_iigs) | MIT-licensed structural reference |
 | [Crossrunner](https://www.crossrunner.gs/) | Closed-source behavioural oracle |
 
+The cycle-level qualification catalog, external-workload policy and known
+architectural blockers are documented in
+[`docs/CYCLE_ACCURACY_TESTS.md`](docs/CYCLE_ACCURACY_TESTS.md). Use
+`python3 tools/cycle_suite.py list` to inspect the executable and staged gates.
+
 ## Quick Start
 
-Prerequisites: a C++17 compiler, CMake ≥ 3.16, and the **GLFW 3.3+** and
-**OpenGL** development packages (e.g. `libglfw3-dev libgl-dev` on Debian/Ubuntu,
-`brew install glfw` on macOS). `setup_imgui.sh` does not install these — it only
-clones Dear ImGui, which is not vendored in git.
+Prerequisites: a C++17 compiler, CMake ≥ 3.16, **Python 3.9+** for the default
+test catalog, and the **GLFW 3.3+** and **OpenGL** development packages (e.g.
+`libglfw3-dev libgl-dev` on Debian/Ubuntu, `brew install glfw` on macOS).
+`setup_imgui.sh` does not install these — it only clones Dear ImGui, which is
+not vendored in git.
 
 ```bash
 git clone <this repo> && cd POMIIGS

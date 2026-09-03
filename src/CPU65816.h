@@ -29,6 +29,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <vector>
 
 class IIgsMemory;   // 24-bit banked bus (fast FPI side + slow Mega II side)
 
@@ -105,6 +106,24 @@ public:
     void setPC(uint16_t v) { pc_ = v; waiting_ = false; }
     void setEmulationMode(bool e) { emulation_ = e; }
 
+    // Optional pin-level trace for CPU qualification.  Only cycles on which
+    // VDA, VPA or VPB is asserted are emitted for now; `run()` still reports
+    // the complete architectural cycle count, including inactive bus cycles.
+    // Keeping this on the CPU rather than IIgsMemory preserves the distinction
+    // between program, data and vector-pull accesses even when they address the
+    // same byte.  Disabled by default, so the emulator's hot path does not
+    // allocate or retain trace data.
+    struct BusCycle {
+        uint32_t address = 0;
+        uint8_t value = 0;
+        bool write = false;
+        bool vda = false, vpa = false, vpb = false;
+        bool e = false, m = false, x = false, mlb = false;
+    };
+    void setBusTraceEnabled(bool enabled) { busTraceEnabled_ = enabled; busTrace_.clear(); }
+    void clearBusTrace() { busTrace_.clear(); }
+    const std::vector<BusCycle>& busTrace() const { return busTrace_; }
+
     // Sub-instruction cycle accounting — same contract as POM2 M6502 so the
     // speaker/DOC/VIA timestamp $C0xx accesses to sub-opcode precision.
     // (POM2's absolute `getCycleCountNow()` has no equivalent here: the IIgs
@@ -128,6 +147,16 @@ private:
 
     int  cycles_ = 0;
     bool running_ = false;
+
+    enum BusRole : uint8_t {
+        BUS_DATA = 1u << 0,
+        BUS_PROGRAM = 1u << 1,
+        BUS_VECTOR = 1u << 2,
+        BUS_LOCK = 1u << 3,
+    };
+    bool busTraceEnabled_ = false;
+    std::vector<BusCycle> busTrace_;
+    void recordBusCycle(uint32_t address, uint8_t value, bool write, uint8_t roles);
 
     // Milestone 1 fills in: mode-aware fetch, the addressing-mode helpers
     // (adds long / [dp] / stack-relative / block-move over the M6502 set),

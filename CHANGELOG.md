@@ -4,6 +4,30 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Tests — cycle-accuracy qualification and active 65C816 bus trace (September 2026)
+
+Added a machine-readable qualification catalog and stdlib-only runner that
+separate local gates, downloadable open fixtures, reference-only material and
+user-supplied copyrighted workloads. Missing external data is an explicit
+SKIP (including adapter exit 77), and fetchable inputs are revision/SHA-256
+pinned; reference-only and user-supplied assets are never downloaded.
+
+The Tom Harte 65816 adapter now parses the complete `cycles` array instead of
+discarding it after counting entries. `CPU65816` has an opt-in trace that
+preserves address, data and VDA/VPA/VPB/RWB/E/M/X/MLB for each active bus
+transaction, including the otherwise-indistinguishable opcode, operand, data
+and vector-pull reads. The adapter compares these in order by default while
+retaining the final register/RAM and total-cycle assertions. Inactive bus
+cycles remain count-only until the core is fully microsequenced.
+
+The MiSTer custom-diagnostic source is no longer merely downloadable. A safe,
+idempotent preparation step re-verifies the pinned archive and extracts only
+`customtests/`, rejecting traversal, links, special files and oversized
+payloads. A separate build step accepts explicit local Merlin32/CiderPress2
+paths (never invokes the upstream download rules), verifies all 21 disks plus
+the two floppy fixtures exist, and records source/tool/output SHA-256 values in
+an ignored build manifest. Missing tools are a visible SKIP.
+
 ### Docs — doc/code consistency pass 2 (August 2026)
 Follow-up corrections after the sweep below: `DEV.md`'s preamble still told
 readers that sections marked *(planned)* are design notes — no section carries

@@ -6,10 +6,11 @@
 #
 #   tests/fetch_tomharte_65816.sh <out-dir> [all|<space-separated hex opcodes>]
 #
-# Source: https://github.com/SingleStepTests/65816  (branch main, dir v1/)
+# Source: https://github.com/SingleStepTests/65816  (pinned revision, dir v1/)
 set -euo pipefail
 OUT="${1:?usage: fetch_tomharte_65816.sh <out-dir> [all|<opcodes>]}"
-BASE="https://raw.githubusercontent.com/SingleStepTests/65816/main/v1"
+REV="db6b10401729d5f20f2181dde5d3d7b037093a4a"
+BASE="https://raw.githubusercontent.com/SingleStepTests/65816/$REV/v1"
 mkdir -p "$OUT"
 
 # Curated subset: at least one opcode per addressing mode + arithmetic (incl.

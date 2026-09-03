@@ -1,0 +1,489 @@
+{
+  "schema_version": 1,
+  "description": "POMIIGS cycle-accuracy qualification catalog. External proprietary assets are never downloaded or bundled.",
+  "sources": {
+    "mame-apple2gs": {
+      "url": "https://github.com/mamedev/mame/blob/mame0287/src/mame/apple/apple2gs.cpp",
+      "revision": "mame0287",
+      "license": "BSD-3-Clause",
+      "role": "Primary timing model and differential reference"
+    },
+    "tom-harte-65816": {
+      "url": "https://github.com/SingleStepTests/65816/tree/db6b10401729d5f20f2181dde5d3d7b037093a4a/v1",
+      "revision": "db6b10401729d5f20f2181dde5d3d7b037093a4a",
+      "license": "NOASSERTION",
+      "role": "Instruction-state, memory-cycle and cycle-count vectors"
+    },
+    "mister-iigs-tests": {
+      "url": "https://github.com/MiSTer-devel/Apple-IIgs_MiSTer/tree/9adbba8622f378253765b7d438b6cbcc4d03fc57/customtests",
+      "revision": "9adbba8622f378253765b7d438b6cbcc4d03fc57",
+      "license": "GPL-3.0",
+      "role": "Bootable subsystem diagnostics and deterministic screenshot regression"
+    },
+    "mister-iigs-regression": {
+      "url": "https://github.com/MiSTer-devel/Apple-IIgs_MiSTer/blob/9adbba8622f378253765b7d438b6cbcc4d03fc57/vsim/regression.sh",
+      "revision": "9adbba8622f378253765b7d438b6cbcc4d03fc57",
+      "license": "GPL-3.0",
+      "role": "Frame-pinned input and exact-pixel regression design"
+    },
+    "merlin32": {
+      "url": "https://brutaldeluxe.fr/products/crossdevtools/merlin/",
+      "revision": "1.2 beta 2",
+      "license": "NOASSERTION; operator-supplied build tool",
+      "role": "Assembler required to build the MiSTer custom diagnostics"
+    },
+    "ciderpress2": {
+      "url": "https://github.com/fadden/CiderPress2/releases/tag/v1.1.1",
+      "revision": "v1.1.1",
+      "license": "Apache-2.0 source; operator-supplied build tool",
+      "role": "Disk-image tool required to package the MiSTer custom diagnostics"
+    },
+    "textfunk-analysis": {
+      "url": "https://github.com/pcornier/iigs_simulation/blob/61568fcb2f505301ffdd6807f6d5c829ec25ea4f/doc/textfunk-beamrace-handoff.md",
+      "revision": "61568fcb2f505301ffdd6807f6d5c829ec25ea4f",
+      "license": "NOASSERTION",
+      "role": "Hardware-confirmed TextFunk beam-race timing analysis"
+    },
+    "clemens": {
+      "url": "https://github.com/samkusin/clemens_iigs/tree/8208d629b1de0e523213e4d7251c3005b4faa9a2/tests",
+      "revision": "8208d629b1de0e523213e4d7251c3005b4faa9a2",
+      "license": "MIT",
+      "role": "Independent MMIO, disk, gameport and SCC unit-test reference"
+    },
+    "kegs": {
+      "url": "https://kegs.sourceforge.net/README.kegs.txt",
+      "revision": "1.34",
+      "license": "GPL-2.0-or-later",
+      "role": "Behavioural differential oracle and self-test configuration reference"
+    },
+    "truegs": {
+      "url": "http://krue.net/truegs/",
+      "revision": "unknown",
+      "license": "NOASSERTION",
+      "role": "Guest-side emulator detection, MMU and SHR linearisation acceptance suite"
+    },
+    "apple-diag-note-95": {
+      "url": "https://archive.org/details/IIgs_2523095_Diagnostics",
+      "revision": "IIgs Technical Note 95",
+      "license": "Apple documentation; redistribution not asserted",
+      "role": "ROM self-test procedure and status-code interpretation"
+    },
+    "apple-service-diag": {
+      "url": "https://archive.org/details/apple-service-apple-iie-iic-iic-plus-iigs-diagnostic-version-4.1-1991",
+      "revision": "4.1 (1991)",
+      "license": "Proprietary; user-supplied only",
+      "role": "End-to-end hardware diagnostic workload"
+    },
+    "gssquared-diag-notes": {
+      "url": "https://jawaidbazyar2.github.io/gssquared/AppleIIgsDiagnostics/",
+      "revision": "current documentation",
+      "license": "Documentation",
+      "role": "Independent observations for keyboard, ADB and diagnostic behaviour"
+    },
+    "mame-video-probes-pr": {
+      "url": "https://github.com/mamedev/mame/pull/15247",
+      "revision": "attachments VidModes_260421 and FloatBus_260630",
+      "license": "NOASSERTION",
+      "role": "Author-published source and disk archives measured on real Apple II hardware"
+    },
+    "a2audit": {
+      "url": "https://github.com/zellyn/a2audit/tree/6fdcedfd909b0d3a41dc7b6511d0932c952ecca0",
+      "revision": "6fdcedfd909b0d3a41dc7b6511d0932c952ecca0",
+      "license": "MIT",
+      "role": "Open Apple II Mega II-compatible soft-switch and memory audit programs"
+    },
+    "mini-memory-tester": {
+      "url": "https://github.com/digarok/MiniMemoryTester/tree/c497b6bc5c9449b33d95b6236efc04ba6376dc95",
+      "revision": "c497b6bc5c9449b33d95b6236efc04ba6376dc95",
+      "license": "MIT",
+      "role": "Open IIgs expansion-memory integrity workload"
+    },
+    "mame-es5503": {
+      "url": "https://github.com/mamedev/mame/blob/mame0287/src/devices/sound/es5503.cpp",
+      "revision": "mame0287",
+      "license": "BSD-3-Clause",
+      "role": "Differential ES5503 oscillator, IRQ and swap-mode model"
+    },
+    "gilyon-snes-tests": {
+      "url": "https://github.com/gilyon/snes-tests/tree/5ecdf555da920f0bd7b157542141965a8120186d/cputest",
+      "revision": "5ecdf555da920f0bd7b157542141965a8120186d",
+      "license": "MIT",
+      "role": "Functional native 65C816 generator suitable for IIgs rehosting; not a cycle oracle"
+    },
+    "klaus-6502-tests": {
+      "url": "https://github.com/Klaus2m5/6502_65C02_functional_tests/tree/7954e2dbb49c469ea286070bf46cdd71aeb29e4b",
+      "revision": "7954e2dbb49c469ea286070bf46cdd71aeb29e4b",
+      "license": "GPL-3.0-or-later; Bruce Clark decimal test public domain",
+      "role": "6502/65C02 emulation-mode and decimal arithmetic cross-checks"
+    },
+    "wdc-w65c816s": {
+      "url": "https://www.westerndesigncenter.com/wdc/documentation/w65c816s.pdf",
+      "revision": "current public datasheet",
+      "license": "Documentation; no public machine-readable test suite",
+      "role": "Official cycle-count and bus-signal specification"
+    },
+    "crazy-cycles": {
+      "url": "http://fr3nch.t0uch.free.fr/CC/CC.html",
+      "revision": "2015-03-24",
+      "license": "GPL-3.0 for CC_2015.zip source package",
+      "role": "65C02 Mega II beam racing and intra-scanline HGR/TEXT switching"
+    },
+    "fancy-lores": {
+      "url": "https://github.com/deater/dos33fsprogs/tree/c862e8e12a015f3ee65838ce5695237a64939f0d/vaporlock/rasterbars",
+      "revision": "c862e8e12a015f3ee65838ce5695237a64939f0d",
+      "license": "GPL-2.0-only for author code; third-party assets may differ",
+      "role": "Vaporlock, 65-cycle Apple II line timing and PAGE1/PAGE2 racing"
+    },
+    "picviewer": {
+      "url": "https://github.com/antoinevignau/source/tree/7244479d9222f9956b44a0cf1cd7a7769a3d2c76/picviewer",
+      "revision": "7244479d9222f9956b44a0cf1cd7a7769a3d2c76",
+      "license": "NOASSERTION",
+      "role": "IIgs SHR and 3200-colour palette-per-scanline reference"
+    },
+    "kegs-demo-downloads": {
+      "url": "https://kegs.sourceforge.net/",
+      "revision": "NUCLEUS03.gz and XMAS_DEMO.gz",
+      "license": "NOASSERTION",
+      "role": "Publicly hosted historical IIgs integration workloads"
+    },
+    "ninjaforce-megademo": {
+      "url": "https://www.ninjaforce.com/html/products.html",
+      "revision": "Megademo 1995",
+      "license": "NOASSERTION",
+      "role": "Timing-sensitive IIgs demo and bit-16 shadowing acceptance workload"
+    }
+  },
+  "tests": [
+    {
+      "id": "cpu65816-tom-harte",
+      "title": "65C816 instruction vectors with cycle counts",
+      "tier": "cycle",
+      "readiness": "automated",
+      "domains": ["cpu65816"],
+      "asset_policy": "reference-only",
+      "assets": [],
+      "references": ["tom-harte-65816", "wdc-w65c816s"],
+      "oracle": "Exact final registers, touched RAM and instruction cycle count, plus ordered address/data/VDA/VPA/VPB/RWB/E/M/X/MLB comparison for every active bus transaction. Inactive bus cycles are currently covered only by total count; MVN/MVP remain excluded and disputed corpus cases must become exact issue-linked xfails.",
+      "requires": [
+        {"path": "{build_dir}/tomharte_65816", "kind": "file"},
+        {"path": "{tomharte_dir}", "kind": "directory"}
+      ],
+      "command": ["{build_dir}/tomharte_65816", "{tomharte_dir}", "--skip", "44,54"]
+    },
+    {
+      "id": "fpi-mega2-local",
+      "title": "Local fast/slow, shadowing and interrupt gates",
+      "tier": "cycle",
+      "readiness": "automated",
+      "domains": ["fpi-cya", "mega2", "interrupts", "shadowing"],
+      "asset_policy": "none",
+      "assets": [],
+      "references": ["mame-apple2gs"],
+      "oracle": "CTest gates speed_test, slowside_test, irq_test and hdd_test. These are necessary but do not yet prove PH0 side-sync or DRAM-refresh phase.",
+      "requires": [{"path": "{build_dir}", "kind": "directory"}],
+      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(speed_test|slowside_test|irq_test|hdd_test)$", "--output-on-failure"]
+    },
+    {
+      "id": "subsystems-local",
+      "title": "Local VGC, ADB, SCC, DOC, IWM/Sony, SmartPort and RTC-adjacent gates",
+      "tier": "unit",
+      "readiness": "automated",
+      "domains": ["vgc", "adb", "scc", "doc", "iwm-sony", "smartport", "rtc"],
+      "asset_policy": "none",
+      "assets": [],
+      "references": ["mame-apple2gs", "clemens"],
+      "oracle": "Current deterministic subsystem CTests; validates protocols and rendering primitives, not complete machine-cycle phase.",
+      "requires": [{"path": "{build_dir}", "kind": "directory"}],
+      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(vgc_test|shr_test|dhgr_test|dhgr_page_test|text80_test|adb_test|scc_test|doc_test|iwm35_test|iwm525_test|smartport_test|disk35_test|twoimg_test)$", "--output-on-failure"]
+    },
+    {
+      "id": "mister-custom-diagnostics",
+      "title": "21 open bootable IIgs custom diagnostics",
+      "tier": "external-open",
+      "readiness": "staged",
+      "domains": ["cpu65816", "fpi-cya", "mega2", "vgc", "interrupts", "shadowing", "adb", "scc", "doc", "iwm-sony", "rtc"],
+      "asset_policy": "fetchable",
+      "assets": [
+        {
+          "name": "Apple-IIgs_MiSTer pinned source archive",
+          "path": "Apple-IIgs_MiSTer-9adbba8.tar.gz",
+          "url": "https://github.com/MiSTer-devel/Apple-IIgs_MiSTer/archive/9adbba8622f378253765b7d438b6cbcc4d03fc57.tar.gz",
+          "sha256": "09be754938c33b1b89addeeb46305a6ce7eb3c9b1ff21fae6be9caa0e5bd9572",
+          "license": "GPL-3.0 upstream project; extracted/generated media remains ignored",
+          "extract": {
+            "format": "tar.gz",
+            "prefix": "Apple-IIgs_MiSTer-9adbba8622f378253765b7d438b6cbcc4d03fc57/customtests",
+            "destination": "mister-custom-diagnostics/customtests",
+            "required": ["Makefile", "README.md", "blank.2mg"]
+          }
+        }
+      ],
+      "references": ["mister-iigs-tests", "mister-iigs-regression", "merlin32", "ciderpress2"],
+      "oracle": "Each guest test prints PASS/FAIL; exact screenshot goldens are needed after adapting the disk build and input schedule to POMIIGS.",
+      "members": [
+        {"id": "mmu_test", "source": "MMU_TEST.S", "covers": "MMU, shadowing and language-card decode"},
+        {"id": "gsqmmu_test", "source": "GSQMMU.S", "covers": "Independent RAMWRT, aux-bank and shadowing cases"},
+        {"id": "scc_selftest", "source": "SELFTEST_SCC.S", "covers": "ROM selftest 06-01 SCC register sequence"},
+        {"id": "scc_crosschan", "source": "SCC_CROSSCHAN_TEST.S", "covers": "UART serializer A-to-B and B-to-A paths"},
+        {"id": "scc_both", "source": "SCC_BOTH_CHANNELS.S", "covers": "Three-byte receive FIFOs on both SCC channels"},
+        {"id": "adb_device_enum", "source": "ADB_DEVICE_ENUM.S", "covers": "ADB GLU FLUSH/TALK absent-device handshake"},
+        {"id": "adb_rom_checksum", "source": "ADB_ROM_CHECKSUM.S", "covers": "ROM 3 ADB microcontroller checksum"},
+        {"id": "floppy_rw_test", "source": "FLOPPY_RW_TEST.S", "covers": "5.25- and 3.5-inch WOZ write/read/verify"},
+        {"id": "time", "source": "TIME.S", "covers": "ProDOS GET_TIME and RTC driver"},
+        {"id": "selftest01", "source": "SELFTEST01.S", "covers": "ROM diagnostic 01"},
+        {"id": "selftest02", "source": "SELFTEST02.S", "covers": "ROM diagnostic 02"},
+        {"id": "selftest03", "source": "SELFTEST03.S", "covers": "ROM diagnostic 03"},
+        {"id": "selftest04", "source": "SELFTEST04.S", "covers": "ROM diagnostic 04"},
+        {"id": "selftest05", "source": "SELFTEST05.S", "covers": "ROM diagnostic 05"},
+        {"id": "selftest06", "source": "SELFTEST06.S", "covers": "ROM diagnostic 06"},
+        {"id": "selftest07", "source": "SELFTEST07.S", "covers": "ROM diagnostic 07"},
+        {"id": "selftest08", "source": "SELFTEST08.S", "covers": "ROM diagnostic 08"},
+        {"id": "selftest09", "source": "SELFTEST09.S", "covers": "ROM diagnostic 09"},
+        {"id": "selftest0a", "source": "SELFTEST0A.S", "covers": "ROM diagnostic 0A"},
+        {"id": "selftest0b", "source": "SELFTEST0B.S", "covers": "ROM diagnostic 0B"},
+        {"id": "selftest0c", "source": "SELFTEST0C.S", "covers": "ROM diagnostic 0C, Ensoniq sound"}
+      ],
+      "build": {
+        "requires": [
+          {"path": "{source_dir}/.pomiigs-source.json", "kind": "file"},
+          {"name": "merlin_root", "kind": "variable"},
+          {"name": "merlin32", "kind": "variable"},
+          {"name": "cp2", "kind": "variable"},
+          {"path": "{merlin_root}/Library", "kind": "directory"},
+          {"path": "{merlin32}", "kind": "file"},
+          {"path": "{cp2}", "kind": "file"}
+        ],
+        "command": [
+          "make", "-C", "{source_dir}",
+          "ASM={merlin32}", "MERLIN_DIR={merlin_root}",
+          "CP2={cp2}", "CP2_DIR={cp2_dir}", "all"
+        ],
+        "outputs": [
+          "{source_dir}/mmu_test.2mg",
+          "{source_dir}/gsqmmu_test.2mg",
+          "{source_dir}/scc_selftest.2mg",
+          "{source_dir}/scc_crosschan.2mg",
+          "{source_dir}/scc_both.2mg",
+          "{source_dir}/adb_device_enum.2mg",
+          "{source_dir}/adb_rom_checksum.2mg",
+          "{source_dir}/floppy_rw_test.2mg",
+          "{source_dir}/time.2mg",
+          "{source_dir}/selftest01.2mg",
+          "{source_dir}/selftest02.2mg",
+          "{source_dir}/selftest03.2mg",
+          "{source_dir}/selftest04.2mg",
+          "{source_dir}/selftest05.2mg",
+          "{source_dir}/selftest06.2mg",
+          "{source_dir}/selftest07.2mg",
+          "{source_dir}/selftest08.2mg",
+          "{source_dir}/selftest09.2mg",
+          "{source_dir}/selftest0a.2mg",
+          "{source_dir}/selftest0b.2mg",
+          "{source_dir}/selftest0c.2mg",
+          "{source_dir}/floppy_rw_525.woz",
+          "{source_dir}/floppy_rw_35.woz"
+        ]
+      },
+      "command": []
+    },
+    {
+      "id": "rom01-rom03-selftest",
+      "title": "Built-in ROM 01/03 self-diagnostic at native speed",
+      "tier": "external-user-supplied",
+      "readiness": "staged",
+      "domains": ["cpu65816", "fpi-cya", "mega2", "vgc", "interrupts", "shadowing", "adb", "scc", "doc", "iwm-sony", "rtc"],
+      "asset_policy": "user-supplied",
+      "assets": [
+        {"name": "Legitimate Apple IIgs ROM 01 dump", "env": "POMIIGS_ROM01"},
+        {"name": "Legitimate Apple IIgs ROM 03 dump", "env": "POMIIGS_ROM03"}
+      ],
+      "references": ["apple-diag-note-95", "kegs", "mister-iigs-tests"],
+      "oracle": "Final ROM diagnostic status must pass. Run at 2.8 MHz; ROM 01 requires Text Page 2 shadow disabled.",
+      "command": []
+    },
+    {
+      "id": "textfunk-beamrace",
+      "title": "TextFunk Viewer live text-page beam race",
+      "tier": "external-user-supplied",
+      "readiness": "blocked-live-scanout",
+      "domains": ["cpu65816", "fpi-cya", "mega2", "vgc", "shadowing"],
+      "asset_policy": "user-supplied",
+      "assets": [
+        {"name": "Legally obtained textfunk.po", "env": "POMIIGS_TEXTFUNK_DISK"},
+        {"name": "Real-IIgs tunnel/grid golden set", "env": "POMIIGS_TEXTFUNK_GOLDENS"}
+      ],
+      "references": ["textfunk-analysis", "mister-iigs-regression"],
+      "oracle": "Tunnel and grid must be seam-free on consecutive deterministic frames; CPU writes and VGC reads must cross at the hardware position. Final-memory rendering is not a valid pass.",
+      "command": []
+    },
+    {
+      "id": "vidmodes-hardware-probes",
+      "title": "VidModes_260421 VIDSYNC, BEAMPOS, IRQ and soft-switch probes",
+      "tier": "external-user-supplied",
+      "readiness": "staged",
+      "domains": ["fpi-cya", "mega2", "vgc", "interrupts", "shadowing"],
+      "asset_policy": "reference-only",
+      "assets": [
+        {
+          "name": "VidModes_260421 author archive",
+          "path": "VidModes_260421.zip",
+          "url": "https://github.com/user-attachments/files/26952329/VidModes_260421.zip",
+          "sha256": "0d7d57de18350b5e6e503797c8c83e34a03f5d097fe0868e5b4e5ee82362467a",
+          "size": 109497,
+          "license": "NOASSERTION"
+        }
+      ],
+      "references": ["mame-video-probes-pr", "mame-apple2gs"],
+      "oracle": "Run every VIDSYNC, BEAMPOS, IRQTEST and SWITCHES case against the hardware-verified expected values in the archive, then retain per-case memory results and a 14 MHz trace. The archive is catalogued but not auto-fetched because no explicit redistribution licence was found.",
+      "command": []
+    },
+    {
+      "id": "floatbus-vaporlock",
+      "title": "FloatBus_260630 scanner-phase and vaporlock probes",
+      "tier": "external-user-supplied",
+      "readiness": "blocked-floating-bus",
+      "domains": ["mega2", "vgc", "cpu65816"],
+      "asset_policy": "reference-only",
+      "assets": [
+        {
+          "name": "FloatBus_260630 author archive",
+          "path": "FloatBus_260630.zip",
+          "url": "https://github.com/user-attachments/files/29534724/FloatBus_260630.zip",
+          "sha256": "3862b5e7c01107c82475fdf54783d28b781f301016699ad2a692582438eb144c",
+          "size": 77941,
+          "license": "NOASSERTION"
+        }
+      ],
+      "references": ["mame-video-probes-pr", "a2audit", "mame-apple2gs"],
+      "oracle": "The archive's self-checks and CPU-visible floating-bus bytes must match its hardware measurements; HBL/VBL boundaries and $C02E/$C02F phase additionally require a real-IIgs trace. The archive is catalogued but not auto-fetched because no explicit redistribution licence was found.",
+      "command": []
+    },
+    {
+      "id": "truegs",
+      "title": "TrueGS comprehensive guest acceptance suite",
+      "tier": "external-user-supplied",
+      "readiness": "staged",
+      "domains": ["fpi-cya", "mega2", "vgc", "shadowing"],
+      "asset_policy": "user-supplied",
+      "assets": [{"name": "TrueGS disk obtained from its author/site", "env": "POMIIGS_TRUEGS_DISK"}],
+      "references": ["truegs"],
+      "oracle": "Guest Quick and Comprehensive results, especially SHR linearisation and MMU mapping, captured as structured evidence.",
+      "command": []
+    },
+    {
+      "id": "apple-service-diagnostics",
+      "title": "Apple IIgs dealer/service diagnostics",
+      "tier": "external-user-supplied",
+      "readiness": "staged",
+      "domains": ["cpu65816", "mega2", "vgc", "adb", "scc", "doc", "iwm-sony", "smartport", "rtc"],
+      "asset_policy": "user-supplied",
+      "assets": [{"name": "Legitimate Apple IIgs service diagnostic disk", "env": "POMIIGS_APPLE_DIAG_DISK"}],
+      "references": ["apple-service-diag", "gssquared-diag-notes"],
+      "oracle": "Every selected diagnostic screen must report PASS; record exact failure code and machine profile.",
+      "command": []
+    },
+    {
+      "id": "open-memory-audits",
+      "title": "Open Mega II soft-switch and IIgs expansion-memory audits",
+      "tier": "external-open",
+      "readiness": "staged",
+      "domains": ["mega2", "shadowing"],
+      "asset_policy": "none",
+      "assets": [],
+      "references": ["a2audit", "mini-memory-tester", "mister-iigs-tests"],
+      "oracle": "Use a2audit only for the Apple II/Mega II-compatible subset; use MiniMemoryTester for deterministic destructive expansion-RAM patterns. Neither alone proves wait-state timing.",
+      "command": []
+    },
+    {
+      "id": "doc-irq-audio-trace",
+      "title": "ES5503 oscillator, IRQ and deterministic PCM trace",
+      "tier": "external-open",
+      "readiness": "staged",
+      "domains": ["doc", "interrupts"],
+      "asset_policy": "none",
+      "assets": [],
+      "references": ["mame-es5503", "mister-iigs-tests"],
+      "oracle": "A future open guest microtest must compare oscillator state transitions, IRQ assertion/reassertion ticks and a canonical PCM sample hash; ROM selftest 0C remains only a coarse prerequisite.",
+      "command": []
+    },
+    {
+      "id": "smartport-cycle-trace",
+      "title": "SmartPort classic/extended command and REQ/BSY timing trace",
+      "tier": "external-open",
+      "readiness": "staged",
+      "domains": ["smartport", "interrupts"],
+      "asset_policy": "none",
+      "assets": [],
+      "references": ["mame-apple2gs"],
+      "oracle": "A future open guest test must exercise STATUS/READ/WRITE/FORMAT/CONTROL, classic and extended calls, media changes, write protection and absent units while comparing timestamped bus events and final image hashes.",
+      "command": []
+    },
+    {
+      "id": "cpu-functional-crosschecks",
+      "title": "Independent functional 65C816 and emulation-mode cross-checks",
+      "tier": "external-open",
+      "readiness": "staged",
+      "domains": ["cpu65816", "interrupts"],
+      "asset_policy": "none",
+      "assets": [],
+      "references": ["gilyon-snes-tests", "klaus-6502-tests", "wdc-w65c816s"],
+      "oracle": "Rehost the MIT gilyon generator to a flat IIgs test bus and run Klaus/Bruce-Clark emulation-mode and decimal programs. These are functional cross-checks, not cycle-level oracles.",
+      "members": [
+        {"id": "gilyon_native", "source": "gilyon cputest generator", "covers": "Native 65C816 opcodes and addressing"},
+        {"id": "klaus_emulation", "source": "Klaus functional and interrupt tests", "covers": "6502/65C02-compatible emulation mode"},
+        {"id": "bruce_decimal", "source": "Bruce Clark decimal test", "covers": "8-bit ADC/SBC decimal combinations"}
+      ],
+      "command": []
+    },
+    {
+      "id": "video-raster-regressions",
+      "title": "Open and inspectable raster/beam-race acceptance workloads",
+      "tier": "external-open",
+      "readiness": "staged",
+      "domains": ["cpu65816", "fpi-cya", "mega2", "vgc", "shadowing"],
+      "asset_policy": "none",
+      "assets": [],
+      "references": ["crazy-cycles", "fancy-lores", "picviewer", "mame-video-probes-pr"],
+      "oracle": "Use deterministic frame checkpoints plus memory-derived expected pixels. A stable picture alone is secondary to soft-switch, palette and beam-position traces.",
+      "members": [
+        {"id": "crazy_cycles_65c02", "source": "CC_2015.zip", "covers": "Mega II 1 MHz beam race and HGR/TEXT switching"},
+        {"id": "fancy_lores", "source": "vaporlock/rasterbars", "covers": "Floating bus, 65-cycle lines and PAGE1/PAGE2 switching"},
+        {"id": "picviewer_3200", "source": "PicViewer", "covers": "SHR RGB444 and one palette per scanline"}
+      ],
+      "command": []
+    },
+    {
+      "id": "historical-demo-acceptance",
+      "title": "Timing-sensitive historical IIgs demo checkpoints",
+      "tier": "external-user-supplied",
+      "readiness": "staged",
+      "domains": ["fpi-cya", "mega2", "vgc", "shadowing", "doc", "interrupts"],
+      "asset_policy": "user-supplied",
+      "assets": [
+        {"name": "Legally obtained FTA Nucleus image", "env": "POMIIGS_NUCLEUS_DISK"},
+        {"name": "Legally obtained FTA XMAS Demo image", "env": "POMIIGS_XMAS_DEMO_DISK"},
+        {"name": "Legally obtained Ninjaforce Megademo images", "env": "POMIIGS_NINJAFORCE_MEGADEMO"}
+      ],
+      "references": ["kegs-demo-downloads", "ninjaforce-megademo", "kegs"],
+      "oracle": "Nucleus is an integration smoke test; XMAS must reach its menu with stable zoom and correct $C019/$C02F behaviour; Ninjaforce checkpoints must preserve bit-16 shadowing, scrollers and audio/video synchronization. None is a standalone cycle oracle.",
+      "members": [
+        {"id": "fta_nucleus", "source": "NUCLEUS03.gz or original ROM01 disk", "covers": "Integrated SHR, DOC and animation smoke"},
+        {"id": "fta_xmas", "source": "XMAS_DEMO.gz", "covers": "$C019 inversion, VBL and $C02F timing"},
+        {"id": "ninjaforce_megademo", "source": "MEGADEMO disk pair", "covers": "FPI shadow bit 16 and timing-sensitive effects"}
+      ],
+      "command": []
+    },
+    {
+      "id": "cross-emulator-differential",
+      "title": "MAME and KEGS/GSplus deterministic differential",
+      "tier": "external-open",
+      "readiness": "staged",
+      "domains": ["cpu65816", "fpi-cya", "mega2", "vgc", "interrupts", "shadowing", "adb", "scc", "doc", "iwm-sony", "smartport", "rtc"],
+      "asset_policy": "none",
+      "assets": [],
+      "references": ["mame-apple2gs", "kegs", "clemens"],
+      "oracle": "Compare timestamped register/bus traces and frame hashes under identical ROM, media, machine profile and scripted input; emulator agreement is secondary to real-hardware evidence.",
+      "command": []
+    }
+  ]
+}
