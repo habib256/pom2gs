@@ -131,7 +131,8 @@ the shadow/speed registers, audio level, and the loaded ROM. Shortcuts
 |-----|--------|
 | `Del` | **Capture / release the mouse** (drives the GS/OS cursor) |
 | `F6` | Run / Pause |
-| `F5` | Reset |
+| `F5` | Reset (the RESET key: RAM kept; hold Left Alt = ⌘ for a cold boot, both Alts for the ROM self-test) |
+| `Shift+F5` | Power cycle (RAM cleared) |
 | `F2` | Toggle HGR/DHGR colour mode (Composite NTSC ↔ Clean RGB) |
 | `F7` | Save state → `states/quick.pgss` |
 | `F8` | Load state ← `states/quick.pgss` |

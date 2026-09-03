@@ -222,6 +222,10 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_test(NAME slowside_test COMMAND slowside_test)
 
     # 14 MHz Mega II/FPI timing: 912-tick line, PH0 sync and DRAM refresh.
+    add_executable(reset_test tests/reset_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(reset_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME reset_test COMMAND reset_test)
+
     add_executable(bram_test tests/bram_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(bram_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME bram_test COMMAND bram_test ${CMAKE_BINARY_DIR}/bram_test.bin)

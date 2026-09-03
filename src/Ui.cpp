@@ -29,6 +29,11 @@ void Ui::setStatus(const std::string& msg, float seconds) {
 }
 
 void Ui::doReset() {
+    mem_.softReset();
+    cpu_.softReset();
+}
+
+void Ui::doPowerCycle() {
     mem_.reset();
     cpu_.hardReset();
 }
@@ -110,7 +115,12 @@ void Ui::handleShortcuts() {
     ImGuiIO& io = ImGui::GetIO();
     if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Q, false)) quitRequested = true;
     if (ImGui::IsKeyPressed(ImGuiKey_F2, false)) vgc_.toggleHgrMode();
-    if (ImGui::IsKeyPressed(ImGuiKey_F5, false) && romOk) { doReset(); setStatus("Reset"); }
+    // F5 = the RESET key (RAM kept; hold Left Alt = ⌘ for a cold boot, both Alts
+    // for the ROM self-test); Shift+F5 = power cycle.
+    if (ImGui::IsKeyPressed(ImGuiKey_F5, false) && romOk) {
+        if (io.KeyShift) { doPowerCycle(); setStatus("Power cycle"); }
+        else             { doReset(); setStatus("Reset"); }
+    }
     if (ImGui::IsKeyPressed(ImGuiKey_F6, false) && romOk) {
         running = !running;
         setStatus(running ? "Running" : "Paused");
@@ -171,7 +181,8 @@ void Ui::menuBar() {
             setStatus(running ? "Running" : "Paused");
         }
         ImGui::Separator();
-        if (ImGui::MenuItem("Reset", "F5", false, romOk)) { doReset(); setStatus("Reset"); }
+        if (ImGui::MenuItem("Reset (Ctrl-Reset)", "F5", false, romOk)) { doReset(); setStatus("Reset"); }
+        if (ImGui::MenuItem("Power Cycle", "Shift+F5", false, romOk)) { doPowerCycle(); setStatus("Power cycle"); }
         ImGui::Separator();
         if (ImGui::MenuItem("Save State", "F7", false, bool(onSaveState)))
             setStatus(onSaveState() ? "State saved" : "State save FAILED");

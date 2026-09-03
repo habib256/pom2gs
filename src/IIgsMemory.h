@@ -68,7 +68,8 @@ public:
     bool hasAdbMicroRom() const { return !adbUcRom_.empty(); }
     void setFastRamKB(uint32_t kb);   // total FPI RAM (banks $00+). Default 8 MB
                                       // (fastRamKB_), clamped to [256 KB, 8 MB].
-    void reset();                     // power-on-ish: clears RAM, resets MMU state
+    void reset();                     // power cycle: clears RAM, then softReset()
+    void softReset();                 // /RESET: registers + peripherals only, RAM survives
 
     // Advance the video/timing clock after one CPU step and return the exact
     // wall time consumed in 14.318 MHz master ticks.  This includes the

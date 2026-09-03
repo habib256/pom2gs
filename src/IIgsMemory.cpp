@@ -862,9 +862,21 @@ bool IIgsMemory::loadRom(const std::vector<uint8_t>& rom) {
     return false;
 }
 
+// Power cycle: RAM cleared, then the same register reset the /RESET line does.
 void IIgsMemory::reset() {
     std::fill(fastRam_.begin(), fastRam_.end(), 0);
     std::fill(slowRam_.begin(), slowRam_.end(), 0);
+    videoCycles_ = 0;
+    softReset();
+}
+
+// /RESET (Ctrl-Reset on the keyboard): every FPI/Mega II soft switch, the
+// language card, the DOC, SCC, IWM and ADB GLU transients go to their reset
+// state; RAM, the master clock and the battery-backed BRAM/clock survive. The
+// ROM then reads ⌘/Option through $C061/$C062/$C025 to decide between a warm
+// start (reset vector at $03F2 still valid), a cold boot (⌘ held) or the
+// self-test (⌘+Option), exactly as on the machine.
+void IIgsMemory::softReset() {
     shadow_ = 0; speed_ = 0; state_ = 0; newvideo_ = 0x01; txtColor_ = 0xF0;   // bank latch on (MAME reset)
     langSel_ = 0; slotRomSel_ = 0; dmaReg_ = 0;
     altzp_ = ramrd_ = ramwrt_ = page2_ = store80_ = hires_ = false;
@@ -873,7 +885,7 @@ void IIgsMemory::reset() {
     // MAME apple2gs.cpp: "LC default state: read ROM, write enabled, Dxxx bank 2".
     lcRamRead_ = false; lcRamWrite_ = true; lcBank2_ = true; lcPreWrite_ = false;
     kbdLatch_ = 0;
-    videoCycles_ = 0; lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0; frameCount_ = 0;
+    lastVpos_ = 0; intflag_ = 0; inten_ = 0; vgcint_ = 0; frameCount_ = 0;
     doc_.reset();                        // halt oscillators, clear sound RAM + pending DOC IRQ (MAME device_reset)
     scc_.reset();                        // clear SCC register file + FIFOs
     if (cpu_) {                          // drop any interrupt lines we own

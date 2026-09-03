@@ -4,6 +4,14 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Reset — /RESET vs power cycle (September 2026)
+
+F5 is now the RESET key: registers, peripherals and the CPU reset while RAM
+and the master clock survive, and the ROM reads ⌘/Option to choose a warm
+start, a cold boot (Left Alt held) or the self-test (both Alts) — as on the
+machine. Shift+F5 / Machine ▸ Power Cycle is the old behaviour (RAM cleared).
+`reset_test` pins what each path keeps.
+
 ### Battery RAM — host persistence (September 2026)
 
 The 256 BRAM bytes and the guest-set clock offset now survive a restart in

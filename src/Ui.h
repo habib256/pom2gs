@@ -97,7 +97,8 @@ private:
     void statusBar();
     void dialogs();
     void openLoad(int kind);
-    void doReset();
+    void doReset();                   // /RESET (Ctrl-Reset): RAM survives, the ROM decides warm/cold
+    void doPowerCycle();              // power off/on: RAM cleared
 };
 
 #endif // POMIIGS_UI_H

@@ -160,17 +160,25 @@ Probe order: `roms/iigs-rom03.rom`, then `roms/iigs-rom01.rom`. Default = ROM 03
 
 ## Reset architecture
 
-POM2's three-class split (soft / hard / cold) is the inherited design; POMIIGS
-currently implements **one** path — `Ui::doReset()` (F5 / Machine ▸ Reset) calls
-`IIgsMemory::reset()` + `CPU65816::hardReset()`, i.e. a cold reset. It clears fast
-and slow RAM to `$00`, re-parks the MMU (LC = read ROM / write enable / bank 2,
-`$C031` DISKREG cleared) and resets the DOC + SCC. The CPU re-enters **65C816
-emulation mode** (E=1) and pulls the reset vector from `$00/FFFC` through
-`vectorPull`, which forces ROM regardless of the language card. BRAM/RTC survive
-(battery-backed — `bram_` is untouched by reset) and persist across runs in
-`states/bram.bin` (loaded before the first boot, saved on change and on exit;
-the ROM seeds the Control Panel defaults when the file is absent).
-Splitting out true soft/hard resets (RAM-preserving) is a follow-up.
+Two paths, as on the machine:
+
+- **/RESET** — `Ui::doReset()` (F5 / Machine ▸ Reset) = `IIgsMemory::softReset()`
+  + `CPU65816::softReset()`. RAM and the master clock survive; every soft
+  switch re-parks (LC = read ROM / write enable / bank 2, `$C031` DISKREG
+  cleared, shadow/speed/NEWVIDEO reset), the DOC, SCC, IWM latches and ADB GLU
+  transients reset. The CPU re-enters **emulation mode** (E=1) and pulls the
+  reset vector from `$00/FFFC` through `vectorPull` (ROM regardless of the
+  language card). The ROM then reads ⌘/Option (`$C061/$C062`, `$C025`) to
+  choose a warm start, a cold boot (⌘ = Left Alt held) or the self-test
+  (⌘+Option = both Alts) — the same decision it makes on hardware.
+- **Power cycle** — `Ui::doPowerCycle()` (Shift+F5 / Machine ▸ Power Cycle) =
+  `IIgsMemory::reset()` + `CPU65816::hardReset()`: fast and slow RAM cleared to
+  `$00`, then the /RESET path.
+
+BRAM/RTC survive both (battery-backed — `bram_` is untouched) and persist
+across runs in `states/bram.bin` (loaded before the first boot, saved on change
+and on exit; the ROM seeds the Control Panel defaults when the file is absent).
+Gate: `reset_test`.
 
 ## Status
 
