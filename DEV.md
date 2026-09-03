@@ -231,7 +231,10 @@ write that lands after the beam passed shows next frame; a palette or mode
 change during HBL takes effect on that line (per-line splits, 3200-colour
 pictures); a CPU rewriting a text row while it is scanned crosses the scanner
 byte by byte (TextFunk). `videoBusByte()` is the last byte the scanner fetched
-— the Mega II floating bus, not yet served to unassigned `$C0xx` reads.
+— the Mega II floating bus — and `ioRead` serves it for display soft-switch
+reads (`$C050-$C05F`), the speaker toggle and every unassigned `$C0xx` read
+(Sather 5-40; the vapor-lock beam sync reads `$C050`/`$C051` for it). Slot
+`$C0n0` I/O that a card model decodes (IWM, SmartPort) keeps its own value.
 Callers that render without running the clock (unit tests, tools) get a
 full-frame `scanSnapshot()`; the render loop reads the capture on the UI
 thread without locking, the same benign race the direct-memory renderer had.

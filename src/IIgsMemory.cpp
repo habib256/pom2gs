@@ -1110,7 +1110,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             // pairs that cancelled in the mixer — beeps rendered as single CLICKS
             // (the long-standing "random cracks").
             if (spkEvents_.size() < 65536) spkEvents_.push_back(videoCycles_);
-            return 0;
+            return videoLast_;
         case 0x31: return diskReg_;                         // DISKREG (b6 = 35SEL, b7 = HDSEL)
         case 0x38: case 0x39: case 0x3A: case 0x3B: return scc_.read(r);    // SCC serial
         case 0x3C: case 0x3D: case 0x3E: case 0x3F: {                       // Sound GLU
@@ -1179,11 +1179,15 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
         return rom_[(uint32_t(0xFF - romBankBase_) << 16) + off];
     // display / paging soft switches with read side-effects
     if (r >= 0x80 && r <= 0x8F) { lcSwitch(r, false); return 0; }
-    if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return 0; }
+    // Reading a display soft switch toggles it and returns the Mega II floating
+    // bus: the byte the video scanner fetched last (Sather, "Understanding the
+    // Apple IIe" 5-40; the vapor-lock beam-sync technique reads $C050/$C051 for
+    // exactly this). Same for every unassigned $C0xx read below.
+    if (r >= 0x50 && r <= 0x5F) { applyDisplaySwitch(r); return videoLast_; }
     if (r >= 0xD0 && r <= 0xDF) return disk35_.deviceRead(r & 0x0F);                  // slot 5 3.5" device-select
     if (r >= 0xE0 && r <= 0xEF) return iwm_.access(r - 0xE0, false, 0, videoCycles_); // slot 6 IWM
     if (r >= 0xF0 && r <= 0xFF) return hdd_.deviceRead(r & 0x0F);                     // slot 7 HDD device-select
-    return 0;   // floating bus (approx)
+    return videoLast_;   // unassigned $C0xx: Mega II floating bus = the scanner's last fetch
 }
 
 void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {

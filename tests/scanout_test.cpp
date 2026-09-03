@@ -50,6 +50,16 @@ int main() {
     expect("column 10 was fetched before the rewrite", mem.scanLine(40).main[10], 0x00);
     expect("column 30 was fetched after the rewrite", mem.scanLine(40).main[30], 'C' | 0x80);
 
+    // Mega II floating bus: a display-switch read returns the scanner's last fetch.
+    W(0xE00400 + 3 * 0x80 + 7, 0xD7);                   // row 3, column 7
+    beamTo(262 * 2 + 8 * 3, 25 + 7);                    // frame 3, line 24, fetch slot 7
+    {
+        const uint8_t v = mem.read8(0xE0C051); mem.takeBusPenalty();   // TEXT on (already), value = floating bus
+        expect("$C051 read returns the byte being scanned", v, 0xD7);
+        const uint8_t u = mem.read8(0xE0C0C8); mem.takeBusPenalty();   // unassigned (slot 4 I/O, nothing there)
+        expect("unassigned $C0xx read returns the floating bus", u, 0xD7);
+    }
+
     // SHR: a palette written during line 50's HBL applies to line 50, not 49.
     W(0xE0C029, 0x81);                                  // SHR on, bank latch kept
     for (int l = 0; l < 200; ++l) W(0xE19D00 + l, 0x00);      // SCB: palette 0, 320 mode

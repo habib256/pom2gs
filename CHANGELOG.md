@@ -4,6 +4,14 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Video — Mega II floating bus (September 2026)
+
+Display soft-switch reads (`$C050-$C05F`), the `$C030` speaker toggle and
+every unassigned `$C0xx` read now return the byte the video scanner fetched
+last (`videoBusByte()`), the classic vapor-lock beam-sync value, instead of
+0. Slot I/O that a device model decodes is unaffected. Pinned in
+`scanout_test`.
+
 ### Video — live scanout renderer (September 2026)
 
 The VGC no longer reconstructs a frame from final memory. `IIgsMemory::tick()`

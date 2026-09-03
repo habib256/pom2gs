@@ -196,8 +196,8 @@ POMIIGS to broad KEGS/MAME/GSSquared parity:
 - **Real IWM 3.5" Sony LLE 🟢** (`Sony35`, `iwm35 = 1`): the genuine slot-5 ROM
   firmware drives the drive nibble-by-nibble — **GS/OS boots to the Finder**.
 
-Open: 3.5" FORMAT/tach calibration, Mega II floating bus on unassigned
-`$C0xx` reads (the scanner's byte is captured, not served yet), rewind ring,
-WASM audio, full ADB µC command model. (SWIM is out of scope: it only existed on the
+Open: 3.5" FORMAT/tach calibration, reset-phase calibration of the PH0/
+refresh grids against a hardware trace, rewind ring, WASM audio, full ADB µC
+command model. (SWIM is out of scope: it only existed on the
 unreleased "Mark Twain" prototype — every production IIgs uses the IWM.)
 See `TODO.md` for the parity dashboard + backlog.

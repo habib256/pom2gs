@@ -48,9 +48,10 @@ before a valid TextFunk/FloatBus pass:
 
 1. The reset phase of the PH0 and refresh grids is assumed, not measured; it
    awaits calibration against a real-IIgs trace.
-2. The Mega II floating bus — the scanner's fetched byte (`videoBusByte()`)
-   is captured but not yet served to unassigned `$C0xx` reads, and the
-   fast-side floating value is the last data byte only.
+2. The floating bus is modelled, not measured: display soft-switch,
+   speaker and unassigned `$C0xx` reads return the scanner's last fetch
+   (`scanout_test`), fast-side unmapped reads the last data byte; the exact
+   cycle at which each is sampled versus HORIZCNT awaits the hardware trace.
 
 For that reason, TextFunk (media user-supplied, no hardware golden yet) and
 FloatBus stay catalogued as staged/blocked, not green tests. This prevents
