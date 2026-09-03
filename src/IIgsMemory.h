@@ -327,7 +327,7 @@ private:
     uint8_t  shadow_ = 0;             // $C035 (0 = all shadowing enabled)
     uint8_t  speed_  = 0;             // $C036
     uint8_t  state_  = 0;             // $C068 STATEREG composite
-    uint8_t  newvideo_ = 0;           // $C029
+    uint8_t  newvideo_ = 0x01;        // $C029 (bit 0 = bank latch, hardware reset state)
     uint8_t  txtColor_ = 0xF0;        // $C022 SCREENCOLOR — white fg / black bg at boot
     uint8_t  langSel_    = 0;         // $C02B LANGSEL (b7-5 char-ROM language, b4 PAL)
     uint8_t  slotRomSel_ = 0;         // $C02D SLOTROMSEL (latched; routing is fixed)
@@ -446,6 +446,19 @@ private:
     // FPI data bus floats. The ROM self-test's RAM address-line test (04) and
     // its memory sizing rely on absent banks NOT mirroring populated ones.
     bool fastPopulated(uint32_t bank) const { return (size_t(bank) << 16) < fastRam_.size(); }
+    // Floating bus: an unmapped or unpopulated read returns the last byte that
+    // crossed the data bus — for `LDA >$810000` that is the operand's bank
+    // byte, which is exactly what the MiSTer mmu_test 25 checks on hardware.
+    uint8_t busLast_ = 0;
+    // CYAREG ($C036) bit 4 — "shadow all banks": every fast bank behaves like
+    // bank $00 (even) / $01 (odd): //e main/aux redirect, I/O + language card
+    // in $C000-$FFFF, and video shadowing to $E0/$E1 (MiSTer mmu_test 03/07/
+    // 09/12, hardware-verified; Apple IIgs Hardware Reference CYAREG).
+    bool shadowAll() const { return (speed_ & 0x10) != 0; }
+    bool bank01Like(uint32_t bank) const { return bank <= 0x01 || (shadowAll() && bank <= 0x7F); }
+    // NEWVIDEO ($C029) bit 0 — bank latch: while clear, bank $E1 RAM accesses
+    // land in $E0 (MiSTer mmu_test 13). Firmware sets it immediately at reset.
+    bool bankLatch() const { return (newvideo_ & 0x01) != 0; }
     // Video / interrupt timing.
     static constexpr int kLineCycles    = 65;
     static constexpr int kLines         = 262;

@@ -167,8 +167,23 @@ Key registers (all in `$C0xx`, cited to `apple2gs.cpp` when implemented):
 
 - **`$C035` SHADOW** — per-region enables that mirror writes to bank `$00`/`$01`
   down into the slow-side `$E0`/`$E1` (text page 1/2, HGR page 1/2, SHR, aux-HGR,
-  I/O+LC, and ROM 03's shadow-all). This is *the* mechanism that keeps the fast
-  CPU's writes visible to the slow-side video generator.
+  I/O+LC). This is *the* mechanism that keeps the fast CPU's writes visible to
+  the slow-side video generator. Text page 2 shadowing exists on ROM 03 only.
+- **`$C036` bit 4 — shadow all banks** (CYAREG): every fast bank behaves like
+  bank `$00` (even) / `$01` (odd) — //e main/aux redirect (RAMWRT sends a bank
+  `$02` write to `$03`), I/O + language card in `$C000-$FFFF`, and video
+  shadowing to `$E0`/`$E1` (`bank01Like()`; MiSTer `mmu_test` 03/07/09/0C,
+  pinned by `fpi_shadowall_test`).
+- **`$C029` bit 0 — bank latch**: while clear, bank `$E1` RAM accesses land in
+  `$E0` (`mmu_test` 13). Apple says the bit must always be set; the reset
+  state is 1 (MAME) and software must write `$81`, not `$80`, to turn SHR on.
+- **Floating bus**: unmapped (`$80-$DF`, `$E2-$FB`) and unpopulated fast-RAM
+  reads return the last byte that crossed the data bus (`busLast_`), so
+  `LDA >$810000` reads `$81` — the operand's bank byte (`mmu_test` 25).
+- **Language card physical layout** (Hardware Reference, Sather; gssquared,
+  Clemens; `mmu_test` 26): bank 2 is the primary block at physical `$D000`,
+  bank 1 folds into the `$C000-$CFFF` window — the layout that shows through as
+  linear RAM when the IOLC shadow is inhibited (`$C035` bit 6).
 - **`$C036` SPEED** — bit 7 (`SPEED_HIGH`) selects 2.8 MHz; bits 3-0 are
   per-slot Disk II motor-detect enables (`SL4/5/6/7`). `speedFast()` =
   `bit7 && !(SPEED_DISKIISL6 && iwm_.motorOn())`: a detect-enabled slot with its
@@ -177,8 +192,7 @@ Key registers (all in `$C0xx`, cited to `apple2gs.cpp` when implemented):
   on-board IWM.
 - **`$C068` STATEREG** — packs the classic MMU softswitches (ALTZP, PAGE2,
   RAMRD, RAMWRT, RDROM, LCBNK2, INTCXROM) into one byte for GS/OS.
-- **`$C037` DMAREG** (DMA bank / ROM 03 shadow-all) — latched and read back,
-  but neither DMA nor shadow-all is modelled.
+- **`$C037` DMAREG** (DMA bank) — latched and read back; DMA is not modelled.
 - **`$C031` DISKREG** — on the IIgs this is the disk register (`diskReg_` b6 =
   35SEL, the 3.5" drive select; b7 = HDSEL, the Sony SEL / head select), **not**
   a speaker mirror. The classic Apple II's partial `$C030-$C03F` decode toggled

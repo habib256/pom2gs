@@ -132,8 +132,8 @@ Slow-side I/O ($E0/E1 $Cnnn), also visible at $00/$01 $Cnnn via shadow:
   $C032        VGCINTCLEAR (write-0-to-clear per bit)
   $C033/$C034  CLOCKDATA / CLOCKCTL — RTC + BRAM serial; $C034 b0-3 = border colour
   $C035        SHADOW register (bank $00/$01 shadow inhibit per region)
-  $C036        SPEED register (bit 7 = 2.8 MHz, bit 0-3 slot motor detect)
-  $C037        DMAREG — latched only (DMA / ROM 03 shadow-all not modelled)
+  $C036        SPEED/CYAREG (bit 7 = 2.8 MHz, bit 4 = shadow ALL banks, bit 0-3 slot motor detect)
+  $C037        DMAREG — latched only (DMA not modelled)
   $C038-$C03B  SCC 8530 serial (command/data, ports A/B)
   $C03C-$C03F  Sound GLU: $C03C ctrl, $C03D data (auto-inc), $C03E/F addr (→ DOC)
   $C041/$C046/$C047  Mega II INTEN / INTFLAG / CLRVBLINT
@@ -152,7 +152,7 @@ Slow-side I/O ($E0/E1 $Cnnn), also visible at $00/$01 $Cnnn via shadow:
 | Profile | ROM | CPU boot mode | Notes |
 |---|---|---|---|
 | Apple IIgs ROM 01 (1986) | `iigs-rom01.rom` (128 KB) | 65C816 emul → native | DOC, VGC, ADB, IWM. 256 KB–1 MB RAM. Best compatibility. |
-| Apple IIgs ROM 03 (1989) | `iigs-rom03.rom` (256 KB) | 65C816 emul → native | IWM (like ROM 01 — SWIM only ever shipped on the unreleased 1991 "Mark Twain" prototype), shadow-all ($C037, latched but not modelled), up to 8 MB RAM. |
+| Apple IIgs ROM 03 (1989) | `iigs-rom03.rom` (256 KB) | 65C816 emul → native | IWM (like ROM 01 — SWIM only ever shipped on the unreleased 1991 "Mark Twain" prototype), shadow-all banks (CYAREG $C036 bit 4), up to 8 MB RAM. |
 
 The ROM probe accepts a 128 KB or 256 KB image and reports the size it loaded;
 anything else is rejected with a console warning (no checksum is verified).
@@ -182,8 +182,9 @@ POMIIGS to broad KEGS/MAME/GSSquared parity:
   HGR/DHGR (NTSC + RGB). Ensoniq DOC 🟢 (synthLAB music validated).
 - ADB 🟢 (IRQ kbd/mouse, ⌘-menu shortcuts), BRAM/RTC 🟢, SCC 🟢.
 - **MiSTer custom diagnostics 🟡** (`tools/mister_diags.py`, 21 disks built
-  with rehosted Merlin32/CiderPress2): 13 pass, 8 named xfails (`$C037`
-  shadow-all, SCC cross-channel, ADB µC firmware, one corpus dispute…).
+  with rehosted Merlin32/CiderPress2): 14 pass (MMU 26/26), 7 named xfails
+  (GSQMMU 02, SCC cross-channel/selftest, ADB µC firmware, RAM launchers,
+  one corpus dispute).
 - **ROM 01/03 built-in self-test 🟢** (`selftest_trace`): every diagnostic
   passes on both ROMs except 09 (ADB), which needs the user-supplied ADB µC
   firmware (`roms/iigs-adb-uc-rom0[13].rom`) and SKIPs without it.

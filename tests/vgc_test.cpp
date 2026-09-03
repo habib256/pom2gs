@@ -32,7 +32,7 @@ int main() {
             wr(E1 + 0x2000 + l * 160 + byte, uint8_t((idx << 4) | idx));
         }
     // Enable Super Hi-Res ($C029 bit 7).
-    wr(0xE0C029, 0x80);
+    wr(0xE0C029, 0x81);   // SHR on; bit 0 (bank latch) must stay set (Hardware Reference)
 
     VGC vgc;
     if (!mem.shrEnabled()) { std::printf("FAIL: SHR not enabled\n"); return 1; }

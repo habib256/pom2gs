@@ -750,7 +750,7 @@ bool IIgsMemory::loadRom(const std::vector<uint8_t>& rom) {
 void IIgsMemory::reset() {
     std::fill(fastRam_.begin(), fastRam_.end(), 0);
     std::fill(slowRam_.begin(), slowRam_.end(), 0);
-    shadow_ = 0; speed_ = 0; state_ = 0; newvideo_ = 0; txtColor_ = 0xF0;
+    shadow_ = 0; speed_ = 0; state_ = 0; newvideo_ = 0x01; txtColor_ = 0xF0;   // bank latch on (MAME reset)
     langSel_ = 0; slotRomSel_ = 0; dmaReg_ = 0;
     altzp_ = ramrd_ = ramwrt_ = page2_ = store80_ = hires_ = false;
     intcxrom_ = false; slotc3rom_ = false; eightyCol_ = false; altchar_ = false;
@@ -821,18 +821,20 @@ uint8_t IIgsMemory::lcRead(uint8_t bank, uint16_t off) {
     // ALTZP (which aliases bank-0 ZP/stack/LC to aux). Ignoring the bank made
     // $01:Dxxx read main LC when ALTZP=0, so GS/OS's bank-1 LC code (JSR into
     // relocated routines) landed in the wrong bank and derailed.
-    const int pb = (bank == 1 || altzp_) ? 1 : 0;
-    if (off < 0xE000 && !lcBank2_)                  // $D000-$DFFF bank 1
-        return fastCell(pb, off);
-    if (off < 0xE000 && lcBank2_)                   // $D000-$DFFF bank 2 (aliased to $Cxxx window)
+    // Physical layout (Hardware Reference, Sather; gssquared/Clemens; MiSTer
+    // mmu_test 26): LC bank 2 is the primary block at physical $D000, bank 1
+    // folds into the $C000-$CFFF window — visible as linear RAM when the IOLC
+    // shadow is inhibited. Shadow-all makes any fast bank behave like $00/$01.
+    const int pb = (bank & 1) ? int(bank) : int(bank) + (altzp_ ? 1 : 0);
+    if (off < 0xE000 && !lcBank2_)                  // $D000-$DFFF bank 1 → $C000 window
         return fastCell(pb, uint16_t(off - 0x1000));
-    return fastCell(pb, off);                       // $E000-$FFFF (single bank)
+    return fastCell(pb, off);                       // bank 2 $D000 / $E000-$FFFF (single bank)
 }
 
 void IIgsMemory::lcWrite(uint8_t bank, uint16_t off, uint8_t v) {
     if (!lcRamWrite_) return;                       // writes ignored unless LC write enabled
-    const int pb = (bank == 1 || altzp_) ? 1 : 0;   // bank-1 LC = aux (see lcRead)
-    if (off < 0xE000 && lcBank2_) { fastCell(pb, uint16_t(off - 0x1000)) = v; return; }
+    const int pb = (bank & 1) ? int(bank) : int(bank) + (altzp_ ? 1 : 0);   // odd bank = aux (see lcRead)
+    if (off < 0xE000 && !lcBank2_) { fastCell(pb, uint16_t(off - 0x1000)) = v; return; }
     fastCell(pb, off) = v;
 }
 
@@ -1241,38 +1243,40 @@ uint8_t IIgsMemory::read8(uint32_t a) {
 
     if (bank >= romBankBase_ && !rom_.empty()) {
         chargeFast(false);                            // ROM hides DRAM refresh
-        return rom_[a - (uint32_t(romBankBase_) << 16)];
+        return busLast_ = rom_[a - (uint32_t(romBankBase_) << 16)];
     }
 
     if (bank == 0xE0 || bank == 0xE1) {
         chargeSlow();                                 // slow side (Mega II)
-        if (off >= 0xC000 && off <= 0xC0FF) return ioRead(bank, off);
-        if (off >= 0xC100 && off <= 0xCFFF) return slotRomRead(off);
-        if (off >= 0xD000)                  return slowLcRead(bank, off);   // Mega II language card
+        if (off >= 0xC000 && off <= 0xC0FF) return busLast_ = ioRead(bank, off);
+        if (off >= 0xC100 && off <= 0xCFFF) return busLast_ = slotRomRead(off);
+        if (off >= 0xD000)                  return busLast_ = slowLcRead(bank, off);   // Mega II language card
         // //e main/aux redirect: $E0 is the slow MAIN image switched exactly like bank $00
         // (ALTZP/RAMRD/80STORE/PAGE2); $E1 is the AUX image, always aux. (KEGS moremem.c
         // fixup_* loop over bank $00 AND $E0; MAME auxbank_update m_e0_*bank.)
-        const int pb = (bank == 0xE0) ? physBank01(off, false) : 1;
-        return slowRam_[(size_t(pb) * 0x10000) + off];
+        // With the bank latch off ($C029 b0), $E1 RAM accesses fall through to $E0.
+        const int pb = (bank == 0xE0 || !bankLatch()) ? physBank01(off, false) : 1;
+        return busLast_ = slowRam_[(size_t(pb) * 0x10000) + off];
     }
 
-    if (bank <= 0x01) {
+    if (bank01Like(bank)) {
         if (iolcShadow()) {
-            if (off >= 0xC000 && off <= 0xC0FF) { chargeIo(off, false); return ioRead(bank, off); }
-            if (off >= 0xC100 && off <= 0xCFFF) { chargeSlow(); return slotRomRead(off); }
-            if (off >= 0xD000)                  { chargeSlow(); return lcRead(bank, off); }
+            if (off >= 0xC000 && off <= 0xC0FF) { chargeIo(off, false); return busLast_ = ioRead(uint8_t(bank & 1), off); }
+            if (off >= 0xC100 && off <= 0xCFFF) { chargeSlow(); return busLast_ = slotRomRead(off); }
+            if (off >= 0xD000)                  { chargeSlow(); return busLast_ = lcRead(uint8_t(bank), off); }
         }
-        int pb = (bank == 0) ? physBank01(off, false) : 1;
+        // even bank: main/aux redirect picks bank N / N+1; odd bank: always itself (aux)
+        const int pb = (bank & 1) ? int(bank) : int(bank) + physBank01(off, false);
         chargeFast(true);
-        return fastCell(pb, off);
+        return busLast_ = fastCell(pb, off);
     }
 
     if (bank <= 0x7F) {
         chargeFast(true);
-        return fastPopulated(bank) ? fastCell(bank, off) : 0;   // unpopulated → floating bus (approx)
+        return fastPopulated(bank) ? (busLast_ = fastCell(bank, off)) : busLast_;   // unpopulated → floating bus
     }
     chargeFast(false);
-    return 0;   // $E2-$FB unmapped → floating bus (approx)
+    return busLast_;   // $E2-$FB unmapped → floating bus: last byte on the data bus
 }
 
 uint8_t IIgsMemory::peek8(uint32_t a) {
@@ -1295,25 +1299,27 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
 
     if (bank >= romBankBase_ && !rom_.empty()) { chargeFast(false); return; } // ROM write ignored
 
+    busLast_ = v;
     if (bank == 0xE0 || bank == 0xE1) {
         chargeSlow();                                 // slow side (Mega II)
         if (off >= 0xC000 && off <= 0xC0FF) { ioWrite(bank, off, v); return; }
         if (off >= 0xC100 && off <= 0xCFFF) return;   // slot ROM: read-only
         if (off >= 0xD000)                  { slowLcWrite(bank, off, v); return; }   // Mega II language card
-        const int pb = (bank == 0xE0) ? physBank01(off, true) : 1;   // $E0 switched like $00, $E1 always aux
+        // $E0 switched like $00, $E1 always aux — unless the bank latch is off (see read8)
+        const int pb = (bank == 0xE0 || !bankLatch()) ? physBank01(off, true) : 1;
         slowRam_[(size_t(pb) * 0x10000) + off] = v;
         return;
     }
 
-    if (bank <= 0x01) {
+    if (bank01Like(bank)) {
         if (iolcShadow()) {
-            if (off >= 0xC000 && off <= 0xC0FF) { chargeIo(off, true); ioWrite(bank, off, v); return; }
+            if (off >= 0xC000 && off <= 0xC0FF) { chargeIo(off, true); ioWrite(uint8_t(bank & 1), off, v); return; }
             if (off >= 0xC100 && off <= 0xCFFF) { chargeSlow(); return; } // slot ROM: read-only
-            if (off >= 0xD000)                  { chargeSlow(); lcWrite(bank, off, v); return; }
+            if (off >= 0xD000)                  { chargeSlow(); lcWrite(uint8_t(bank), off, v); return; }
         }
-        int pb = (bank == 0) ? physBank01(off, true) : 1;
+        const int pb = (bank & 1) ? int(bank) : int(bank) + physBank01(off, true);
         fastCell(pb, off) = v;
-        if (maybeShadow(uint8_t(pb), off, v)) chargeSlow();   // one side-synced transaction
+        if (maybeShadow(uint8_t(pb & 1), off, v)) chargeSlow();   // one side-synced transaction
         else chargeFast(true);
         return;
     }

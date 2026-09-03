@@ -4,6 +4,21 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### MMU — shadow-all banks, bank latch, floating bus, LC layout (September 2026)
+
+The seven `mmu_test` sub-tests the MiSTer diagnostics gate flagged are
+modelled, taking it to 26/26: CYAREG (`$C036`) bit 4 "shadow all banks"
+makes every fast bank behave like `$00`/`$01` — main/aux redirect, I/O and
+language card, video shadowing — (the register had been misattributed to
+`$C037`); NEWVIDEO (`$C029`) bit 0 is the bank latch, and while clear bank
+`$E1` RAM accesses fall through to `$E0` (reset state 1; our own tests wrote
+`$80` to enable SHR and now write `$81` like real software must); unmapped or
+unpopulated reads return the last byte on the data bus (`LDA >$810000` reads
+its bank byte); and the language card's bank 2 is the primary physical `$D000`
+block with bank 1 folded into `$C000`, the layout that shows through under
+IOLC inhibit. `fpi_shadowall_test` pins all of it; GS/OS and Total Replay
+screens are pixel-identical.
+
 ### ADB — response latency and bus-command status (September 2026)
 
 µC responses now arrive ≈200 µs after the command instead of instantly. The

@@ -4,9 +4,9 @@
   "rom": "roms/iigs-rom03.rom",
   "defaults": {"frames": 600, "boot": "disk35"},
   "tests": [
-    {"id": "mmu_test", "disk": "mmu_test.2mg", "pass_regex": "^1A/1A$", "subtests_regex": "([0-9A-F]{2}):([PF])",
-     "expect": "xfail", "xfail_subtests": ["03", "07", "09", "0C", "0D", "19", "1A"],
-     "note": "03/07/09/0C = $C037 shadow-all-banks + bank-02/03 IOLC not modelled (DMAREG latched only); 0D = bank latch disabled; 19 = LC bank 2 in $E0; 1A = LC $00 must not shadow to $E0"},
+    {"id": "mmu_test", "disk": "mmu_test.2mg", "pass_regex": "^1A/1A\\b", "subtests_regex": "([0-9A-F]{2}):([PF])",
+     "expect": "pass",
+     "note": "26/26 since CYAREG shadow-all ($C036 b4), the NEWVIDEO bank latch, the floating bus and the LC physical layout are modelled (fpi_shadowall_test pins the same cases)"},
     {"id": "gsqmmu_test", "disk": "gsqmmu_test.2mg", "fail_regex": "(?!0000)[0-9A-F]{4} ",
      "expect": "xfail", "note": "fail table shows test 02 (RAMWRT/aux) twice: '0201 0201'"},
     {"id": "scc_selftest", "disk": "scc_selftest.2mg", "pass_regex": "^PASS", "expect": "xfail",

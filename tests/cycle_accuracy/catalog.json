@@ -181,9 +181,9 @@
       "asset_policy": "none",
       "assets": [],
       "references": ["mame-apple2gs"],
-      "oracle": "CTest gates megaii_timing_test, speed_test, slowside_test, irq_test and hdd_test. The timing gate proves the 912-tick line arithmetic, active-access PH0 side-sync and conditional DRAM-refresh classification; internal CPU cycles are placed at instruction level; reset-phase calibration remains open.",
+      "oracle": "CTest gates megaii_timing_test, fpi_shadowall_test (shadow-all banks, bank latch, floating bus, LC layout — MiSTer mmu_test cases), speed_test, slowside_test, irq_test and hdd_test. The timing gate proves the 912-tick line arithmetic, active-access PH0 side-sync and conditional DRAM-refresh classification; internal CPU cycles are placed at instruction level; reset-phase calibration remains open.",
       "requires": [{"path": "{build_dir}", "kind": "directory"}],
-      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(megaii_timing_test|speed_test|slowside_test|irq_test|hdd_test)$", "--output-on-failure"]
+      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(megaii_timing_test|fpi_shadowall_test|speed_test|slowside_test|irq_test|hdd_test)$", "--output-on-failure"]
     },
     {
       "id": "subsystems-local",
@@ -221,7 +221,7 @@
         }
       ],
       "references": ["mister-iigs-tests", "mister-iigs-regression", "merlin32", "ciderpress2"],
-      "oracle": "Each guest test prints its verdict on the text page; tools/mister_diags.py boots every disk with diag_trace and compares against tests/cycle_accuracy/mister_goldens.json (expect pass | xfail with the emulator gap named). Any expected pass that fails is a regression; an xfail that passes is flagged for promotion. Baseline September 2026: 13 pass, 8 xfail.",
+      "oracle": "Each guest test prints its verdict on the text page; tools/mister_diags.py boots every disk with diag_trace and compares against tests/cycle_accuracy/mister_goldens.json (expect pass | xfail with the emulator gap named). Any expected pass that fails is a regression; an xfail that passes is flagged for promotion. Baseline September 2026: 14 pass, 7 xfail.",
       "requires": [
         {"path": "{build_dir}/diag_trace", "kind": "file"},
         {"path": "{out_dir}/mister-custom-diagnostics/customtests/mmu_test.2mg", "kind": "file"}

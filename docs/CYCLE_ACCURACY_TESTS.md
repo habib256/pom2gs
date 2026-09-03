@@ -123,8 +123,8 @@ CiderPress2.[3] The set includes:
   (POMIIGS status, September 2026 — see `tests/cycle_accuracy/mister_goldens.json`:
   the 21 disks are built with the rehosted Merlin32 v1.2 + CiderPress2 1.1.1
   (`tools/cycle_suite.py build`, archives pinned by SHA-256 in the catalog
-  sources) and booted by `tools/mister_diags.py`; 13 pass, 8 are xfails that
-  each name the emulator gap: `$C037` shadow-all/bank-latch MMU cases, SCC
+  sources) and booted by `tools/mister_diags.py`; 14 pass (`mmu_test` 26/26),
+  7 are xfails that each name the emulator gap: GSQMMU test 02, SCC
   serializer cross-channel and register selftest, ADB µC firmware checksum,
   the two RAM tests that overwrite a RAM launcher, and one corpus dispute —
   `adb_device_enum` polls `$C027` bit 7, mouse-data-only per Apple's docs and

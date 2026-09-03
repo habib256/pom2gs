@@ -24,7 +24,7 @@ int main() {
     int fails = 0;
     auto check = [&](const char* what, bool ok) { if (!ok) { std::printf("FAIL %s\n", what); ++fails; } };
 
-    mem.write8(io(0x29), 0x80);                       // NEWVIDEO: SHR on
+    mem.write8(io(0x29), 0x81);                       // NEWVIDEO: SHR on, bank latch kept set
     // Palette 0: entry 0 = blue, entry 5 = red (both opaque).
     mem.write8(e1(0x9E00 + 0 * 2), 0x0F);            // entry0 lo → blue (b=15)
     mem.write8(e1(0x9E00 + 0 * 2 + 1), 0x00);

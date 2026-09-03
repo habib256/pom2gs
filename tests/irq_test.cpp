@@ -63,7 +63,7 @@ int main() {
     // One display line = 64×14 + one 16-tick slow CPU cycle = 912 master
     // ticks, so tick(65) at reset speed advances the beam exactly one line.
     mem.reset(); cpu.hardReset();
-    mem.write8(io(0x29), 0x80);                       // NEWVIDEO: SHR on
+    mem.write8(io(0x29), 0x81);                       // NEWVIDEO: SHR on, bank latch kept set
     mem.write8((uint32_t(0xE1) << 16) | 0x9D05, 0x40);// SCB line 5 requests scan IRQ
     mem.write8(io(0x23), 0x02);                       // VGCINT: scan-line enable
     for (int i = 0; i < 3; ++i) mem.tick(65);         // beam at line ~3: not yet
