@@ -280,6 +280,22 @@ firmware when one is loaded (`IIgsMemory::loadAdbMicroRom`, 4 KB mapped at µC
 `$1000-$1FFF`; 341-0632 for ROM 03, 341-0345 for ROM 01) and `$00` otherwise —
 the ROM self-test 09 checksums that range, see § ROM self-test.
 
+**Response timing and bus commands** (September 2026, from the MiSTer
+`customtests` + `rtl/adb.v` and KEGS `adb.c`): a µC response is posted
+`kAdbResponseTicks` (≈200 µs) after the command; only then do DATAREG-full
+(`$C027` b5) and its interrupt assert. An instantaneous response let the ROM's
+interrupt manager (`$FF:BE34`/`BE6A`) steal the byte in the `PLP…SEI` gap
+between the ROM's send (`$FF:6F9A`) and receive (`$FF:6FBF`) helpers whenever
+ProDOS 8 had enabled the DATAREG interrupt — ROM test 0A's version read timed
+out under the ProDOS launchers while passing under `selftest_trace`. ADB-bus
+commands (`$40-$FF`, high nibble = operation, low nibble = device; `$7x`
+disable SRQ, `$8x-$Bx` Listen, `$Cx-$Fx` Talk) complete with a status byte
+(bit 7 set, bits 2-0 = data count-1) readable at `$C026`; a data-less
+completion (flush, reset, absent device, Listen) does **not** raise b5 or an
+interrupt — the ROM's boot-time `$73`/`$B3` never read a reply, and a queued
+`$80` there wedged the IRQ manager. Talk reg 3 of the keyboard (2) or mouse
+(3) answers `$81` + `{address, handler $06}` like KEGS/Clemens.
+
 **Real keyboard/mouse routing** (gate `adb_test`):
 - **Keyboard** stays on the classic `$C000` latch / `$C010` strobe (the Mega II
   posts ADB keys there); **`$C025` KEYMODREG** now carries live host modifiers

@@ -34,8 +34,9 @@ pass.
   (CTest `mister_diagnostics`): 12 pass, 9 xfail. 🔴 Close the xfails:
   `$C037` shadow-all-banks / bank latch (`mmu_test` 03/07/09/0C/0D), LC bank 2
   in `$E0` + LC `$00` shadow (19/1A), `gsqmmu_test` 02, SCC serializer
-  cross-channel + register selftest, ADB bus-command handshake
-  (`adb_device_enum`, ROM 0A's version read under ProDOS).
+  cross-channel + register selftest. (🟢 ROM 0A under ProDOS: fixed by the
+  ADB response latency; `adb_device_enum` is a corpus dispute on `$C027`
+  bit 7 — kept as a documented xfail.)
 - 🟡 Make **TextFunk Viewer** a first-class beam-race gate: deterministic boot,
   scripted screen selection, consecutive-frame captures and comparison against
   a real-IIgs golden. Passing requires a live scanout model; rendering only the

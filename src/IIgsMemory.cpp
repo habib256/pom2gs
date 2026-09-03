@@ -65,6 +65,7 @@ uint32_t IIgsMemory::tick(int cpuCycles) {
     busStartedFast_ = false;
     doc_.tickMaster(mt);
     mirrorDocIrq();
+    adbPromoteResponse();
     const int vp = vpos();
     // Rising edge into VBL (line 192): latch the VBL flag and, if the VBL
     // interrupt is enabled ($C041 INTEN bit3), assert the CPU IRQ line.
@@ -318,7 +319,6 @@ void IIgsMemory::adbCommand(uint8_t v) {
                     adbQueue(inRom ? adbUcRom_[addr - 0x1000] : 0x00);   // RAM/absent firmware → dummy
                     break;
                 }
-                default: break;                                    // config/sync/write: absorbed
             }
         }
         updateAdbIrq();
@@ -342,10 +342,25 @@ void IIgsMemory::adbCommand(uint8_t v) {
         case 0x0E: adbQueue(0x08); adbQueue(0x00); break;          // read available char sets (count, current)
         case 0x0F: adbQueue(0x0A); adbQueue(0x00); break;          // read available keyboard layouts (count, current)
         case 0x11: adbParamsLeft_ = 1; break;                      // send ADB keycodes: 1 data byte (KEGS adb.c)
-        default:                                                   // ADB-bus command ($2n Talk/Listen,
-            if (v >= 0xB0 && v <= 0xBF) adbParamsLeft_ = 2;        // Listen dev x reg 3: 2 data bytes (KEGS adb.c)
-            else if (v >= 0x20) adbParamsLeft_ = 0;               // other $Bn/$2n absorbed — no direct-device
-            break;                                                 // model (µC auto-polls)
+        default:
+            // ADB-bus commands, $40-$FF: high nibble = operation, low nibble =
+            // device (KEGS adb.c: $7x disable SRQ, $Bx Listen reg 3, $Cx Talk
+            // reg 0, $Fx Talk reg 3). The µC completes each with a status byte
+            // readable at $C026 — bit 7 "response received", bits 2-0 = data
+            // count-1 — but only a response that carries DATA sets DATAREG-full
+            // ($C027 b5) and can interrupt (MiSTer adb.v: b5 = pending_data>0;
+            // the ROM's boot-time $73/$B3 never read a reply, and a queued $80
+            // there was picked up by the ROM's IRQ manager under ProDOS and
+            // wedged it). Talk reg 3 of a present device (keyboard 2, mouse 3)
+            // answers header $81 + {address, handler $06} as KEGS/Clemens do.
+            if (v >= 0x40) {
+                const uint8_t op = v >> 4, dev = v & 0x0F;
+                const bool present = dev == 2 || dev == 3;
+                if (op >= 0x8 && op <= 0xB) adbParamsLeft_ = 2;    // Listen reg 0-3: 2 data bytes, no reply
+                else if (op >= 0xC && present && (op & 3) == 3) { adbQueue(0x81); adbQueue(dev); adbQueue(0x06); }
+                else adbStatus_ = 0x80;                            // flush / reset / disable SRQ / absent device
+            } else if (v >= 0x20) adbParamsLeft_ = 0;              // $2x/$3x absorbed
+            break;
     }
     updateAdbIrq();
 }
@@ -937,7 +952,8 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
     static const bool adbDbg = std::getenv("ADBDBG") != nullptr;   // dev diag, see DEV.md
     if (adbDbg && cpu_ && r >= 0x24 && r <= 0x27) {
         static long k = 0;
-        if (++k <= 120 || k % 1000 == 0)
+        static const bool all = std::getenv("ADBDBG_ALL") != nullptr;
+        if (++k <= 120 || k % 1000 == 0 || all)
             std::fprintf(stderr, "[ADB] rd $C0%02X @ %02X:%04X (#%ld)\n", r, cpu_->getPBR(), cpu_->getPC(), k);
     }
     if (r <= 0x0F) return kbdLatch_;                        // keyboard latch
@@ -975,6 +991,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             // µC command-response queue (adbCommand).
             if (kbdIntPending_) return kbdIntStatus_;
             {
+                if (!adbDataReady_) { const uint8_t st = adbStatus_; adbStatus_ = 0; return st; } // no data: bus-command status, else 0
                 uint8_t v = 0;
                 if (adbRespI_ < adbRespN_) v = adbResp_[adbRespI_++];
                 if (adbRespI_ >= adbRespN_) { adbRespI_ = adbRespN_ = 0; adbDataReady_ = false; }
@@ -1094,7 +1111,8 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
     if (adbDbg && cpu_) {
         const uint8_t rr = off & 0xFF;
         if (rr >= 0x24 && rr <= 0x27) { static long k = 0;
-            if (++k <= 120 || k % 1000 == 0)
+            static const bool all = std::getenv("ADBDBG_ALL") != nullptr;
+            if (++k <= 120 || k % 1000 == 0 || all)
                 std::fprintf(stderr, "[ADB] wr $C0%02X = %02X @ %02X:%04X (#%ld)\n",
                              rr, v, cpu_->getPBR(), cpu_->getPC(), k); }
     }
@@ -1120,7 +1138,11 @@ void IIgsMemory::ioWrite(uint8_t bank, uint16_t off, uint8_t v) {
         case 0x0F: altchar_ = true;  return;
         case 0x10: kbdLatch_ &= 0x7F;                        // KBDSTRB write also clears strobe
                    if (kbdIntPending_) { kbdIntPending_ = false; updateAdbIrq(); } return;
-        case 0x26: adbCommand(v); return;                   // DATAREG: µC command/parameter byte
+        case 0x26: adbCommand(v);                           // DATAREG: µC command/parameter byte
+            if (adbDbg) std::fprintf(stderr, "[ADB]   after cmd byte %02X: cmd=%02X paramsLeft=%d queued=%d ready=%d readyAt=%llu now=%llu\n",
+                                     v, adbCmd_, adbParamsLeft_, adbRespN_ - adbRespI_, adbDataReady_,
+                                     (unsigned long long)adbReadyAt_, (unsigned long long)videoCycles_);
+            return;
         case 0x27:                                          // KMSTATUS: latch the int-enable bits
             adbIntEn_ = uint8_t(v & 0x54);                  // b6 mouse / b4 data / b2 keyboard
             updateAdbIrq();

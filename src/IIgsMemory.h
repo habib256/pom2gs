@@ -386,11 +386,26 @@ private:
     uint8_t adbCmd_ = 0;                   // pending command
     int     adbParamsLeft_ = 0;            // parameter bytes still expected
     uint8_t adbParams_[8] = {0};
+    uint8_t adbStatus_ = 0;                // data-less bus-command status ($80), readable once at $C026
     int     adbParamCount_ = 0;
     uint8_t adbResp_[16] = {0};            // response queue
     int     adbRespN_ = 0, adbRespI_ = 0;
     void    adbCommand(uint8_t v);         // handle a $C026 write
-    void    adbQueue(uint8_t v) { if (adbRespN_ < 16) adbResp_[adbRespN_++] = v; adbDataReady_ = true; }
+    // µC responses are not instantaneous: the 50740 needs a few hundred µs
+    // to answer a command, so DATAREG-full ($C027 b5) and its interrupt only
+    // assert kAdbResponseTicks after the command (tick() promotes it). With an
+    // immediate response the ROM's interrupt manager stole the byte in the
+    // PLP…SEI gap of the ROM's own send/receive helpers whenever ProDOS had
+    // enabled the DATAREG interrupt (ROM test 0A / 09 under a ProDOS launcher).
+    static constexpr uint32_t kAdbResponseTicks = 2864;   // ≈200 µs at 14.318 MHz
+    uint64_t adbReadyAt_ = 0;
+    void    adbQueue(uint8_t v) {
+        if (adbRespN_ < 16) adbResp_[adbRespN_++] = v;
+        if (!adbDataReady_ && adbReadyAt_ == 0) adbReadyAt_ = videoCycles_ + kAdbResponseTicks;
+    }
+    void    adbPromoteResponse() {
+        if (adbReadyAt_ && videoCycles_ >= adbReadyAt_) { adbReadyAt_ = 0; adbDataReady_ = true; updateAdbIrq(); }
+    }
     // ADB mouse ($C024 MOUSEDATA / $C027 KMSTATUS) + keyboard modifiers ($C025).
     // Deltas accumulate from the host; a read of $C024 returns X then Y (the
     // $C027 bit1 X/Y toggle), each carrying the button in bit7, and the second

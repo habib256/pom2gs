@@ -4,6 +4,22 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### ADB — response latency and bus-command status (September 2026)
+
+µC responses now arrive ≈200 µs after the command instead of instantly. The
+ROM's own send/receive helpers re-enable interrupts for a few cycles between
+sending and waiting, and with ProDOS 8's DATAREG interrupt enabled the ROM's
+interrupt manager consumed the version byte in that gap, so ROM test 0A timed
+out under the MiSTer ProDOS launcher (it passed under the native launcher).
+ADB-bus commands complete with the documented `$80|n-1` status byte at
+`$C026`; a data-less completion (flush, reset, disable SRQ, absent device,
+Listen) leaves `$C027` b5 clear and raises no interrupt — a first attempt that
+queued the `$80` as data wedged the ROM IRQ manager at boot. Talk reg 3 of
+the keyboard/mouse answers `$81` + address/handler (KEGS/Clemens). Sources:
+MiSTer `rtl/adb.v`, KEGS `adb.c`. `selftest0a` is promoted to an expected
+pass; `adb_device_enum` stays an xfail as a corpus dispute (it polls `$C027`
+bit 7, which is mouse-data-only per Apple's docs and the current MiSTer RTL).
+
 ### Tests — MiSTer custom diagnostics built and gated (September 2026)
 
 Merlin32 v1.2 and CiderPress2 1.1.1 are rehosted under the ignored tools
