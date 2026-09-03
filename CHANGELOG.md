@@ -4,6 +4,21 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Disk — 3.5" SmartPort FORMAT gated (September 2026)
+
+`sony_format`, the first POMIIGS-authored guest diagnostic
+(`tests/cycle_accuracy/diags/SONY_FORMAT.S`, Merlin syntax, built by
+`tools/build_pom_diags.sh` on the MiSTer blank template), calls the slot-5
+SmartPort entry directly: STATUS, FORMAT, WRITE, READ and verify on a
+cp2-generated unformatted 800K WOZ. The ROM's format runs every track through
+`Sony35`'s whole-track write sessions and its tach/speed check accepts the
+modelled drive; a block written afterwards reads back identical. MiSTer gate
+17 pass / 6 xfail. The gates use `.2mg` media: the sector-backed Sony model
+does not decode WOZ bit streams, and a first cut that fed it `.woz` files
+nibblised the container as sectors and overwrote the file on flush —
+`Sony35::loadImage` now refuses WOZ magic on that path (3.5" WOZ decoding is
+a `TODO.md` follow-up).
+
 ### Disk — 3.5" write/read/verify through the ROM firmware gated (September 2026)
 
 The MiSTer floppy diagnostic never reached the 3.5" drive on a IIgs (it

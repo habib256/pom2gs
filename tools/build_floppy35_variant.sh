@@ -28,4 +28,6 @@ cp blank.2mg floppy_rw35_test.2mg
 "$CP2" rm floppy_rw35_test.2mg BASIC.SYSTEM >/dev/null 2>&1 || true
 "$CP2" add floppy_rw35_test.2mg FLP35.SYSTEM >/dev/null
 "$CP2" sa floppy_rw35_test.2mg type=SYS FLP35.SYSTEM >/dev/null
-echo "built $DIR/floppy_rw35_test.2mg"
+# 800K ProDOS-formatted .2mg for the 3.5" unit (sector image for the Sony LLE).
+[ -f floppy_rw_35.2mg ] || "$CP2" cdi floppy_rw_35.2mg 800k prodos >/dev/null
+echo "built $DIR/floppy_rw35_test.2mg (+ floppy_rw_35.2mg media)"

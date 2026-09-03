@@ -141,11 +141,12 @@ CiderPress2.[3] The set includes:
   (POMIIGS status, September 2026 — see `tests/cycle_accuracy/mister_goldens.json`:
   the 21 disks are built with the rehosted Merlin32 v1.2 + CiderPress2 1.1.1
   (`tools/cycle_suite.py build`, archives pinned by SHA-256 in the catalog
-  sources) and booted by `tools/mister_diags.py`; 16 pass (`mmu_test` 26/26,
-  `gsqmmu_test`, and a derived slot-5 `floppy_rw35_test` that proves 3.5"
+  sources) and booted by `tools/mister_diags.py`; 17 pass (`mmu_test` 26/26,
+  `gsqmmu_test`, a derived slot-5 `floppy_rw35_test` that proves 3.5"
   write/read/verify through the genuine ROM firmware on the Sony LLE — the
-  upstream test only ever probes unit $60), 6 xfails with documented
-  non-emulator causes: three corpus
+  upstream test only ever probes unit $60 — and the POMIIGS-authored
+  `sony_format`, SmartPort FORMAT/WRITE/READ/verify on an unformatted WOZ),
+  6 xfails with documented non-emulator causes: three corpus
   disputes (`adb_device_enum` polls `$C027` bit 7, mouse-data-only per Apple's
   docs and the current MiSTer RTL; `scc_selftest` assumes the 8530 register
   pointer survives a read, unlike the Z8530 and the ROM's own test 06;

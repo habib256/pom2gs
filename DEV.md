@@ -481,11 +481,25 @@ uses the SWIM" — a common misconception, now corrected; SWIM is out of scope.
 `FLOPPY_RW_TEST` with its slot-6 short-circuit removed
 (`tools/build_floppy35_variant.sh`; upstream only ever probes unit $60 because
 the IIgs always has the $C600 PROM) — runs ProDOS block WRITE/READ/verify
-with several patterns on a cp2-generated 800K WOZ in slot 5, i.e. through the
-genuine slot-5 ROM firmware nibbling into `Sony35` and back: 6/6, 12/12 with
-the 5.25" unit mounted too. FORMAT (whole-track sessions, tach calibration)
-remains unexercised — it needs GS/OS's Advanced Disk Utility or a direct
-SmartPort FORMAT call.
+with several patterns on a cp2-generated 800K `.2mg` in slot 5, i.e. through
+the genuine slot-5 ROM firmware nibbling into `Sony35` and back: 6/6, 12/12
+with the 5.25" unit mounted too. **FORMAT gated as well**: `sony_format`
+(`tests/cycle_accuracy/diags/SONY_FORMAT.S`, a POMIIGS-authored Merlin
+diagnostic built by `tools/build_pom_diags.sh`) calls the slot-5 SmartPort
+entry directly — STATUS, FORMAT, WRITE, READ, verify — on a cp2-generated
+*unformatted* 800K `.2mg`: the ROM's format lays down every track through
+`Sony35`'s whole-track write sessions and its tach/speed check accepts the
+modelled drive, then a block written and read back matches.
+
+**Media format caveat.** `Sony35` is sector-backed (`.po`/`.2mg` nibblised
+on load, de-nibblised on flush); it does not decode WOZ bit streams. A first
+cut of these gates fed it cp2-made `.woz` files: the container bytes were
+nibblised as if they were sectors, the tests still passed (self-consistent
+writes and reads), and `flush()` overwrote the `.woz` with raw sectors —
+caught when cp2 no longer recognised the file. `loadImage` now refuses
+`WOZ1`/`WOZ2` magic outright on this path. Real 3.5" WOZ support (GCR bit
+stream → the IWM's nibble stream, GSSquared `Floppy35_woz` as reference) is a
+follow-up in `TODO.md`.
 
 The SmartPort HLE above stays the default, but `iwm35 = 1` in `pomiigs.cfg`
 (or `--iwm35`) mounts 800K media on a **low-level Sony 3.5" drive model**

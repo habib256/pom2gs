@@ -55,6 +55,15 @@ bool Sony35::loadImage(const std::string& path) {
     // the 800K image back over the wrong part of the user's file).
     size_t hdr = 0;
     bool wp = false;
+    // The Sony model is sector-backed (nibblised on load, de-nibblised on
+    // flush): a WOZ bit stream is not decoded here. Refuse it explicitly —
+    // treating the container as raw sectors produced garbage tracks AND
+    // flush() then overwrote the user's .woz with raw sectors (found by the
+    // sony_format gate, September 2026). Use .2mg/.po media on this path.
+    if (img.size() >= 8 && img[0] == 'W' && img[1] == 'O' && img[2] == 'Z' && (img[3] == '1' || img[3] == '2')) {
+        std::fprintf(stderr, "Sony35: '%s' is a WOZ image — the 3.5\" Sony LLE takes .2mg/.po sector images only\n", path.c_str());
+        return false;
+    }
     const pom2::TwoImgPayload tw = pom2::twoImgProbe(img.data(), img.size());
     if (tw.is2img) {
         wp  = tw.writeProtected;
