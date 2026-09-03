@@ -120,6 +120,14 @@ CiderPress2.[3] The set includes:
 - `mmu_test` and `gsqmmu_test`: MMU, language card, RAMWRT, aux-bank and
   shadowing cases;
 - `selftest01` through `selftest0c`: direct entry into each ROM diagnostic;
+  (POMIIGS status, September 2026 — see `tests/cycle_accuracy/mister_goldens.json`:
+  the 21 disks are built with the rehosted Merlin32 v1.2 + CiderPress2 1.1.1
+  (`tools/cycle_suite.py build`, archives pinned by SHA-256 in the catalog
+  sources) and booted by `tools/mister_diags.py`; 12 pass, 9 are xfails that
+  each name the emulator gap: `$C037` shadow-all/bank-latch MMU cases, SCC
+  serializer cross-channel and register selftest, ADB bus-command handshake,
+  ADB µC firmware checksum, the two RAM tests that overwrite a RAM launcher,
+  and ROM test 0A's ADB version read under ProDOS.)
 - `scc_selftest`, `scc_crosschan`, `scc_both`: SCC register, serializer,
   cross-channel and FIFO behaviour;
 - `adb_device_enum`, `adb_rom_checksum`: ADB GLU protocol and ROM-3-specific

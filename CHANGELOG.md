@@ -4,6 +4,25 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Tests — MiSTer custom diagnostics built and gated (September 2026)
+
+Merlin32 v1.2 and CiderPress2 1.1.1 are rehosted under the ignored tools
+cache (archives SHA-256-pinned in the catalog; Merlin32 because the 21
+sources are Merlin 8/16 syntax and the upstream Makefile assembles them with
+it — ca65 would mean rewriting them and losing the pinned provenance). All 21
+MiSTer diagnostic disks build through `tools/cycle_suite.py build`, and
+`tools/mister_diags.py` boots each one with the new `diag_trace` runner
+(same media set as `screenshot`, text page dumped as `[text NN]` rows) and
+compares the on-screen verdict with `tests/cycle_accuracy/mister_goldens.json`.
+Baseline: 12 pass (SCC dual-FIFO, floppy read/write/verify on 5.25" WOZ 6/6,
+RTC time, ROM tests 01/03/05-09/0B/0C via the ProDOS launchers) and 9 xfails,
+each naming the emulator gap — `$C037` shadow-all-banks and bank-latch MMU
+cases, LC bank 2 in `$E0`, GSQMMU test 02, SCC serializer cross-channel and
+register selftest, the ADB bus-command handshake (also behind ROM test 0A's
+ADB version read under ProDOS), the ADB µC firmware checksum, and the two RAM
+tests that overwrite any RAM launcher. An xfail that starts passing is flagged
+for promotion; an expected pass that fails is a regression.
+
 ### Diagnostics — ROM 01/03 built-in self-test gate (September 2026)
 
 `selftest_trace` runs the ROMs' own diagnostics headlessly: ⌘+Option held

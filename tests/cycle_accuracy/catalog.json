@@ -28,12 +28,14 @@
     },
     "merlin32": {
       "url": "https://brutaldeluxe.fr/products/crossdevtools/merlin/",
+      "archive": "Merlin32_v1.2.zip", "archive_sha256": "4022503d0fa779529190acc2b598c766f522da5012c12890179cb437b504f43d",
       "revision": "1.2 beta 2",
       "license": "NOASSERTION; operator-supplied build tool",
       "role": "Assembler required to build the MiSTer custom diagnostics"
     },
     "ciderpress2": {
       "url": "https://github.com/fadden/CiderPress2/releases/tag/v1.1.1",
+      "archive": "cp2_1.1.1_osx-x64_sc.zip", "archive_sha256": "644ab273e7f06d69834567803c391d934614574b36925f5b5c0d11e847ed80a0",
       "revision": "v1.1.1",
       "license": "Apache-2.0 source; operator-supplied build tool",
       "role": "Disk-image tool required to package the MiSTer custom diagnostics"
@@ -200,7 +202,7 @@
       "id": "mister-custom-diagnostics",
       "title": "21 open bootable IIgs custom diagnostics",
       "tier": "external-open",
-      "readiness": "staged",
+      "readiness": "automated",
       "domains": ["cpu65816", "fpi-cya", "mega2", "vgc", "interrupts", "shadowing", "adb", "scc", "doc", "iwm-sony", "rtc"],
       "asset_policy": "fetchable",
       "assets": [
@@ -219,7 +221,12 @@
         }
       ],
       "references": ["mister-iigs-tests", "mister-iigs-regression", "merlin32", "ciderpress2"],
-      "oracle": "Each guest test prints PASS/FAIL; exact screenshot goldens are needed after adapting the disk build and input schedule to POMIIGS.",
+      "oracle": "Each guest test prints its verdict on the text page; tools/mister_diags.py boots every disk with diag_trace and compares against tests/cycle_accuracy/mister_goldens.json (expect pass | xfail with the emulator gap named). Any expected pass that fails is a regression; an xfail that passes is flagged for promotion. Baseline September 2026: 11 pass, 8 xfail.",
+      "requires": [
+        {"path": "{build_dir}/diag_trace", "kind": "file"},
+        {"path": "{out_dir}/mister-custom-diagnostics/customtests/mmu_test.2mg", "kind": "file"}
+      ],
+      "command": ["python3", "{root}/tools/mister_diags.py", "--build-dir", "{build_dir}", "--out-dir", "{out_dir}"],
       "members": [
         {"id": "mmu_test", "source": "MMU_TEST.S", "covers": "MMU, shadowing and language-card decode"},
         {"id": "gsqmmu_test", "source": "GSQMMU.S", "covers": "Independent RAMWRT, aux-bank and shadowing cases"},
@@ -283,8 +290,7 @@
           "{source_dir}/floppy_rw_525.woz",
           "{source_dir}/floppy_rw_35.woz"
         ]
-      },
-      "command": []
+      }
     },
     {
       "id": "rom01-rom03-selftest",

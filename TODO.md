@@ -28,7 +28,14 @@ pass.
   ROM selftest slices, SCC, ADB, floppy and RTC): 🟢 pinned fetch, safe
   subtree-only extraction and an explicit Merlin32/CiderPress2 build adapter
   now produce a tool/output-hashed manifest under the ignored output tree;
-  🔴 boot all disks under POMIIGS and establish deterministic PASS goldens.
+  🟢 Merlin32 v1.2 + CiderPress2 1.1.1 rehosted (archives SHA-256-pinned in the
+  catalog, unpacked under `tests/cycle_accuracy/cache/tools/`), all 21 disks
+  build and boot; `tools/mister_diags.py` + `mister_goldens.json` gate them
+  (CTest `mister_diagnostics`): 12 pass, 9 xfail. 🔴 Close the xfails:
+  `$C037` shadow-all-banks / bank latch (`mmu_test` 03/07/09/0C/0D), LC bank 2
+  in `$E0` + LC `$00` shadow (19/1A), `gsqmmu_test` 02, SCC serializer
+  cross-channel + register selftest, ADB bus-command handshake
+  (`adb_device_enum`, ROM 0A's version read under ProDOS).
 - 🟡 Make **TextFunk Viewer** a first-class beam-race gate: deterministic boot,
   scripted screen selection, consecutive-frame captures and comparison against
   a real-IIgs golden. Passing requires a live scanout model; rendering only the

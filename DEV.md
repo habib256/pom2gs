@@ -587,6 +587,37 @@ shadowed bank `$01` write clobbered it). Test 09 needs the ADB µC firmware
 
 ---
 
+## MiSTer custom diagnostics gate
+
+The 21 open diagnostics of the MiSTer Apple IIgs core (`customtests/`, pinned
+tarball in the catalog) are the broadest independent MMU/SCC/ADB/IWM/RTC
+cross-check we have. Toolchain, rehosted under `tests/cycle_accuracy/cache/tools/`
+(ignored): **Merlin32 v1.2** (Brutal Deluxe; universal macOS binary, the
+sources are Merlin 8/16 syntax) and **CiderPress2 1.1.1** (`cp2`, x64
+self-contained build, runs under Rosetta on Apple Silicon). Both archives are
+SHA-256-pinned in `catalog.json § sources`.
+
+```bash
+T=$PWD/tests/cycle_accuracy/cache/tools
+python3 tools/cycle_suite.py build --merlin-root $T/Merlin32_v1.2_b2 \
+                                   --cp2 $T/cp2_1.1.1_osx-x64_sc/cp2   # 21 .2mg + WOZ media
+python3 tools/mister_diags.py                                          # CTest: mister_diagnostics
+```
+
+`diag_trace` boots a disk (`--disk35/--disk35b/--disk525/--hdd`, `--iwm35`,
+`--writeback`) for N frames with the periodic interrupts and dumps the text
+page; `tools/mister_diags.py` matches each verdict against
+`tests/cycle_accuracy/mister_goldens.json` (`expect: pass | xfail`, the
+xfails name the gap; `mmu_test` is compared sub-test by sub-test). The floppy
+test boots from the HDD slot with fresh copies of the cp2-generated WOZ media
+in slots 5/6. Findings so far: ROM test 0B (interrupts) only passes with the
+periodic Mega II/VGC interrupts running; ROM test 0A's failure under the
+ProDOS launcher is the ADB µC version read (`$FF:6FD8`) timing out, the same
+handshake `adb_device_enum` fails — the native `selftest_trace` launcher passes
+both.
+
+---
+
 ## Dev environment variables
 
 Diagnostic taps compiled into the normal build — all opt-in, all off unless the

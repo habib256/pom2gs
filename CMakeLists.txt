@@ -139,6 +139,15 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(boot_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+    # Guest-diagnostic disk runner (text-page dump) used by tools/mister_diags.py.
+    # The MiSTer diagnostics gate SKIPs (77) until the disks are built with
+    # `tools/cycle_suite.py build --merlin-root … --cp2 …`.
+    add_executable(diag_trace tests/diag_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    target_include_directories(diag_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME mister_diagnostics
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/mister_diags.py --build-dir ${CMAKE_BINARY_DIR})
+    set_tests_properties(mister_diagnostics PROPERTIES SKIP_RETURN_CODE 77)
+
     # ROM built-in self-diagnostic (⌘+Option held through RESET) at native
     # speed — catalog entry rom01-rom03-selftest. ROMs are user-provided, so a
     # missing image is a CTest SKIP (exit 77), never a false PASS.
