@@ -58,7 +58,9 @@ uint32_t IIgsMemory::tick(int cpuCycles) {
         ? cycles * Mega2Timing::kFastCycleTicks
         : uint32_t(Mega2Timing::slowCyclesTicks(videoCycles_, cycles));
     const uint32_t mt = base + uint32_t(busPenaltyMaster_);
+    const uint64_t t0 = videoCycles_;
     videoCycles_ += mt;
+    scanAdvance(t0, videoCycles_);
     busCursorMaster_ = 0;
     busPenaltyMaster_ = 0;
     busAccessActive_ = false;
@@ -104,6 +106,82 @@ uint32_t IIgsMemory::tick(int cpuCycles) {
         kbdIntPending_ = false; updateAdbIrq();
     }
     return mt;
+}
+
+// ── Live scanout (see IIgsMemory.h) ─────────────────────────────────────
+static inline int scanTextRowBase(int line, int page) {
+    const int row = line / 8;
+    return page + (row % 8) * 0x80 + (row / 8) * 0x28;
+}
+static inline int scanHgrRowBase(int y, int base) {
+    return base + (y & 7) * 0x400 + ((y >> 3) & 7) * 0x80 + (y >> 6) * 0x28;
+}
+
+void IIgsMemory::scanCycle(uint32_t line, uint32_t h) const {
+    if (line >= uint32_t(kScanLines)) return;
+    ScanLine& sl = scan_[line];
+    const uint8_t* e0 = slowRam_.data();
+    const uint8_t* e1 = slowRam_.data() + 0x10000;
+    if (h == 0) {                                          // start of HBL: the VGC reads the SCB
+        sl.scb = e1[0x9D00 + line];
+        return;
+    }
+    if (h == 24) {                                         // end of HBL: mode, colours, palette latch for the line
+        uint8_t f = 0;
+        if (shrEnabled()) f |= ScanLine::SHR;
+        else {
+            const bool text = textMode_ || (mixed_ && line >= 160);
+            if (text) f |= ScanLine::TEXT;
+            if (hires_) f |= ScanLine::HIRES;
+            if (dhires()) f |= ScanLine::DHGR;
+            if (eightyCol_) f |= ScanLine::COL80;
+        }
+        if (altchar_) f |= ScanLine::ALTCHAR;
+        sl.flags = f;
+        sl.langBank = uint8_t(charRomBank());
+        sl.textColor = txtColor_;
+        const uint8_t* p = e1 + 0x9E00 + (sl.scb & 0x0F) * 32;
+        for (int i = 0; i < 32; ++i) sl.pal[i] = p[i];
+        return;
+    }
+    if (h < 25) return;                                    // rest of HBL
+    const uint32_t n = h - 25;                             // display fetch 0..39
+    if (sl.flags & ScanLine::SHR) {
+        const uint8_t* src = e1 + 0x2000 + line * 160 + n * 4;
+        sl.shr[n * 4] = src[0]; sl.shr[n * 4 + 1] = src[1]; sl.shr[n * 4 + 2] = src[2]; sl.shr[n * 4 + 3] = src[3];
+        videoLast_ = src[3];
+        return;
+    }
+    if (line >= 192) return;                               // legacy VBL
+    const bool text = (sl.flags & ScanLine::TEXT) != 0;
+    const bool gfxHires = !text && (sl.flags & ScanLine::HIRES);
+    const int base = gfxHires ? scanHgrRowBase(int(line), hgrPage2() ? 0x4000 : 0x2000)
+                              : scanTextRowBase(int(line), textPage2() ? 0x0800 : 0x0400);
+    sl.main[n] = e0[base + n];
+    sl.aux[n]  = e1[base + n];
+    videoLast_ = sl.main[n];
+}
+
+void IIgsMemory::scanAdvance(uint64_t t0, uint64_t t1) {
+    // Mega II cycle index: 65 per 912-tick line (the last one is 16 ticks).
+    auto cycleOf = [](uint64_t t) {
+        return (t / uint64_t(kMasterPerLine)) * uint64_t(kLineCycles) + Mega2Timing::horizontalCycle(t);
+    };
+    const uint64_t c0 = cycleOf(t0), c1 = cycleOf(t1);
+    if (c1 == c0) return;
+    scanLive_ = true;
+    uint64_t k = c0 + 1;
+    if (c1 - c0 > uint64_t(kLineCycles) * kLines) k = c1 - uint64_t(kLineCycles) * kLines + 1; // cap at one frame
+    for (; k <= c1; ++k)
+        scanCycle(uint32_t((k / uint64_t(kLineCycles)) % uint64_t(kLines)), uint32_t(k % uint64_t(kLineCycles)));
+}
+
+void IIgsMemory::scanSnapshot() const {
+    for (uint32_t line = 0; line < uint32_t(kScanLines); ++line) {
+        scanCycle(line, 0);
+        scanCycle(line, 24);
+        for (uint32_t h = 25; h < uint32_t(kLineCycles); ++h) scanCycle(line, h);
+    }
 }
 
 void IIgsMemory::beginBusAccess() {

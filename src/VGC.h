@@ -68,15 +68,18 @@ private:
     // Advanced once per render() — the renderer runs one frame per host frame.
     uint32_t frameCount_ = 0;
     bool flashOn() const { return ((frameCount_ / 16) & 1) != 0; }
-    // Character code → char-ROM glyph, honouring ALTCHARSET and $C02B LANGSEL.
-    const uint8_t* glyph(uint8_t code, const IIgsMemory& mem) const;
-    void renderSHR(const IIgsMemory& mem);
-    void renderText(const IIgsMemory& mem);    // 40-column text
-    void renderText80(const IIgsMemory& mem);  // 80-column text (aux/main interleaved)
-    void renderTextBand(const IIgsMemory& mem, int rowStart, int rowEnd);  // mixed-mode text window
-    void renderHGR(const IIgsMemory& mem);    // legacy 280×192 hi-res
-    void renderDHGR(const IIgsMemory& mem);   // double hi-res 140×192 (16 colour)
-    void renderLores(const IIgsMemory& mem);  // legacy 40×48 lo-res
+    // Character code → char-ROM glyph, honouring ALTCHARSET and $C02B LANGSEL
+    // as captured for the line being drawn.
+    const uint8_t* glyph(uint8_t code, bool altChar, int langBank) const;
+    // Per-scanline decoders, all drawing from IIgsMemory::ScanLine captures
+    // (see IIgsMemory.h § Live scanout). `line` is the emulated scanline
+    // (0-199); every capture line paints framebuffer rows 2*line and 2*line+1.
+    void drawTextLine(const IIgsMemory& mem, int line);
+    void drawLoresLine(const IIgsMemory& mem, int line);
+    void drawHgrLine(const IIgsMemory& mem, int line);
+    void drawDhgrLine(const IIgsMemory& mem, int line);
+    void drawShrLine(const IIgsMemory& mem, int line);
+    void fillLine(int line, uint32_t colour);
 };
 
 #endif // POMIIGS_VGC_H

@@ -212,12 +212,30 @@ shadow write-through applied on store.
 
 ## Video — VGC + legacy
 
-*(Complete — `VGC` renders `IIgsMemory`'s slow-side video RAM to a 640×400 RGBA
-framebuffer (GL texture in the app). All modes dispatched in `render()`:
-`renderSHR`, `renderText`/`renderText80`, `renderHGR`, `renderDHGR`,
-`renderLores`, and `renderTextBand` for the mixed-mode text window. NTSC
-composite decode in `VGCNtsc.h`. Gates: `vgc_test`, `shr_test`, `dhgr_test`,
+*(Complete — `VGC` renders to a 640×400 RGBA framebuffer (GL texture in the
+app) **from a live scanout capture**, not from final memory: `IIgsMemory::tick()`
+runs the video scanner cycle by cycle, and `VGC::render()` draws each of the
+200 captured scanlines with `drawTextLine` (40/80 col), `drawLoresLine`,
+`drawHgrLine`, `drawDhgrLine` or `drawShrLine`. NTSC composite decode in
+`VGCNtsc.h`. Gates: `scanout_test`, `vgc_test`, `shr_test`, `dhgr_test`,
 `dhgr_page_test`, `text80_test`; `screenshot` tool for eyeballing.)*
+
+**Live scanout** (`IIgsMemory::ScanLine`, `scanCycle`/`scanAdvance`). For
+every Mega II cycle the beam crosses (65 per 912-tick line, 262 lines), the
+scanner does what the VGC does at that cycle: cycle 0 (start of HBL) reads
+the line's SCB; cycle 24 (end of HBL) latches the mode switches, `$C022`
+colours, ALTCHAR/LANGSEL and the 32-byte palette the SCB selects; cycles 25-64
+(HORIZCNT `$58-$7F`) fetch display slot n = h-25 — main + aux byte of the
+text/lo-res or hi-res row in the legacy modes, four SHR bytes per cycle. A
+write that lands after the beam passed shows next frame; a palette or mode
+change during HBL takes effect on that line (per-line splits, 3200-colour
+pictures); a CPU rewriting a text row while it is scanned crosses the scanner
+byte by byte (TextFunk). `videoBusByte()` is the last byte the scanner fetched
+— the Mega II floating bus, not yet served to unassigned `$C0xx` reads.
+Callers that render without running the clock (unit tests, tools) get a
+full-frame `scanSnapshot()`; the render loop reads the capture on the UI
+thread without locking, the same benign race the direct-memory renderer had.
+Cost: ~25 s of emulated time per host second on Apple Silicon.
 
 **Super Hi-Res** (`renderSHR`). Reads `$E1:2000-9CFF` (200 × 160 bytes), the
 per-line **SCB** at `$E1:9D00` (bit 7 = 640 mode, bits 0-3 = palette), and the
@@ -251,10 +269,10 @@ every display line the beam enters: an SHR SCB with bit 6 latches $C023 bit 5
 at that line (status even when disabled — MAME apple2gs.cpp apple2_vgc
 ~1090-1125) and asserts the VGC IRQ when $C023 bit 1 is set; $C032 writes and
 **$C02E/$C02F reads** acknowledge it (clear_vgcint(~SCANLINE), MAME
-:1674-1683). One IRQ per flagged line per frame. Still open: the renderer
-draws whole frames, so mid-frame palette-content splits (3200-colour
-pictures) don't show yet — needs a per-line palette capture (POM2's
-beam-racing softswitch event log is the pattern to reuse).
+:1674-1683). One IRQ per flagged line per frame. The live scanout latches
+each line's palette at the end of its HBL, so a handler that rewrites the
+palette from the scanline IRQ (3200-colour pictures, 640/320 menu splits)
+shows correctly.
 
 ---
 

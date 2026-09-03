@@ -4,6 +4,23 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Video — live scanout renderer (September 2026)
+
+The VGC no longer reconstructs a frame from final memory. `IIgsMemory::tick()`
+runs the video scanner over every Mega II cycle the beam crosses: the SCB at
+the start of a line's HBL, the mode switches, `$C022` colours, ALTCHAR/LANGSEL
+and the selected palette at its end, then the bytes the VGC fetches on display
+cycles 25-64 (HORIZCNT `$58-$7F`) — main + aux per cycle in the legacy modes,
+four SHR bytes per cycle. `VGC::render` draws each captured scanline. A write
+after the beam has passed shows next frame, a palette written from the
+scanline IRQ applies to that line (3200-colour pictures, 640/320 splits), and a
+text row rewritten while it is scanned crosses the scanner byte by byte — the
+TextFunk mechanism the catalog listed as an architectural blocker.
+`scanout_test` pins those three behaviours plus the full-frame snapshot that
+clock-less callers get. Every existing render gate, the GS/OS Finder and Total
+Replay screens are pixel-identical to the old renderer; the capture costs
+about 4 % of a frame (25 s emulated per host second).
+
 ### Tests — MiSTer gate at 15 pass / 6 documented xfails (September 2026)
 
 `gsqmmu_test` passes (its exit register dump, Y = failure count, is the

@@ -51,78 +51,46 @@ bool VGC::setCharRom(const std::vector<uint8_t>& rom) {
 // printed flashing text — Applesoft FLASH, the DOS/ProDOS prompts, countless
 // game menus — drew MouseText glyphs instead of letters.
 // (bug-hunt finding, August 2026.)
-const uint8_t* VGC::glyph(uint8_t code, const IIgsMemory& mem) const {
-    if (!mem.altCharSet() && code >= 0x40 && code < 0x80)
+const uint8_t* VGC::glyph(uint8_t code, bool altChar, int langBank) const {
+    if (!altChar && code >= 0x40 && code < 0x80)
         code = uint8_t(code + (flashOn() ? 0x40 : 0xC0));   // +$40 normal / −$40 inverse
     // Language bank (16 KB ROM only; the 4 KB/2 KB //e-style ROMs hold one set).
-    const size_t bank = (charRom_.size() >= 0x4000) ? size_t(mem.charRomBank()) * 0x800 : 0;
+    const size_t bank = (charRom_.size() >= 0x4000) ? size_t(langBank) * 0x800 : 0;
     return &charRom_[(bank + size_t(code) * 8) % charRom_.size()];
 }
 
+// ── Frame assembly from the live scanout ─────────────────────────────────
+// Every emulated scanline was captured by IIgsMemory as the beam crossed it
+// (mode switches, colours, SCB/palette, and the bytes the VGC fetched at each
+// display cycle). Drawing line by line from that capture is what makes
+// mid-frame palette splits, per-line mode switches and beam-race text
+// rewrites come out the way the CRT shows them. A caller that never ran the
+// clock (unit tests, tools) gets a full-frame snapshot of current memory.
 const uint32_t* VGC::render(const IIgsMemory& mem) {
     ++frameCount_;                     // drives the text flash phase
-    if (mem.shrEnabled())              { renderSHR(mem); return fb_.data(); }
-    if (mem.textMode())                { if (mem.text80()) renderText80(mem); else renderText(mem); return fb_.data(); }
-    // Legacy graphics. In MIXED mode ($C053) the bottom 4 character rows show
-    // text drawn from the text page while the top 20 rows stay graphics — the
-    // status/score window of countless HGR/LORES games. (POM2 Apple2Display.)
-    if (mem.hires() && mem.dhires())   renderDHGR(mem);
-    else if (mem.hires())              renderHGR(mem);
-    else                               renderLores(mem);
-    if (mem.mixed())                   renderTextBand(mem, 20, 24);
+    if (!mem.scanLive()) mem.scanSnapshot();
+    mem.scanConsume();
+    using SL = IIgsMemory::ScanLine;
+    for (int line = 0; line < IIgsMemory::kScanLines; ++line) {
+        const SL& sl = mem.scanLine(line);
+        if (sl.flags & SL::SHR)        { drawShrLine(mem, line); continue; }
+        if (line >= 192) {             // legacy modes: 192 lines, the rest is border/blank
+            const uint32_t bg = (sl.flags & SL::TEXT) ? kLoresPalette[sl.textColor & 0x0F] : 0xFF000000u;
+            fillLine(line, bg); continue;
+        }
+        if (sl.flags & SL::TEXT)       drawTextLine(mem, line);
+        else if (sl.flags & SL::DHGR)  drawDhgrLine(mem, line);
+        else if (sl.flags & SL::HIRES) drawHgrLine(mem, line);
+        else                           drawLoresLine(mem, line);
+    }
     return fb_.data();
 }
 
-// Draw text rows [rowStart,rowEnd) OVER the existing framebuffer (no full-screen
-// clear) for the mixed-mode text window. Picks 40- or 80-column to match the
-// current softswitch, mirroring renderText / renderText80.
-void VGC::renderTextBand(const IIgsMemory& mem, int rowStart, int rowEnd) {
-    if (charRom_.empty()) return;
-    const uint8_t sc = mem.textColor();
-    const uint32_t fg = kLoresPalette[sc >> 4];
-    const uint32_t bg = kLoresPalette[sc & 0x0F];
-    // Paint the band background across the full width first (glyph gaps → bg).
-    for (int py = rowStart * 16; py < rowEnd * 16 && py < kH; ++py)
-        for (int x = 0; x < kW; ++x) fb_[size_t(py) * kW + x] = bg;
-
-    const bool col80 = mem.text80();
-    const uint8_t* main = mem.slowRam();               // bank $E0
-    const uint8_t* aux  = mem.slowRam() + 0x10000;     // bank $E1 (80-col even cols)
-    const int page = mem.textPage2() ? 0x0800 : 0x0400;
-    const int ncol = col80 ? 80 : 40;
-    for (int rowc = rowStart; rowc < rowEnd; ++rowc) {
-        int rbase = page + (rowc % 8) * 0x80 + (rowc / 8) * 0x28;
-        for (int colc = 0; colc < ncol; ++colc) {
-            uint8_t b = col80 ? ((colc & 1) ? main : aux)[rbase + colc / 2]
-                              : main[rbase + colc];
-            const uint8_t* g = glyph(b, mem);
-            for (int gy = 0; gy < 8; ++gy) {
-                uint8_t bits = g[gy] & 0x7F;
-                for (int gx = 0; gx < 7; ++gx) {
-                    uint32_t c = (bits & (1 << gx)) ? fg : bg;
-                    int py = rowc * 16 + gy * 2;
-                    if (col80) {                        // 8-px cell, 1× glyph
-                        int px = colc * 8 + gx;
-                        fb_[size_t(py) * kW + px]       = c;
-                        fb_[size_t(py + 1) * kW + px]   = c;
-                    } else {                            // 16-px cell, 2× glyph
-                        int px = colc * 16 + gx * 2;
-                        for (int dy = 0; dy < 2; ++dy)
-                            for (int dx = 0; dx < 2; ++dx)
-                                fb_[size_t(py + dy) * kW + (px + dx)] = c;
-                    }
-                }
-            }
-        }
+void VGC::fillLine(int line, uint32_t colour) {
+    for (int yy = 0; yy < 2; ++yy) {
+        uint32_t* dst = &fb_[size_t(line * 2 + yy) * kW];
+        for (int x = 0; x < kW; ++x) dst[x] = colour;
     }
-}
-
-// //e address of text/lo-res row (interleaved) and hi-res row.
-static inline int textRowBase(int row, int page2base) {
-    return page2base + (row % 8) * 0x80 + (row / 8) * 0x28;
-}
-static inline int hgrRowBase(int y, int base) {
-    return base + (y & 7) * 0x400 + ((y >> 3) & 7) * 0x80 + (y >> 6) * 0x28;
 }
 
 // Clean RGB HGR decode (6 colours, sharp) — pairs of consecutive bits, the
@@ -146,187 +114,111 @@ static void decodeHgrRgbLine(const uint8_t* row, uint32_t* out /*[280]*/) {
     }
 }
 
-// ── Legacy hi-res 280×192 — composite NTSC or clean RGB (selectable) ────────
-void VGC::renderHGR(const IIgsMemory& mem) {
-    for (auto& px : fb_) px = 0xFF000000u;
-    const uint8_t* e0 = mem.slowRam();
-    const int base = mem.hgrPage2() ? 0x4000 : 0x2000;
-    const int ox = (kW - 560) / 2;                 // centre 560-wide (280×2)
-    for (int y = 0; y < 192; ++y) {
-        uint32_t line[280];
-        if (hgrMode_ == HgrMode::RgbClean) decodeHgrRgbLine(e0 + hgrRowBase(y, base), line);
-        else                               pomiigs::ntsc::decodeHgrLine(e0 + hgrRowBase(y, base), line);
-        for (int x = 0; x < 280; ++x) {            // ×2 horizontally, ×2 vertically
-            uint32_t c = line[x];
-            int px = x * 2 + ox, py = y * 2;
-            fb_[size_t(py) * kW + px] = c;      fb_[size_t(py) * kW + px + 1] = c;
-            fb_[size_t(py + 1) * kW + px] = c;  fb_[size_t(py + 1) * kW + px + 1] = c;
-        }
+// Blit a 280-dot legacy graphics line, doubled to 560 and centred, ×2 vertically.
+static void blit280(std::vector<uint32_t>& fb, int line, const uint32_t* row280) {
+    const int ox = (VGC::kW - 560) / 2;
+    for (int yy = 0; yy < 2; ++yy) {
+        uint32_t* dst = &fb[size_t(line * 2 + yy) * VGC::kW];
+        for (int x = 0; x < ox; ++x) dst[x] = 0xFF000000u;
+        for (int x = 0; x < 280; ++x) { dst[ox + x * 2] = row280[x]; dst[ox + x * 2 + 1] = row280[x]; }
+        for (int x = ox + 560; x < VGC::kW; ++x) dst[x] = 0xFF000000u;
     }
 }
 
-// ── Double Hi-Res 140×192 (16 colours) — composite NTSC or clean RGB ────────
-// 80-column interleave: the leftmost 7 dots of each column come from aux
-// memory (bank $E1), the next 7 from main (bank $E0). Same HgrMode toggle as
-// HGR: fuzzy composite artifacts vs sharp 16-colour RGB.
-void VGC::renderDHGR(const IIgsMemory& mem) {
-    for (auto& px : fb_) px = 0xFF000000u;
-    const uint8_t* main = mem.slowRam();               // bank $E0
-    const uint8_t* aux  = mem.slowRam() + 0x10000;     // bank $E1
-    const int base = mem.hgrPage2() ? 0x4000 : 0x2000;
-    const int ox = (kW - 560) / 2;                     // centre 560-wide (280×2)
-    for (int y = 0; y < 192; ++y) {
-        const int rb = hgrRowBase(y, base);
-        uint32_t line[280];
-        if (hgrMode_ == HgrMode::RgbClean)
-            pomiigs::ntsc::decodeDhgrRgbLine(aux + rb, main + rb, line);
-        else
-            pomiigs::ntsc::decodeDhgrLine(aux + rb, main + rb, line);
-        for (int x = 0; x < 280; ++x) {                // ×2 horizontally, ×2 vertically
-            uint32_t c = line[x];
-            int px = x * 2 + ox, py = y * 2;
-            fb_[size_t(py) * kW + px] = c;      fb_[size_t(py) * kW + px + 1] = c;
-            fb_[size_t(py + 1) * kW + px] = c;  fb_[size_t(py + 1) * kW + px + 1] = c;
-        }
-    }
+// ── Legacy hi-res 280-dot line — composite NTSC or clean RGB (selectable) ──
+void VGC::drawHgrLine(const IIgsMemory& mem, int line) {
+    const IIgsMemory::ScanLine& sl = mem.scanLine(line);
+    uint32_t row[280];
+    if (hgrMode_ == HgrMode::RgbClean) decodeHgrRgbLine(sl.main, row);
+    else                               pomiigs::ntsc::decodeHgrLine(sl.main, row);
+    blit280(fb_, line, row);
 }
 
-// ── Legacy lo-res 40×48 (16 colours) ─────────────────────────────────────
-void VGC::renderLores(const IIgsMemory& mem) {
-    const uint32_t* lut = kLoresPalette;   // 16-colour lo-res palette (shared)
-    for (auto& px : fb_) px = 0xFF000000u;
-    const uint8_t* e0 = mem.slowRam();
-    const int page = mem.textPage2() ? 0x0800 : 0x0400;
-    const int cellW = kW / 40, cellH = kH / 48;
-    for (int row = 0; row < 24; ++row) {
-        int rb = textRowBase(row, page);
+// ── Double Hi-Res line (16 colours) — aux bytes are the left 7 dots of each
+// column, main the right 7. Same HgrMode toggle as HGR.
+void VGC::drawDhgrLine(const IIgsMemory& mem, int line) {
+    const IIgsMemory::ScanLine& sl = mem.scanLine(line);
+    uint32_t row[280];
+    if (hgrMode_ == HgrMode::RgbClean) pomiigs::ntsc::decodeDhgrRgbLine(sl.aux, sl.main, row);
+    else                               pomiigs::ntsc::decodeDhgrLine(sl.aux, sl.main, row);
+    blit280(fb_, line, row);
+}
+
+// ── Legacy lo-res line (16 colours): each byte is a 2-block column, the low
+// nibble for the top 4 scanlines of a text row, the high one for the bottom 4.
+void VGC::drawLoresLine(const IIgsMemory& mem, int line) {
+    const IIgsMemory::ScanLine& sl = mem.scanLine(line);
+    const bool bottom = (line & 7) >= 4;
+    for (int yy = 0; yy < 2; ++yy) {
+        uint32_t* dst = &fb_[size_t(line * 2 + yy) * kW];
         for (int col = 0; col < 40; ++col) {
-            uint8_t v = e0[rb + col];
-            uint32_t top = lut[v & 0x0F], bot = lut[v >> 4];
+            const uint8_t v = sl.main[col];
+            const uint32_t c = kLoresPalette[bottom ? (v >> 4) : (v & 0x0F)];
+            for (int dx = 0; dx < 16; ++dx) dst[col * 16 + dx] = c;
+        }
+    }
+}
+
+// ── Super Hi-Res line (320/640) from the captured SCB, palette and 160 bytes ─
+void VGC::drawShrLine(const IIgsMemory& mem, int line) {
+    const IIgsMemory::ScanLine& sl = mem.scanLine(line);
+    const bool mode640 = (sl.scb & 0x80) != 0;     // SCB bit 7 = 640 mode
+    const bool fill    = (sl.scb & 0x20) != 0;     // SCB bit 5 = colour-fill (320 only)
+    auto color = [&](int idx) { return rgb12(sl.pal[idx * 2], sl.pal[idx * 2 + 1]); };
+    uint32_t row[640];
+    if (!mode640) {                                // 320: byte = 2 × 4-bit index, each dot doubled
+        // Colour-fill: index 0 repeats the previous pixel's colour instead of
+        // palette[0] (fast horizontal runs). Seeds from palette[0].
+        uint32_t last = color(0);
+        for (int b = 0; b < 160; ++b) {
+            const uint8_t v = sl.shr[b];
             for (int half = 0; half < 2; ++half) {
-                uint32_t c = half ? bot : top;
-                int y0 = (row * 2 + half) * cellH;
-                for (int dy = 0; dy < cellH; ++dy)
-                    for (int dx = 0; dx < cellW; ++dx)
-                        fb_[size_t(y0 + dy) * kW + col * cellW + dx] = c;
+                const int idx = half ? (v & 0x0F) : (v >> 4);
+                const uint32_t c = (fill && idx == 0) ? last : color(idx);
+                if (!(fill && idx == 0)) last = c;
+                row[b * 4 + half * 2] = c; row[b * 4 + half * 2 + 1] = c;
             }
         }
+    } else {                                       // 640: byte = 4 × 2-bit, column-offset palette
+        static const int off[4] = { 8, 12, 0, 4 };
+        for (int b = 0; b < 160; ++b) {
+            const uint8_t v = sl.shr[b];
+            for (int d = 0; d < 4; ++d) row[b * 4 + d] = color(off[d] + ((v >> ((3 - d) * 2)) & 0x03));
+        }
+    }
+    for (int yy = 0; yy < 2; ++yy) {
+        uint32_t* dst = &fb_[size_t(line * 2 + yy) * kW];
+        for (int x = 0; x < 640; ++x) dst[x] = row[x];
     }
 }
 
-// ── Super Hi-Res (320/640 × 200) ─────────────────────────────────────────
-void VGC::renderSHR(const IIgsMemory& mem) {
-    const uint8_t* e1 = mem.slowRam() + 0x10000;   // bank $E1
-    const uint8_t* scb = e1 + 0x9D00;              // scan-control bytes
-    const uint8_t* pal = e1 + 0x9E00;              // 16 palettes × 16 colours × 2
-
-    for (int line = 0; line < 200; ++line) {
-        const uint8_t s = scb[line];
-        const bool mode640 = (s & 0x80) != 0;      // SCB bit 7 = 640 mode
-        const bool fill    = (s & 0x20) != 0;      // SCB bit 5 = color-fill (320 only)
-        const int palNum = s & 0x0F;
-        const uint8_t* p = pal + palNum * 32;
-        auto color = [&](int idx) { return rgb12(p[idx * 2], p[idx * 2 + 1]); };
-        const uint8_t* src = e1 + 0x2000 + line * 160;
-
-        uint32_t row[640];
-        if (!mode640) {                            // 320: byte = 2 × 4-bit index, each dot doubled to 640
-            // Color-fill: a pixel index of 0 repeats the previous pixel's colour
-            // instead of palette[0] (fast horizontal runs). Seeds from palette[0].
-            uint32_t last = color(0);
-            for (int b = 0; b < 160; ++b) {
-                uint8_t v = src[b];
-                for (int half = 0; half < 2; ++half) {
-                    int idx = half ? (v & 0x0F) : (v >> 4);
-                    uint32_t c = (fill && idx == 0) ? last : color(idx);
-                    if (!(fill && idx == 0)) last = c;
-                    row[b * 4 + half * 2 + 0] = c;
-                    row[b * 4 + half * 2 + 1] = c;
-                }
-            }
-        } else {                                   // 640: byte = 4 × 2-bit, column-offset palette
-            static const int off[4] = { 8, 12, 0, 4 };
-            for (int b = 0; b < 160; ++b) {
-                uint8_t v = src[b];
-                for (int d = 0; d < 4; ++d) {
-                    int two = (v >> ((3 - d) * 2)) & 0x03;
-                    row[b * 4 + d] = color(off[d] + two);
-                }
-            }
-        }
-        // Blit line, doubled vertically (200 → 400).
-        for (int yy = 0; yy < 2; ++yy) {
-            uint32_t* dst = &fb_[size_t(line * 2 + yy) * kW];
-            for (int x = 0; x < 640; ++x) dst[x] = row[x];
+// ── Text line, 40 or 80 columns, via the IIgs char ROM ───────────────────
+// 40 columns: 16-px cells, glyph dots doubled. 80 columns: 8-px cells (7-px
+// glyph + 1-px gap), the aux byte of a pair is the even (left) column, the
+// main byte the odd one. $C022 SCREENCOLOR: fg = high nibble, bg = low.
+void VGC::drawTextLine(const IIgsMemory& mem, int line) {
+    const IIgsMemory::ScanLine& sl = mem.scanLine(line);
+    const uint32_t fg = kLoresPalette[sl.textColor >> 4];
+    const uint32_t bg = kLoresPalette[sl.textColor & 0x0F];
+    if (charRom_.empty()) { fillLine(line, bg); return; }   // authentic font required (roms/iigs-char.rom)
+    const bool col80 = (sl.flags & IIgsMemory::ScanLine::COL80) != 0;
+    const bool altChar = (sl.flags & IIgsMemory::ScanLine::ALTCHAR) != 0;
+    const int gy = line & 7;
+    uint32_t row[640];
+    const int ncol = col80 ? 80 : 40;
+    for (int colc = 0; colc < ncol; ++colc) {
+        const uint8_t code = col80 ? ((colc & 1) ? sl.main : sl.aux)[colc / 2] : sl.main[colc];
+        const uint8_t bits = glyph(code, altChar, sl.langBank)[gy] & 0x7F;
+        if (col80) {
+            for (int gx = 0; gx < 7; ++gx) row[colc * 8 + gx] = (bits & (1 << gx)) ? fg : bg;
+            row[colc * 8 + 7] = bg;
+        } else {
+            for (int gx = 0; gx < 7; ++gx) { const uint32_t c = (bits & (1 << gx)) ? fg : bg; row[colc * 16 + gx * 2] = c; row[colc * 16 + gx * 2 + 1] = c; }
+            row[colc * 16 + 14] = bg; row[colc * 16 + 15] = bg;
         }
     }
-}
-
-// ── 40-column text ($E0:0400, //e interleaved) via the IIgs char ROM ─────
-void VGC::renderText(const IIgsMemory& mem) {
-    // $C022 SCREENCOLOR: fg = high nibble, bg = low nibble (16-colour palette).
-    const uint8_t sc = mem.textColor();
-    const uint32_t fg = kLoresPalette[sc >> 4];
-    const uint32_t bg = kLoresPalette[sc & 0x0F];
-    for (auto& px : fb_) px = bg;
-
-    if (charRom_.empty()) return;      // authentic font required (roms/iigs-char.rom)
-
-    const uint8_t* e0 = mem.slowRam();
-    const int page = mem.textPage2() ? 0x0800 : 0x0400;
-    for (int rowc = 0; rowc < 24; ++rowc) {
-        int rbase = page + (rowc % 8) * 0x80 + (rowc / 8) * 0x28;
-        for (int colc = 0; colc < 40; ++colc) {
-            uint8_t b = e0[rbase + colc];
-            // Char-ROM glyph: 8 bytes/char, 7 pixels (bit 0 = left), ALTCHARSET
-            // + LANGSEL resolved by glyph().
-            const uint8_t* g = glyph(b, mem);
-            for (int gy = 0; gy < 8; ++gy) {
-                uint8_t bits = g[gy] & 0x7F;
-                for (int gx = 0; gx < 7; ++gx) {
-                    uint32_t c = (bits & (1 << gx)) ? fg : bg;
-                    int px = colc * 16 + gx * 2;
-                    int py = rowc * 16 + gy * 2;
-                    for (int dy = 0; dy < 2; ++dy)
-                        for (int dx = 0; dx < 2; ++dx)
-                            fb_[size_t((py + dy)) * kW + (px + dx)] = c;
-                }
-            }
-        }
-    }
-}
-
-// ── 80-column text (aux/main interleaved) via the IIgs char ROM ──────────
-// Each row's 40-byte line is split across the banks: the aux byte at offset k
-// is column 2k (even, leftmost of the pair), the main byte at k is column
-// 2k+1. Cells are 8 px wide (7-px glyph + 1-px gap) → 80×8 = 640.
-void VGC::renderText80(const IIgsMemory& mem) {
-    const uint8_t sc = mem.textColor();
-    const uint32_t fg = kLoresPalette[sc >> 4];
-    const uint32_t bg = kLoresPalette[sc & 0x0F];
-    for (auto& px : fb_) px = bg;
-
-    if (charRom_.empty()) return;
-
-    const uint8_t* main = mem.slowRam();               // bank $E0 → odd columns
-    const uint8_t* aux  = mem.slowRam() + 0x10000;     // bank $E1 → even columns
-    const int page = mem.textPage2() ? 0x0800 : 0x0400;
-    for (int rowc = 0; rowc < 24; ++rowc) {
-        int rbase = page + (rowc % 8) * 0x80 + (rowc / 8) * 0x28;
-        for (int colc = 0; colc < 80; ++colc) {
-            const uint8_t* bank = (colc & 1) ? main : aux;   // even = aux, odd = main
-            uint8_t b = bank[rbase + colc / 2];
-            const uint8_t* g = glyph(b, mem);
-            for (int gy = 0; gy < 8; ++gy) {
-                uint8_t bits = g[gy] & 0x7F;
-                for (int gx = 0; gx < 7; ++gx) {
-                    uint32_t c = (bits & (1 << gx)) ? fg : bg;
-                    int px = colc * 8 + gx;              // 8-px cell, 7-px glyph
-                    int py = rowc * 16 + gy * 2;
-                    fb_[size_t(py) * kW + px] = c;
-                    fb_[size_t(py + 1) * kW + px] = c;
-                }
-            }
-        }
+    for (int yy = 0; yy < 2; ++yy) {
+        uint32_t* dst = &fb_[size_t(line * 2 + yy) * kW];
+        for (int x = 0; x < 640; ++x) dst[x] = row[x];
     }
 }

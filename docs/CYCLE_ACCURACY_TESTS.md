@@ -39,17 +39,22 @@ The CPU now emits every cycle in microsequence order — active transactions
 and internal cycles alike — and the scheduler places each one, so an
 instruction's bus accesses land on the correct PH0 slot and refresh phase
 (`megaii_timing_test` pins `INC abs` / `STA abs,X` shapes at instruction
-level). Two gaps still prevent a valid TextFunk/FloatBus pass today:
+level). The VGC now renders from a live scanout: `IIgsMemory::tick()` runs
+the video scanner cycle by cycle (SCB at the start of HBL, mode/colour/palette
+latch at its end, main+aux or SHR fetches on display cycles 25-64), and
+`VGC::render` draws each captured scanline (`scanout_test` pins frame
+ordering, an in-line beam race and the HBL palette latch). Two gaps remain
+before a valid TextFunk/FloatBus pass:
 
 1. The reset phase of the PH0 and refresh grids is assumed, not measured; it
    awaits calibration against a real-IIgs trace.
-2. `VGC::render` reconstructs a frame from final memory. It does not consume
-   memory in raster order while the CPU is writing, and unmapped/floating-bus
-   reads are still approximate.
+2. The Mega II floating bus — the scanner's fetched byte (`videoBusByte()`)
+   is captured but not yet served to unassigned `$C0xx` reads, and the
+   fast-side floating value is the last data byte only.
 
-For that reason, TextFunk and FloatBus are catalogued as explicit blockers,
-not green tests. This prevents “software booted” from being reported as a
-false cycle-accuracy pass.
+For that reason, TextFunk (media user-supplied, no hardware golden yet) and
+FloatBus stay catalogued as staged/blocked, not green tests. This prevents
+“software booted” from being reported as a false cycle-accuracy pass.
 
 ## Test inventory
 
@@ -392,7 +397,8 @@ runner refuses to attach download URLs to any `user-supplied` catalog entry.
 2. Build and boot the open MiSTer diagnostics; establish exact PASS goldens.
 3. ~~Feed inactive CPU cycles into the landed 912-tick/PH0/refresh
    scheduler~~ (done) and calibrate its reset phase from a real-IIgs trace.
-4. Implement raster-time VGC fetches and live floating-bus values.
+4. ~~Implement raster-time VGC fetches~~ (done: live scanout) and live
+   floating-bus values (Mega II side still open).
 5. Capture real-IIgs TextFunk and FloatBus traces; make them hard gates.
 6. ~~Automate ROM selftests~~ (done; test 09 awaits the ADB µC firmware) and
    user-supplied TrueGS/service diagnostics.

@@ -274,6 +274,39 @@ public:
     bool    romLoaded() const { return !rom_.empty(); }
     uint32_t romBankBase() const { return romBankBase_; }
     const uint8_t* slowRam() const { return slowRam_.data(); }   // $E0/$E1 (video)
+
+    // ── Live scanout ──────────────────────────────────────────────────────
+    // The VGC is modelled as a scanner: as tick() advances the master clock,
+    // every Mega II cycle the beam crosses fetches what the real video
+    // generator fetches at that cycle — two bytes (main + aux) per display
+    // cycle in the legacy modes, four bytes per cycle in Super Hi-Res, the
+    // SCB at the start of the line's blanking, the mode switches, text colour
+    // and palette at the end of it — into a per-line capture. VGC::render
+    // draws from the capture, so a write that lands after the beam has passed
+    // shows next frame, a palette change during HBL takes effect on that line,
+    // and a CPU rewriting a text row while it is being scanned crosses the
+    // scanner byte by byte (TextFunk). Fetch slot n of a line is Mega II cycle
+    // 25+n (HORIZCNT $58-$7F); cycles 0-24 are the horizontal blanking.
+    struct ScanLine {
+        enum : uint8_t { SHR = 1, TEXT = 2, HIRES = 4, DHGR = 8, COL80 = 16, ALTCHAR = 32 };
+        uint8_t flags = 0;
+        uint8_t langBank = 0;      // $C02B char-ROM language bank
+        uint8_t textColor = 0xF0;  // $C022
+        uint8_t scb = 0;           // SHR scan-control byte
+        uint8_t pal[32] = {0};     // SHR palette for this line (16 × $0RGB)
+        uint8_t main[40] = {0};    // legacy fetches, bank $E0
+        uint8_t aux[40] = {0};     // legacy fetches, bank $E1
+        uint8_t shr[160] = {0};    // SHR fetches
+    };
+    static constexpr int kScanLines = 200;             // captured lines (legacy uses 0-191)
+    const ScanLine& scanLine(int line) const { return scan_[line]; }
+    // True when tick() captured at least one cycle since the last render; a
+    // renderer that finds it false takes a full-frame snapshot instead (tests
+    // and tools that render without running the clock).
+    bool scanLive() const { return scanLive_; }
+    void scanConsume() const { scanLive_ = false; }
+    void scanSnapshot() const;                         // capture every line from current memory
+    uint8_t videoBusByte() const { return videoLast_; } // last byte the scanner fetched (floating bus)
     const uint8_t* bram() const { return bram_; }                // 256-byte battery RAM
     uint8_t newVideo()  const { return newvideo_; }              // $C029
     bool    shrEnabled() const { return (newvideo_ & 0x80) != 0; }
@@ -450,6 +483,11 @@ private:
     // crossed the data bus — for `LDA >$810000` that is the operand's bank
     // byte, which is exactly what the MiSTer mmu_test 25 checks on hardware.
     uint8_t busLast_ = 0;
+    mutable ScanLine scan_[200];
+    mutable bool scanLive_ = false;
+    mutable uint8_t videoLast_ = 0;
+    void scanCycle(uint32_t line, uint32_t h) const;   // one Mega II cycle of the scanner
+    void scanAdvance(uint64_t t0, uint64_t t1);        // every cycle whose start lies in (t0, t1]
     // CYAREG ($C036) bit 4 — "shadow all banks": every fast bank behaves like
     // bank $00 (even) / $01 (odd): //e main/aux redirect, I/O + language card
     // in $C000-$FFFF, and video shadowing to $E0/$E1 (MiSTer mmu_test 03/07/

@@ -313,7 +313,7 @@
       "id": "textfunk-beamrace",
       "title": "TextFunk Viewer live text-page beam race",
       "tier": "external-user-supplied",
-      "readiness": "blocked-live-scanout",
+      "readiness": "staged",
       "domains": ["cpu65816", "fpi-cya", "mega2", "vgc", "shadowing"],
       "asset_policy": "user-supplied",
       "assets": [
@@ -321,7 +321,7 @@
         {"name": "Real-IIgs tunnel/grid golden set", "env": "POMIIGS_TEXTFUNK_GOLDENS"}
       ],
       "references": ["textfunk-analysis", "mister-iigs-regression"],
-      "oracle": "Tunnel and grid must be seam-free on consecutive deterministic frames; CPU writes and VGC reads must cross at the hardware position. Final-memory rendering is not a valid pass.",
+      "oracle": "Tunnel and grid must be seam-free on consecutive deterministic frames; CPU writes and VGC reads must cross at the hardware position. The renderer now draws from the live per-cycle scanout (scanout_test); the media and a real-IIgs golden are still user-supplied.",
       "command": []
     },
     {

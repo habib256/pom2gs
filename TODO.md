@@ -41,8 +41,9 @@ pass.
   launcher (`selftest02/04`, covered by the sequential `selftest_trace`).
 - 🟡 Make **TextFunk Viewer** a first-class beam-race gate: deterministic boot,
   scripted screen selection, consecutive-frame captures and comparison against
-  a real-IIgs golden. Passing requires a live scanout model; rendering only the
-  final text-page memory is explicitly insufficient.
+  a real-IIgs golden. 🟢 The live scanout model exists (`scanout_test`: the
+  scanner crosses a text row being rewritten byte by byte); 🔴 the media and a
+  hardware golden are still user-supplied (`tests/cycle_accuracy/disks/`).
 - 🟡 Catalog the hardware-verified VidModes and FloatBus archives with exact
   provenance, sizes and SHA-256. Their sources have no explicit licence, so the
   harness records them as `reference-only` and never auto-downloads them.
@@ -413,8 +414,9 @@ needs the following, in rough priority order.
 **P3 — VGC completeness (games / demos / apps)**
 - 🟢 **Scanline interrupts** (SCB bit6) — per-line beam walk latches `$C023` bit5
   and raises the VGC IRQ; `$C032` writes + `$C02E`/`$C02F` reads acknowledge.
-  Gate: `irq_test`. 🔴 still open: the *renderer* draws whole frames, so mid-frame
-  split modes (640 menu + 320 gfx, 3200-colour pictures) don't show yet.
+  Gate: `irq_test`. 🟢 The renderer draws from the live scanout (per-line
+  SCB/palette/mode latch, per-cycle fetches — `scanout_test`), so mid-frame
+  split modes (640 menu + 320 gfx, 3200-colour pictures) show.
 - 🟢 SHR **colour-fill** mode (SCB bit5 — index-0 repeats the previous pixel)
   and **border colour** ($C034, drawn as an authentic frame around the display).
   Gate: `shr_test`.
