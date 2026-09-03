@@ -185,7 +185,8 @@ Gate: `reset_test`.
 **Broadly working — GS/OS boots.** Twelve differential bug-sweep passes brought
 POMIIGS to broad KEGS/MAME/GSSquared parity:
 
-- 65C816 🟢 (5.12M Tom Harte vectors, all 256 opcodes, every bus cycle), FPI/Mega II MMU 🟢 (shadow, speed,
+- 65C816 🟢 (5.12M Tom Harte vectors, all 256 opcodes, every bus cycle; gilyon
+  1610/1610 and Klaus functional cross-checks), FPI/Mega II MMU 🟢 (shadow, speed,
   //e main/aux redirect, STATEREG, VBL + Mega II quarter-second IRQ).
 - VGC 🟢 Super Hi-Res + SCB/palettes, legacy text (authentic char ROM),
   HGR/DHGR (NTSC + RGB). Ensoniq DOC 🟢 (synthLAB music validated).

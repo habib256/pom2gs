@@ -254,10 +254,21 @@ void CPU65816::step() {
         io();                                               // index add
         uint16_t xx = eX ? (x_ & 0xFF) : x_;
         uint8_t lo, hi;
-        if (emulation_ && (d_ & 0xFF) == 0) {           // DL=0: dp+X offset wraps to 8 bits...
-            uint16_t ploc = uint16_t((d_ & 0xFF00) | uint8_t(o + xx));
+        // Emulation mode: the pointer's HIGH byte is read within the page of
+        // the low byte's address. With DL=0 both bytes stay in the direct page
+        // (0:DH:(LL+X)&FF / 0:DH:(LL+X+1)&FF — Bruce Clark, "Investigating the
+        // 65C816's Operation" §5.11); with DL!=0 the low byte is at the full
+        // 16-bit D+LL+X while the +1 for the high byte wraps within that page
+        // — a silicon quirk verified on hardware (gilyon cputest 0027, README
+        // "undocumented behavior") and modelled by bsnes (wdc65816 readDirectX).
+        // The SingleStepTests corpus reads the high byte at lo+1 in both cases;
+        // the harness carries those page-crossing vectors as issue-linked
+        // xfails (upstream issue #3 patched a single SBC vector).
+        if (emulation_) {
+            const uint16_t ploc = ((d_ & 0xFF) == 0) ? uint16_t((d_ & 0xFF00) | uint8_t(o + xx))
+                                                     : uint16_t(d_ + o + xx);
             lo = rd(ploc);
-            hi = rd(uint16_t(ploc + 1));                // ...but the pointer hi byte is at ploc+1, NOT page-wrapped (Tom Harte)
+            hi = rd(uint16_t((ploc & 0xFF00) | uint8_t(ploc + 1)));
         } else {
             uint16_t ptr = uint16_t(d_ + o + xx);
             lo = rd(ptr); hi = rd(uint16_t(ptr + 1));
@@ -752,8 +763,12 @@ void CPU65816::step() {
         case 0x20: { uint16_t a = fetch16(); io(); pushW(uint16_t(pc_ - 1)); pc_ = a; } break; // JSR abs
         // JSR (abs,X): the return address (= the AAH byte's address) is pushed
         // between the two operand fetches — opcode, AAL, PCH, PCL, AAH, IO,
-        // new PCL, new PCH (W65C816S Table 5-7; SingleStepTests corpus).
-        case 0xFC: { uint8_t lo = fetch(); pushW(pc_); uint8_t hi = fetch(); io();
+        // new PCL, new PCH (W65C816S Table 5-7; SingleStepTests corpus). It is
+        // one of the NEW 65816 instructions, so the push uses the raw 16-bit
+        // stack even in emulation mode (no page-1 wrap: 6502.org 65C816 opcodes
+        // appendix, bsnes, gilyon cputest 0277; SingleStepTests issue #6 — the
+        // corpus wraps, carried as an xfail by the harness).
+        case 0xFC: { uint8_t lo = fetch(); pushWraw(pc_); uint8_t hi = fetch(); io();
             uint16_t ptr=uint16_t(uint16_t(lo | (hi << 8))+(eX?(x_&0xFF):x_));
             pc_=uint16_t(rd((uint32_t(pbr_)<<16)|ptr)|(rd((uint32_t(pbr_)<<16)|uint16_t(ptr+1))<<8)); } break; // JSR (abs,X)
         case 0x22: { uint16_t a = fetch16(); pushBraw(pbr_); io(); uint8_t b = fetch(); pushWraw(uint16_t(pc_ - 1)); pc_ = a; pbr_ = b; } break; // JSL long: PBR is pushed between AAH and AAB

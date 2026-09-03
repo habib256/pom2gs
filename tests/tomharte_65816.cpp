@@ -196,6 +196,31 @@ bool activeBusCycle(const ExpectedCycle& cycle) {
            (cycle.outputs[0] != '-' || cycle.outputs[1] != '-' || cycle.outputs[2] != '-');
 }
 
+// Known corpus errors, carried as exact issue-linked xfails rather than
+// opcode-wide skips. Returns the reason when the vector's mismatch is one of
+// them, else nullptr.
+//  (dp,X) in emulation mode: the pointer's high byte is read within the page
+//  of the low byte's address (DL=0: Bruce Clark §5.11, SingleStepTests/65816
+//  issue #3 — a single SBC vector was patched; DL!=0: hardware quirk verified
+//  by gilyon cputest 0027 and modelled by bsnes readDirectX). The corpus reads
+//  it at lo+1, so every vector whose pointer sits at $xxFF differs.
+//  JSR (abs,X) in emulation mode pushes through the raw 16-bit stack (a new
+//  65816 instruction — 6502.org 65C816 opcodes appendix, bsnes, gilyon cputest
+//  0277); the corpus wraps the push inside page 1 (SingleStepTests/65816
+//  issue #6), so vectors with S=$xx00 differ.
+const char* knownCorpusError(const Vector& v) {
+    if (v.cycles.size() < 2 || !v.cycles[0].hasValue || !v.cycles[1].hasValue || !v.initial.e) return nullptr;
+    const uint8_t op = v.cycles[0].val;
+    if (op == 0xFC) return (v.initial.s & 0xFF) == 0x00 ? "JSR (abs,X) E=1 stack page wrap — SingleStepTests/65816 issue #6" : nullptr;
+    if ((op & 0x1F) != 0x01) return nullptr;                       // $01/$21/…/$E1: (dp,X)
+    const uint8_t ll = v.cycles[1].val, x = uint8_t(v.initial.x);
+    const uint16_t d = v.initial.d;
+    const uint16_t lo = (d & 0xFF) == 0 ? uint16_t((d & 0xFF00) | uint8_t(ll + x)) : uint16_t(d + ll + x);
+    if ((lo & 0xFF) != 0xFF) return nullptr;
+    return (d & 0xFF) == 0 ? "(dp,X) E=1 DL=0 pointer page wrap — SingleStepTests/65816 issue #3"
+                           : "(dp,X) E=1 DL!=0 high-byte page wrap — gilyon cputest 0027 / bsnes readDirectX";
+}
+
 bool runVector(CPU65816& cpu, IIgsMemory& mem, const Vector& vIn, bool checkCycles, bool checkBus, std::string& why,
                bool activeOnly = false) {
     loadState(cpu, vIn.initial);
@@ -464,7 +489,7 @@ int main(int argc, char** argv) {
     CPU65816 cpu(&mem);
     std::printf("[tomharte65816] dir=%s files=%zu cycles=%s bus=%s\n", dir.c_str(), files.size(), checkCycles?"on":"off", !checkBus?"off":activeOnly?"active-only":"all-cycles");
 
-    long grandTotal=0, grandPass=0, filesRun=0; bool anyFail=false;
+    long grandTotal=0, grandPass=0, filesRun=0, xfails=0; bool anyFail=false;
     for (const fs::path& f : files) {
         const std::string stem=f.stem().string(); const int opc=opcodeFromStem(stem);
         if (!only.empty()&&(opc<0||!only.count(opc))) continue;
@@ -477,7 +502,8 @@ int main(int argc, char** argv) {
         while (true) {
             skipWs(p); if (*p==']'||*p=='\0') break;
             if (!parseVector(p,v)) break;
-            std::string why; const bool ok=runVector(cpu,mem,v,checkCycles,checkBus,why,activeOnly);
+            std::string why; bool ok=runVector(cpu,mem,v,checkCycles,checkBus,why,activeOnly);
+            if (!ok) { if (const char* reason = knownCorpusError(v)) { ok = true; ++xfails; if (verbose) std::printf("        ~ \"%s\"  XFAIL %s\n", v.name.c_str(), reason); } }
             ++total; if (ok)++passed; else if (int(firstFew.size())<examples) firstFew.push_back({v.name,why});
             if (maxPerFile>0&&total>=maxPerFile) break;
             skipWs(p); if (*p==','){++p;continue;} if (*p==']'){++p;break;}
@@ -487,7 +513,7 @@ int main(int argc, char** argv) {
         std::printf("  %-6s : %6d/%-6d %s\n",stem.c_str(),passed,total,fileOk?"OK":"FAIL");
         if (!fileOk||verbose) for (auto& mm:firstFew) std::printf("        x \"%s\"  %s\n",mm.first.c_str(),mm.second.c_str());
     }
-    std::printf("[tomharte65816] %s: %ld/%ld across %ld file(s)%s\n", anyFail?"FAIL":"OK", grandPass, grandTotal, filesRun, anyFail?"  <<< MISMATCH":"");
+    std::printf("[tomharte65816] %s: %ld/%ld across %ld file(s), %ld known corpus error(s) carried as xfail%s\n", anyFail?"FAIL":"OK", grandPass, grandTotal, filesRun, xfails, anyFail?"  <<< MISMATCH":"");
     if (filesRun==0) { std::fprintf(stderr,"[tomharte65816] no files matched — SKIP\n"); return 77; }
     return anyFail?1:0;
 }

@@ -87,6 +87,30 @@ clock scheduler phase the *following* transaction correctly (see § Timing).
 Direct-page and stack-relative 16-bit data wrap inside bank 0 (`$00FFFF+1 =
 $000000`); absolute/long/indexed data spill into the next bank.
 
+**Hardware over corpus — two rulings (September 2026).** `(dp,X)` in emulation
+mode reads the pointer's HIGH byte within the page of the low byte's address:
+with DL=0 both bytes stay in the direct page (Bruce Clark, *Investigating the
+65C816's Operation* §5.11), with DL≠0 the low byte is at the full 16-bit
+D+LL+X and only the +1 wraps — a silicon quirk verified by gilyon's hardware
+test 0027 and modelled by bsnes (`readDirectX`). `JSR (abs,X)` is a new 65816
+instruction and pushes through the raw 16-bit stack in emulation mode (no
+page-1 wrap — 6502.org opcodes appendix, bsnes, gilyon 0277). The
+SingleStepTests corpus disagrees on both (issues #3 and #6 upstream); the
+harness carries exactly those vectors — `(dp,X)` with the pointer at `$xxFF`,
+`$FC` with S=`$xx00` — as issue-linked xfails (`knownCorpusError`, 308 vectors)
+and fails on anything else.
+
+**Functional cross-checks** (catalog `cpu-functional-crosschecks`):
+`klaus_test` runs Klaus Dormann's assembled 6502 functional test on the flat
+bus in emulation mode until it parks in a `jmp *` trap (success = `$3469` in
+the pinned listing; 30.6 M instructions); `gilyon_test` runs the gilyon
+`snes-tests/cputest` generator — 1610 native/emulation tests of every opcode
+and addressing mode with wrapping edge cases — rehosted on the flat bus by
+`tests/cycle_accuracy/gilyon_flatbus.asm` (the SNES PPU driver replaced by a
+status byte + `STP`; `tools/build_gilyon.sh` assembles it with cc65 against
+the pinned generator output, LoROM layout kept). Both SKIP when their inputs
+are not fetched/built.
+
 **Test.** `tomharte_65816 <dir>` (harness in `tests/`, fetch via
 `tests/fetch_tomharte_65816.sh`). Each vector's `e` field selects the mode; P
 is compared with the phantom bits (`0x30`) masked only in emulation mode

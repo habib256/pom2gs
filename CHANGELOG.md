@@ -4,6 +4,20 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### CPU — functional cross-checks and two hardware rulings (September 2026)
+
+Two independent suites now gate the core beside Tom Harte: Klaus Dormann's
+6502 functional test (emulation mode, success trap) and the gilyon 65C816
+generator — 1610 native/emulation tests with wrapping edge cases — rehosted
+on the flat bus with a status-byte driver in place of the SNES PPU
+(`tests/cycle_accuracy/gilyon_flatbus.asm`, built by `tools/build_gilyon.sh`
+with cc65). Bringing gilyon to 1610/1610 fixed two behaviours where the
+Tom Harte corpus is wrong and hardware, Bruce Clark and bsnes agree: `(dp,X)`
+in emulation mode reads the pointer's high byte within the page of the low
+byte (for DL≠0 too), and `JSR (abs,X)` pushes through the raw 16-bit stack.
+The harness carries exactly those corpus vectors (308) as issue-linked xfails
+instead of opcode-wide skips.
+
 ### Reset — /RESET vs power cycle (September 2026)
 
 F5 is now the RESET key: registers, peripherals and the CPU reset while RAM

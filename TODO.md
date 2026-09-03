@@ -20,8 +20,10 @@ pass.
   cycles positioned per WDC Table 5-7, RMW dummy write/MLB/high-first write-
   back, uncarried index address, JSL/WDM/RTI ordering); 🟢 MVN/MVP covered
   (the harness runs whole iterations to the corpus's 100-cycle cap) — 5.12 M
-  vectors, no exclusion; 🔴 rehost the MIT gilyon generator plus
-  Klaus/Bruce-Clark functional cross-checks.
+  vectors, no exclusion, 308 issue-linked xfails where hardware contradicts
+  the corpus ((dp,X) high-byte page wrap, JSR (abs,X) raw stack); 🟢 gilyon
+  generator rehosted (1610/1610) and Klaus 6502 functional test green;
+  🔴 Bruce Clark decimal test (needs an as65-style assembler pass).
 - 🟡 Turn Crazy Cycles, Fancy Lores and a legally usable 3200-colour fixture
   into deterministic raster checkpoints; keep FTA/Ninjaforce media
   user-supplied until redistribution terms are explicit.

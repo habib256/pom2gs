@@ -222,6 +222,19 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_test(NAME slowside_test COMMAND slowside_test)
 
     # 14 MHz Mega II/FPI timing: 912-tick line, PH0 sync and DRAM refresh.
+    # Klaus Dormann functional tests (emulation-mode cross-checks); binaries are
+    # fetched into the ignored cache by tools/cycle_suite.py fetch — SKIP when absent.
+    add_executable(klaus_test tests/klaus_test.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    target_include_directories(klaus_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME klaus_6502_functional COMMAND klaus_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/klaus/6502_functional_test.bin 3469)
+    set_tests_properties(klaus_6502_functional PROPERTIES SKIP_RETURN_CODE 77)
+
+    # gilyon 65C816 functional tests, rehosted on the flat bus (tools/build_gilyon.sh).
+    add_executable(gilyon_test tests/gilyon_test.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    target_include_directories(gilyon_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME gilyon_native COMMAND gilyon_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/gilyon/cputest/cputest_pom.sfc ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/gilyon/cputest/cputest_pom.lbl)
+    set_tests_properties(gilyon_native PROPERTIES SKIP_RETURN_CODE 77)
+
     add_executable(reset_test tests/reset_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(reset_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME reset_test COMMAND reset_test)

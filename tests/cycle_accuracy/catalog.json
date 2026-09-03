@@ -430,18 +430,26 @@
       "id": "cpu-functional-crosschecks",
       "title": "Independent functional 65C816 and emulation-mode cross-checks",
       "tier": "external-open",
-      "readiness": "staged",
+      "readiness": "automated",
       "domains": ["cpu65816", "interrupts"],
-      "asset_policy": "none",
-      "assets": [],
+      "asset_policy": "fetchable",
+      "assets": [
+        {"name": "Klaus Dormann 6502 functional test (assembled, GPL-3.0-or-later)", "path": "klaus/6502_functional_test.bin",
+         "url": "https://raw.githubusercontent.com/Klaus2m5/6502_65C02_functional_tests/7954e2dbb49c469ea286070bf46cdd71aeb29e4b/bin_files/6502_functional_test.bin",
+         "sha256": "fa12bfc761e6f9057e4cc01a665a7b800ff01ae91f598af1e39a1201d01953fd", "license": "GPL-3.0-or-later"},
+        {"name": "gilyon snes-tests pinned source archive (cputest generator, MIT)", "path": "gilyon/snes-tests.tar.gz",
+         "url": "https://github.com/gilyon/snes-tests/archive/5ecdf555da920f0bd7b157542141965a8120186d.tar.gz",
+         "sha256": "a94e86e8221faf534b07c9dea10b7db2887af8c86d7b513fe29ff37dbd50f526", "license": "MIT",
+         "extract": {"format": "tar.gz", "prefix": "snes-tests-5ecdf555da920f0bd7b157542141965a8120186d/cputest", "destination": "gilyon/cputest", "required": ["make_cpu_tests.py", "main.asm", "lorom.cfg"]}}
+      ],
       "references": ["gilyon-snes-tests", "klaus-6502-tests", "wdc-w65c816s"],
-      "oracle": "Rehost the MIT gilyon generator to a flat IIgs test bus and run Klaus/Bruce-Clark emulation-mode and decimal programs. These are functional cross-checks, not cycle-level oracles.",
+      "oracle": "Functional cross-checks, not cycle-level oracles. klaus_test runs the assembled Klaus 6502 functional test on the flat bus in emulation mode until it parks in a jmp * trap: only the success trap ($3469 in the pinned listing) passes. gilyon_test runs the generator output (tools/build_gilyon.sh, cc65) with a status-byte driver: all 1610 tests must pass. The Bruce Clark decimal test is still to be rehosted.",
       "members": [
         {"id": "gilyon_native", "source": "gilyon cputest generator", "covers": "Native 65C816 opcodes and addressing"},
         {"id": "klaus_emulation", "source": "Klaus functional and interrupt tests", "covers": "6502/65C02-compatible emulation mode"},
         {"id": "bruce_decimal", "source": "Bruce Clark decimal test", "covers": "8-bit ADC/SBC decimal combinations"}
       ],
-      "command": []
+      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(klaus_|gilyon_)", "--output-on-failure"]
     },
     {
       "id": "video-raster-regressions",

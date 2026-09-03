@@ -92,9 +92,17 @@ running whole iterations to the cap and dropping the two trailing partial
 fetches from the expectation (no exclusion since September 2026: 512 files,
 5.12 M vectors), while SBC direct-X page wrapping and JSR absolute-X stack
 wrapping have tracked corrections/disputes.[17][18] Any `xfail` must name the upstream issue and the
-exact case; an unexplained opcode-wide skip is not acceptable.
+exact case; an unexplained opcode-wide skip is not acceptable. The harness
+does exactly that (`knownCorpusError`): `(dp,X)` vectors whose pointer sits at
+`$xxFF` in emulation mode (high byte read within the page — Clark §5.11 for
+DL=0, gilyon 0027 / bsnes for DL≠0; issue #3) and `JSR (abs,X)` vectors with
+S=`$xx00` (raw 16-bit push; issue #6) — 308 vectors, reported by name with
+`--verbose` — pass as xfails; everything else must match.
 
-Independent functional cross-checks are also catalogued. The MIT `gilyon`
+Independent functional cross-checks are also catalogued and automated:
+`klaus_test` (Klaus Dormann's 6502 functional test, success trap `$3469`) and
+`gilyon_test` (the MIT `gilyon` generator rehosted on the flat bus, 1610 tests
+passing — including the wrapping quirks above). The MIT `gilyon`
 65C816 generator covers native opcodes but must be rehosted from SNES mapping
 and explicitly does not test cycle timing.[19] Klaus Dormann's GPL suite and
 Bruce Clark's public-domain decimal program strengthen 6502/65C02 emulation
