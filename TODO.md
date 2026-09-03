@@ -135,8 +135,8 @@ device scan terminates; extended-STATUS **4-byte block count**; extended SmartPo
   Advanced Disk Utility (currently the target must be a pre-formatted ProDOS volume via
   `tools/make_prodos_hdd.py`).
 - 🔴 **In-emulator "make bootable"** — model whatever GS/OS call would write the boot block
-  during a real install, so `--boot-from` isn't needed. BRAM startup-slot persistence to
-  a file is a related follow-up.
+  during a real install, so `--boot-from` isn't needed. (BRAM startup-slot
+  persistence: done — `states/bram.bin`.)
 
 ## 🟢 RESOLVED — GS/OS runtime bugs (July 2026, see CHANGELOG "BASIC.System")
 
@@ -283,7 +283,7 @@ self-test, then the visible/audible subsystems.
 | 1-bit speaker ($C030) | `apple2gs.cpp` | `IIgsMemory`+`AudioOut` | 🟢 cycle-exact square wave → miniaudio |
 | Audio host (miniaudio) | — | `AudioOut` | 🟢 mono f32 ring, speaker+DOC mix (native; WASM stub) |
 | ADB GLU (keyboard/mouse) | `apple2gs.cpp` | `IIgsMemory` | 🟡 mouse **interrupt** ($C024) + **keyboard interrupt** (key→IRQ_SRC_ADB→ROM `$FE:EC99` reads $C000→PostEvent; typing selects Finder icons) + modifiers ($C025→event via `$FEE267` table, **⌘-key menu shortcuts fire**); native+VBL gated, storm-safe; `adb_test`. Full ADB µC command model = follow-up |
-| Battery RAM + RTC | `apple2gs.cpp` | `IIgsMemory` | 🟢 $C033/$C034 full serial protocol (KEGS decode): RTC seconds = host **local** time, BRAM read/write + internal regs, 2-strobe read timing; Control Panel shows correct date/time. File persistence = follow-up |
+| Battery RAM + RTC | `apple2gs.cpp` | `IIgsMemory` | 🟢 $C033/$C034 full serial protocol (KEGS decode): RTC seconds = host **local** time + guest-set offset, BRAM read/write + internal regs, 2-strobe read timing; Control Panel shows correct date/time; both persist in `states/bram.bin` (`bram_test`) |
 | IWM (5.25/3.5) | `machine/iwm.cpp` | `Iwm` | 🟢 5.25" bit-cell **read+write+WOZ** (POM2 `DiskImage` port — Choplifter boots to gameplay, protected WOZ originals boot via the $C600 PROM, writes persist; gate `iwm525_test`; ENABLE2 + PH1-sense modelled); **3.5" Sony LLE 🟢** — `iwm35 = 1` routes 800K media to the real IWM/Sony drive, the genuine slot-5 ROM firmware drives it, **GS/OS 6.0.1 boots to the Finder** (gate: `iwm35_test`) |
 | Sony 3.5" drive + 800K GCR codec | `floppy.cpp` mac_floppy + KEGS `iwm.c` | `Sony35` | 🟢 status/command tables, read+write, codec = exact KEGS/ROM nibblizer port; FORMAT/tach-calibration untested |
 | SWIM1 (MFM/1.44M) | `machine/swim1.cpp` | — | ⚪ out of scope: SWIM never shipped on a production IIgs (only the unreleased 1991 "Mark Twain" prototype, MAME apple2gs.cpp:15/3891-3896); ROM 01 **and** ROM 03 drive the IWM |
@@ -458,8 +458,8 @@ needs the following, in rough priority order.
 
 **P5 — Peripherals / infra**
 - 🟢 **Battery RAM + RTC** — full `$C033`/`$C034` serial protocol, host local time,
-  256-byte BRAM read/write. 🔴 still open: persisting BRAM to a host file and
-  seeding Control Panel defaults (so startup-slot choices survive a restart).
+  256-byte BRAM read/write. 🟢 BRAM + clock offset persist in `states/bram.bin`
+  (`bram_test`); the ROM seeds the Control Panel defaults on a missing file.
 - 🟢 Slot **internal firmware** `$C100-$CFFF` — `slotRomRead` serves the bank-`$FF`
   ROM image for unclaimed slots plus the `$C800` window (an *empty* slot 7 reads
   `$00`, see the AppleTalk false-positive in `docs/COMPAT.md`).

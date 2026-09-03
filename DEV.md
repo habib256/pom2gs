@@ -403,15 +403,22 @@ boot trace):
 control and the 256-byte extended BRAM. The RTC seconds counter is the host
 clock plus a guest-settable offset: Control-Panel time-set writes and the ROM
 self-test's clock test (07, a walking-bit write through `$E1/0088` read back
-via `$E1/008C`) both persist, while time keeps advancing. The offset is not
-saved to a host file yet.)*
+via `$E1/008C`) both persist, while time keeps advancing.)*
+
+**Host persistence** (`loadBram`/`saveBram`, gate `bram_test`): the 256 BRAM
+bytes and the clock offset live in `states/bram.bin` ("PGBR", version 1, 256
+bytes, int64 offset). `main.cpp` loads it before the first boot and saves it on
+exit and about five seconds after any change (`bramDirty()`), so Control
+Panel settings — startup slot, display, keyboard, clock — survive a restart.
+No file, or a malformed one, behaves like a dead battery: the ROM's own BRAM
+validation reinitialises the defaults.
 
 256 bytes of battery-backed **BRAM** (Control Panel settings), reached through
 the clock/BRAM interface shared with the ADB GLU. **Extended-BRAM address
 decode:** `(cmd&7)<<5 | (data>>2)&0x1F` (3+5 bits) — see the Memory section.
-BRAM persists across all resets (`reset()` leaves `bram_` alone), but it is
-not yet written to a host file and not seeded with Control Panel defaults —
-see `TODO.md`. **MAME reference**:
+BRAM persists across all resets (`reset()` leaves `bram_` alone) and across
+runs through `states/bram.bin`; the ROM seeds the Control Panel defaults when
+the checksum is invalid (first run). **MAME reference**:
 clock/BRAM state machine in `apple2gs.cpp` / `macrtc`.
 
 ---

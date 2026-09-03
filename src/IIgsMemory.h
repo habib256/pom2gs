@@ -308,6 +308,13 @@ public:
     void scanSnapshot() const;                         // capture every line from current memory
     uint8_t videoBusByte() const { return videoLast_; } // last byte the scanner fetched (floating bus)
     const uint8_t* bram() const { return bram_; }                // 256-byte battery RAM
+    // Battery-backed state on the host: the 256 BRAM bytes (Control Panel
+    // settings, startup slot…) and the clock offset the guest set. Loaded
+    // before the first boot, saved when dirty (main.cpp: states/bram.bin).
+    bool loadBram(const std::string& path);
+    bool saveBram(const std::string& path);      // clears the dirty flag on success
+    bool bramDirty() const { return bramDirty_; }
+    uint32_t rtcSeconds() const;           // clock seconds: host local time + guest offset, IIgs 1904 epoch
     uint8_t newVideo()  const { return newvideo_; }              // $C029
     bool    shrEnabled() const { return (newvideo_ & 0x80) != 0; }
     bool    text80()    const { return eightyCol_; }
@@ -469,11 +476,11 @@ private:
     uint8_t  clkInternal_[2] = {0, 0};     // test ($0) + write-protect ($1) registers
     bool     clkRead_ = false;
     uint8_t  bram_[256] = {0};
+    bool     bramDirty_ = false;           // BRAM or clock offset changed since the last save
     std::vector<uint8_t> adbUcRom_;        // ADB µC firmware ($1000-$1FFF), user-provided
     void     clockStrobe(uint8_t c034);    // advance the $C033/$C034 transaction
     uint8_t  rtcByte(int n) const;         // byte n of the 32-bit RTC seconds count
     void     rtcWriteByte(int n, uint8_t v); // set byte n (the clock keeps counting from there)
-    uint32_t rtcSeconds() const;           // host local time + rtcOffset_, IIgs 1904 epoch
     int64_t  rtcOffset_ = 0;               // seconds the guest has set the clock away from the host
     // Fast RAM beyond the configured size is unpopulated: no DRAM answers, the
     // FPI data bus floats. The ROM self-test's RAM address-line test (04) and

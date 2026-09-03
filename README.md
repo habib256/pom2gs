@@ -135,6 +135,10 @@ the shadow/speed registers, audio level, and the loaded ROM. Shortcuts
 | `F2` | Toggle HGR/DHGR colour mode (Composite NTSC ↔ Clean RGB) |
 | `F7` | Save state → `states/quick.pgss` |
 | `F8` | Load state ← `states/quick.pgss` |
+
+Control Panel settings (startup slot, display, clock…) are battery-backed on
+the IIgs; POMIIGS keeps them in `states/bram.bin`, written on exit and a few
+seconds after any change. Delete the file to get factory defaults back.
 | `Ctrl+Q` | Quit |
 
 **Mouse:** press `Del` to capture — the OS pointer is hidden/locked and its

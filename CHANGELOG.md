@@ -4,6 +4,15 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Battery RAM — host persistence (September 2026)
+
+The 256 BRAM bytes and the guest-set clock offset now survive a restart in
+`states/bram.bin` (loaded before the first boot; saved on exit and about five
+seconds after any change through the `$C033/$C034` protocol). A missing or
+malformed file behaves like a dead battery — the ROM's own BRAM check seeds
+the Control Panel defaults — so nothing changes for a first run. `bram_test`
+pins the round trip through the chip protocol.
+
 ### CPU — MVN/MVP under the Tom Harte gate, no opcode excluded (September 2026)
 
 The corpus caps block moves at 100 cycles — 14 complete iterations plus the

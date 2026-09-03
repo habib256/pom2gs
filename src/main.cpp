@@ -285,6 +285,9 @@ int main(int argc, char** argv) {
         return true;
     };
     ui.onEjectDisk525 = [&]() { mem.ejectDisk525(); };
+    // Battery-backed BRAM + clock offset survive across runs in states/bram.bin
+    // (loaded before the first boot; saved on exit and whenever it changed).
+    if (mem.loadBram("states/bram.bin")) std::printf("BRAM: restored states/bram.bin\n");
     // Quick save/load state (F7/F8) → states/quick.pgss next to the config.
     ui.onSaveState = [&]() -> bool {
         std::error_code ec; std::filesystem::create_directories("states", ec);
@@ -351,6 +354,7 @@ int main(int argc, char** argv) {
     // main loop (main returns immediately there).
     struct Ctx {
         GLFWwindow* window; IIgsMemory& mem; CPU65816& cpu; VGC& vgc; AudioOut& audio; Ui& ui; GLuint tex;
+        unsigned bramSaveTick = 0;         // frames since a BRAM/clock change (periodic save)
     };
     static Ctx ctx{window, mem, cpu, vgc, audio, ui, screenTex};
 
@@ -454,6 +458,10 @@ int main(int argc, char** argv) {
                 master += c.mem.tick(cy);
             }
             c.mem.frameTick();                 // ¼-sec / 1-sec / scan-line / DOC interrupts
+            if (c.mem.bramDirty() && (++c.bramSaveTick % 300) == 0) {   // ~5 s after a change
+                std::error_code ec; std::filesystem::create_directories("states", ec);
+                c.mem.saveBram("states/bram.bin");
+            }
         }
         c.audio.mixFrame(c.mem);               // speaker ($C030) + DOC → miniaudio
         // POMDBG=1: once-per-second health line on stderr — wall FPS (60 = keeping
@@ -497,6 +505,10 @@ int main(int argc, char** argv) {
     emscripten_set_main_loop_arg(frame, &ctx, 0, 1);   // browser drives the loop
 #else
     while (!glfwWindowShouldClose(window)) frame(&ctx);
+    if (mem.bramDirty()) {      // Control Panel settings / clock set by the guest
+        std::error_code ec; std::filesystem::create_directories("states", ec);
+        mem.saveBram("states/bram.bin");
+    }
     mem.iwm().flushDisk35();    // commit pending 3.5" sector writes (real-IWM path)
     mem.iwm().flushDisk525();   // commit pending 5.25" writes (DiskImage::saveDirty)
     glDeleteTextures(1, &screenTex);

@@ -18,6 +18,7 @@
 #include <ctime>
 #include <istream>
 #include <ostream>
+#include <fstream>
 #include <string>
 
 IIgsMemory::IIgsMemory() {
@@ -254,6 +255,40 @@ void IIgsMemory::updateMega2Irq() {
 // host counts UTC seconds since 1970, so add the 66-year epoch offset (2082844800)
 // plus the local UTC offset (tm_gmtoff, e.g. +4 h) so the Control Panel shows wall
 // time, not UTC. Byte 0 = LSB.
+// ── Battery-backed state file ────────────────────────────────────────────
+// "PGBR" + version byte 1 + 256 BRAM bytes + the RTC offset (int64, little
+// endian). A missing or malformed file leaves the ROM's own BRAM validation
+// to reinitialise the Control Panel defaults, exactly like a dead battery.
+bool IIgsMemory::loadBram(const std::string& path) {
+    std::ifstream in(path, std::ios::binary);
+    if (!in) return false;
+    char magic[5] = {0};
+    in.read(magic, 5);
+    if (!in || std::string(magic, 4) != "PGBR" || magic[4] != 1) return false;
+    uint8_t bytes[256];
+    in.read(reinterpret_cast<char*>(bytes), sizeof bytes);
+    if (!in) return false;
+    int64_t offset = 0;
+    in.read(reinterpret_cast<char*>(&offset), sizeof offset);
+    if (!in) offset = 0;
+    for (int i = 0; i < 256; ++i) bram_[i] = bytes[i];
+    rtcOffset_ = offset;
+    bramDirty_ = false;
+    return true;
+}
+
+bool IIgsMemory::saveBram(const std::string& path) {
+    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    if (!out) return false;
+    const char magic[5] = {'P', 'G', 'B', 'R', 1};
+    out.write(magic, 5);
+    out.write(reinterpret_cast<const char*>(bram_), sizeof bram_);
+    out.write(reinterpret_cast<const char*>(&rtcOffset_), sizeof rtcOffset_);
+    if (!out) return false;
+    bramDirty_ = false;
+    return true;
+}
+
 uint32_t IIgsMemory::rtcSeconds() const {
     const std::time_t t = std::time(nullptr);
     long gmtoff = 0;
@@ -327,9 +362,11 @@ void IIgsMemory::clockStrobe(uint8_t c034) {
                      : (clkSrc_ == SRC_INTERNAL) ? clkInternal_[clkReg_ & 1]
                                                  : bram_[clkAddr_];
         } else if (clkSrc_ == SRC_BRAM) {
+            if (bram_[clkAddr_] != clkData_) bramDirty_ = true;
             bram_[clkAddr_] = clkData_;
         } else if (clkSrc_ == SRC_SECONDS) {
             rtcWriteByte(clkReg_, clkData_);         // guest sets the clock
+            bramDirty_ = true;
         } else if (clkSrc_ == SRC_INTERNAL) {
             clkInternal_[clkReg_ & 1] = clkData_;
         }

@@ -88,7 +88,7 @@ its hardware logic into these files. 🟢 = working + pinned test.
 | **65C816 CPU** (emul + native, 24-bit, all opcodes, microsequenced) | `CPU65816.h/.cpp` | 🟢 5.12M Tom Harte vectors (all 256 opcodes ×2 modes, every bus cycle incl. internal ones) | MAME `g65816/`, WDC datasheet |
 | **MMU** — FPI + Mega II (16 MB banks, shadow, speed, //e main/aux redirect on `$00`+`$E0`, STATEREG, VBL/Mega II IRQ timing) | `IIgsMemory.h/.cpp` | 🟢 | MAME `apple2gs.cpp`, KEGS |
 | **ADB GLU** (keyboard/mouse/modifiers, HLE) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 IRQ kbd/mouse, ⌘-menu shortcuts (`adb_test`) | MAME `apple2gs.cpp` ADB GLU |
-| **Battery RAM + RTC** ($C033/$C034 serial) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 host local time + guest-settable offset; BRAM r/w (ROM self-test 07/08) | KEGS clock.c, MAME |
+| **Battery RAM + RTC** ($C033/$C034 serial) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 host local time + guest-settable offset; BRAM r/w (ROM self-test 07/08); both persist in `states/bram.bin` (`bram_test`) | KEGS clock.c, MAME |
 | **SmartPort / ProDOS HDD** (slot-7 block device; slot-5 3.5" HLE via the `WDM $C5`/`$C6` traps) | `IIgsMemory.h/.cpp` + `ProDosHdd.h/.cpp` | 🟢 GS/OS installs+boots from HDD | KEGS, Apple SmartPort firmware |
 | **VGC** — Super Hi-Res 320/640 + SCB/palettes, **and** legacy 40/80-col text (char ROM 344s0047) + HGR/DHGR (NTSC-composite / RGB-clean) → 640×400 GL, drawn from a **live per-cycle scanout** | `VGC.h/.cpp`, `VGCNtsc.h` | 🟢 SHR/text/HGR/DHGR render per scanline from the beam capture (`scanout_test`) + per-line SCB scanline IRQ ($C023/$C032, $C02E/2F ack — `irq_test`) | MAME `apple2gs.cpp` VGC |
 | **Ensoniq 5503 DOC** — 32 osc, 64 KB sound RAM, Sound GLU ($C03C-$F) | `Es5503.h/.cpp` | 🟢 MAME es5503 parity (`doc_test`) | MAME `es5503.cpp`, Ensoniq datasheet |
@@ -167,8 +167,9 @@ and slow RAM to `$00`, re-parks the MMU (LC = read ROM / write enable / bank 2,
 `$C031` DISKREG cleared) and resets the DOC + SCC. The CPU re-enters **65C816
 emulation mode** (E=1) and pulls the reset vector from `$00/FFFC` through
 `vectorPull`, which forces ROM regardless of the language card. BRAM/RTC survive
-(battery-backed — `bram_` is untouched by reset), but they are not seeded with
-Control Panel defaults and not yet persisted to a host file (see `TODO.md`).
+(battery-backed — `bram_` is untouched by reset) and persist across runs in
+`states/bram.bin` (loaded before the first boot, saved on change and on exit;
+the ROM seeds the Control Panel defaults when the file is absent).
 Splitting out true soft/hard resets (RAM-preserving) is a follow-up.
 
 ## Status
