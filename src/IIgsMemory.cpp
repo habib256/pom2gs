@@ -175,12 +175,27 @@ void IIgsMemory::updateMega2Irq() {
 // host counts UTC seconds since 1970, so add the 66-year epoch offset (2082844800)
 // plus the local UTC offset (tm_gmtoff, e.g. +4 h) so the Control Panel shows wall
 // time, not UTC. Byte 0 = LSB.
-uint8_t IIgsMemory::rtcByte(int n) const {
+uint32_t IIgsMemory::rtcSeconds() const {
     const std::time_t t = std::time(nullptr);
     long gmtoff = 0;
     if (const std::tm* lt = std::localtime(&t)) gmtoff = lt->tm_gmtoff;
-    const uint32_t secs = uint32_t(int64_t(t) + gmtoff + 2082844800LL);
-    return uint8_t(secs >> (8 * (n & 3)));
+    return uint32_t(int64_t(t) + gmtoff + 2082844800LL + rtcOffset_);
+}
+uint8_t IIgsMemory::rtcByte(int n) const {
+    return uint8_t(rtcSeconds() >> (8 * (n & 3)));
+}
+// The clock chip's seconds counter is writable, one byte at a time; it keeps
+// counting from the written value. Modelled as an offset from the host clock,
+// so the Control Panel's "set time" and the ROM self-test's clock test (07,
+// which writes a walking-bit pattern through $E1/0088 and expects to read it
+// back through $E1/008C) both see their value persist while time advances.
+// Write protect (internal register 1 bit 7) is not enforced: the firmware's
+// clock driver clears it before every write anyway.
+void IIgsMemory::rtcWriteByte(int n, uint8_t v) {
+    const uint32_t now = rtcSeconds();
+    const int shift = 8 * (n & 3);
+    const uint32_t set = (now & ~(0xFFu << shift)) | (uint32_t(v) << shift);
+    rtcOffset_ += int64_t(int32_t(set - now));
 }
 
 // Clock/BRAM serial transaction. One $C034 bit7 strobe = one byte clocked in or
@@ -233,7 +248,9 @@ void IIgsMemory::clockStrobe(uint8_t c034) {
                      : (clkSrc_ == SRC_INTERNAL) ? clkInternal_[clkReg_ & 1]
                                                  : bram_[clkAddr_];
         } else if (clkSrc_ == SRC_BRAM) {
-            bram_[clkAddr_] = clkData_;              // seconds/internal writes: host clock, ignore
+            bram_[clkAddr_] = clkData_;
+        } else if (clkSrc_ == SRC_SECONDS) {
+            rtcWriteByte(clkReg_, clkData_);         // guest sets the clock
         } else if (clkSrc_ == SRC_INTERNAL) {
             clkInternal_[clkReg_ & 1] = clkData_;
         }
@@ -295,7 +312,12 @@ void IIgsMemory::adbCommand(uint8_t v) {
             switch (adbCmd_) {
                 case 0x04: adbMode_ |= adbParams_[0];              break;   // set modes
                 case 0x05: adbMode_ &= uint8_t(~adbParams_[0]);    break;   // clear modes
-                case 0x09: adbQueue(0x00);                         break;   // read RAM → dummy
+                case 0x09: {                                                // read µC memory (addr lo, hi)
+                    const uint16_t addr = uint16_t(adbParams_[0] | (adbParams_[1] << 8));
+                    const bool inRom = addr >= 0x1000 && addr < 0x2000 && !adbUcRom_.empty();
+                    adbQueue(inRom ? adbUcRom_[addr - 0x1000] : 0x00);   // RAM/absent firmware → dummy
+                    break;
+                }
                 default: break;                                    // config/sync/write: absorbed
             }
         }
@@ -1174,7 +1196,13 @@ bool IIgsMemory::maybeShadow(uint8_t bank, uint16_t off, uint8_t v) {
     const bool auxHiresOk = (bank != 1) || !(shadow_ & SHAD_AUXHIRES);
     bool doit = false;
     if (off >= 0x0400 && off <= 0x07FF) doit = !(shadow_ & SHAD_TXTPG1);              // text/lores page 1
-    else if (off >= 0x0800 && off <= 0x0BFF) doit = !(shadow_ & SHAD_TXTPG2);         // text/lores page 2 (VGC scans it from the slow side)
+    // Text page 2 shadowing is a ROM 03 Mega II feature ($C035 bit 5 inhibits
+    // it); a ROM 01 machine never shadows $0800-$0BFF. The ROM 01 self-test's
+    // RAM address-line test (04) writes distinct patterns to banks $E1, $E0,
+    // $01, $00 in that order and verifies $E1 afterwards — a shadowed bank $01
+    // write would overwrite $E1:0800 and fail it (MAME apple2gs.cpp: TXTPG2
+    // shadow only when m_is_rom3).
+    else if (off >= 0x0800 && off <= 0x0BFF) doit = (romBankBase_ == 0xFC) && !(shadow_ & SHAD_TXTPG2); // text/lores page 2
     else if (off >= 0x2000 && off <= 0x3FFF) doit = (!(shadow_ & SHAD_HIRESPG1) && auxHiresOk) || shr;// hires page 1 / SHR
     else if (off >= 0x4000 && off <= 0x5FFF) doit = (!(shadow_ & SHAD_HIRESPG2) && auxHiresOk) || shr;// hires page 2 / SHR
     else if (off >= 0x6000 && off <= 0x9FFF) doit = shr;                              // SHR upper half
@@ -1217,7 +1245,10 @@ uint8_t IIgsMemory::read8(uint32_t a) {
         return fastCell(pb, off);
     }
 
-    if (bank <= 0x7F) { chargeFast(true); return fastCell(bank, off); }
+    if (bank <= 0x7F) {
+        chargeFast(true);
+        return fastPopulated(bank) ? fastCell(bank, off) : 0;   // unpopulated → floating bus (approx)
+    }
     chargeFast(false);
     return 0;   // $E2-$FB unmapped → floating bus (approx)
 }
@@ -1265,7 +1296,7 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
         return;
     }
 
-    if (bank <= 0x7F) { chargeFast(true); fastCell(bank, off) = v; return; }
+    if (bank <= 0x7F) { chargeFast(true); if (fastPopulated(bank)) fastCell(bank, off) = v; return; }
     chargeFast(false);
     // $E2-$FB unmapped → drop
 }

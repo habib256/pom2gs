@@ -290,16 +290,18 @@
       "id": "rom01-rom03-selftest",
       "title": "Built-in ROM 01/03 self-diagnostic at native speed",
       "tier": "external-user-supplied",
-      "readiness": "staged",
+      "readiness": "automated",
       "domains": ["cpu65816", "fpi-cya", "mega2", "vgc", "interrupts", "shadowing", "adb", "scc", "doc", "iwm-sony", "rtc"],
       "asset_policy": "user-supplied",
       "assets": [
         {"name": "Legitimate Apple IIgs ROM 01 dump", "env": "POMIIGS_ROM01"},
-        {"name": "Legitimate Apple IIgs ROM 03 dump", "env": "POMIIGS_ROM03"}
+        {"name": "Legitimate Apple IIgs ROM 03 dump", "env": "POMIIGS_ROM03"},
+        {"name": "ADB microcontroller firmware (341-0632 ROM 03 / 341-0345 ROM 01, 4 KB) — test 09 only", "env": "POMIIGS_ADB_UC_ROM"}
       ],
       "references": ["apple-diag-note-95", "kegs", "mister-iigs-tests"],
-      "oracle": "Final ROM diagnostic status must pass. Run at 2.8 MHz; ROM 01 requires Text Page 2 shadow disabled.",
-      "command": []
+      "oracle": "selftest_trace: the sequential self-test must pass tests 01-08 (System Good, or a first failure above 08) and every other diagnostic must PASS when launched individually (ROM 03: 0A-0C, ROM 01: 0A-0B). Test 09 (ADB µC firmware checksum) SKIPs without the firmware image, never a false PASS. Runs at 2.8 MHz; ROM 01 needs its no-text-page-2-shadow behaviour, which the MMU models.",
+      "requires": [{"path": "{build_dir}", "kind": "directory"}],
+      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^rom0[13]_selftest_", "--output-on-failure"]
     },
     {
       "id": "textfunk-beamrace",

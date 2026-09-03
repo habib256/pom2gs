@@ -139,6 +139,29 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_executable(boot_trace tests/boot_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
     target_include_directories(boot_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+    # ROM built-in self-diagnostic (⌘+Option held through RESET) at native
+    # speed — catalog entry rom01-rom03-selftest. ROMs are user-provided, so a
+    # missing image is a CTest SKIP (exit 77), never a false PASS.
+    add_executable(selftest_trace tests/selftest_trace.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)
+    target_include_directories(selftest_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    # Sequential run gates tests 01-08 (the RAM tests 02/04 cannot be launched
+    # alone — they overwrite the launcher); 09 (ADB) SKIPs without the µC
+    # firmware; the remaining diagnostics run individually.
+    set(_rom03 ${CMAKE_CURRENT_SOURCE_DIR}/roms/iigs-rom03.rom)
+    set(_rom01 ${CMAKE_CURRENT_SOURCE_DIR}/roms/iigs-rom01.rom)
+    add_test(NAME rom03_selftest_01_08 COMMAND selftest_trace ${_rom03} --through 8)
+    add_test(NAME rom01_selftest_01_08 COMMAND selftest_trace ${_rom01} --through 8)
+    set(_selftests rom03_selftest_01_08 rom01_selftest_01_08)
+    foreach(n 9 10 11 12)
+        add_test(NAME rom03_selftest_${n} COMMAND selftest_trace ${_rom03} --test ${n})
+        list(APPEND _selftests rom03_selftest_${n})
+    endforeach()
+    foreach(n 9 10 11)
+        add_test(NAME rom01_selftest_${n} COMMAND selftest_trace ${_rom01} --test ${n})
+        list(APPEND _selftests rom01_selftest_${n})
+    endforeach()
+    set_tests_properties(${_selftests} PROPERTIES SKIP_RETURN_CODE 77)
+
     # Dev tool (not a gate): boot an 800K GS/OS disk from slot 5 and trace the
     # toolbox dispatch / SHR timeline / hang detection. Used to pin the ROM
     # interrupt-vector fix (see CHANGELOG "GS toolbox / interrupt vectors").

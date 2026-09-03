@@ -4,6 +4,22 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Diagnostics — ROM 01/03 built-in self-test gate (September 2026)
+
+`selftest_trace` runs the ROMs' own diagnostics headlessly: ⌘+Option held
+through RESET via the `$C061/$C062` push buttons (which is what the ROM
+samples, not only `$C025`), verdict read off the text page, plus a per-test
+launcher modelled on the MiSTer `SELFTESTxx` disks for the diagnostics after a
+failing one. Both ROMs now pass every test except 09 (ADB), which checksums
+the ADB microcontroller's firmware and SKIPs until that 4 KB image is supplied.
+Three emulation fixes came out of it: the RTC seconds counter is now
+guest-writable (an offset from the host clock — test 07 writes a walking bit
+and reads it back; Control Panel time-set now sticks too); unpopulated fast
+RAM reads as open bus instead of mirroring populated banks (the address-line
+test 04 sized RAM forever on a mirror); and text-page-2 shadowing is a ROM 03
+feature only (a ROM 01 machine never shadows `$0800-$0BFF` — test 04 writes
+bank `$E1` first and a shadowed bank `$01` write overwrote it).
+
 ### CPU — internal cycles positioned and fed to the bus scheduler (September 2026)
 
 The 65C816 core no longer sums its internal (VDA=VPA=VPB low) cycles from a

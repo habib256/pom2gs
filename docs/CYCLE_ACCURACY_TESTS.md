@@ -165,15 +165,37 @@ regression script demonstrates the correct discipline: fixed frame numbers,
 scripted inputs, fixed RTC where needed, exact image comparison, and hard
 failure when an expected image differs.[4]
 
-### 4. ROM 01 and ROM 03 built-in diagnostics — staged, user ROM required
+### 4. ROM 01 and ROM 03 built-in diagnostics — automated, user ROM required
 
 The built-in self-test is entered with Command-Option-Control-Reset. The Apple
 diagnostic note documents the numbered sequence and six-digit failure status.[10]
 KEGS reports that the test must run at native 2.8 MHz and that ROM 01 needs Text
-Page 2 shadow disabled.[7]
+Page 2 shadow disabled.[7] (The latter is a ROM 01 *hardware* property — its
+Mega II never shadows `$0800-$0BFF`; POMIIGS now models that, and the RAM
+address-line test 04 depends on it.)
 
-Required oracle: final pass/failure code plus a timestamped trace of every test
-boundary. ROM bytes are copyrighted and remain user-supplied.
+`selftest_trace` (CTest `rom0[13]_selftest_*`) holds ⌘+Option through RESET
+(`$C061/$C062` push buttons and `$C025` modifiers) and reads the verdict from
+the 40-column text page. The sequential run gates tests 01-08 (`--through 8`);
+the RAM tests 02 and 04 can only run in sequence because they overwrite any
+RAM launcher. Every other diagnostic is launched individually (`--test N`) the
+way the MiSTer `SELFTESTxx` launchers do: the ROM boots normally first (the
+bank `$E1` vector page must exist), then a bank `$00` stub sets 2.8 MHz, clears
+`$0315-$0319`, JSLs the entry from the ROM's pointer table (ROM 03 `$FF:6403`,
+ROM 01 `$FF:7143`) and takes the carry as the verdict. ROM 01 diagnostics may
+return with `RTS` and land in bank `$FF`; the launcher accepts the return in
+either bank.
+
+Status (September 2026): ROM 03 passes 01-08 and 0A-0C, ROM 01 passes 01-08,
+0A and 0B. Test 09 (ADB) checksums the ADB microcontroller's 4 KB firmware
+through the "read µC memory" command (`$09`); that image (341-0632 / 341-0345,
+part of the MAME `apple2gs` BIOS set) is user-supplied via
+`roms/iigs-adb-uc-rom0[13].rom` or `$POMIIGS_ADB_UC_ROM`, and the gate reports
+SKIP without it. Getting here required a guest-writable RTC seconds counter
+(test 07 writes a walking bit through `$E1/0088` and reads it back), open-bus
+reads for unpopulated fast RAM (mirroring made the address-line test loop), and
+the ROM 01 text-page-2 rule above. ROM bytes are copyrighted and remain
+user-supplied.
 
 ### 5. TextFunk Viewer — highest-value beam-race blocker
 
@@ -361,7 +383,8 @@ runner refuses to attach download URLs to any `user-supplied` catalog entry.
    scheduler~~ (done) and calibrate its reset phase from a real-IIgs trace.
 4. Implement raster-time VGC fetches and live floating-bus values.
 5. Capture real-IIgs TextFunk and FloatBus traces; make them hard gates.
-6. Automate ROM selftests and user-supplied TrueGS/service diagnostics.
+6. ~~Automate ROM selftests~~ (done; test 09 awaits the ADB µC firmware) and
+   user-supplied TrueGS/service diagnostics.
 7. Add MAME/KEGS differential reporting, while retaining hardware as the final
    authority when emulators disagree.
 

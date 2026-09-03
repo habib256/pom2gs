@@ -48,8 +48,11 @@ pass.
   `megaii_timing_test`; GS/OS HDD boot unchanged under `hdd_trace`). 🔴
   Calibrate reset phase against a hardware trace and add Total Replay and
   disk-timing regression gates.
-- 🔴 Automate ROM 01/03 built-in selftests at native 2.8 MHz, including the ROM
-  01 text-page-2-shadow prerequisite, and archive the exact final status code.
+- 🟡 Automate ROM 01/03 built-in selftests at native 2.8 MHz: 🟢 `selftest_trace`
+  gates the sequential run (01-08) and every other diagnostic individually on
+  both ROMs (ROM 03: 0A-0C, ROM 01: 0A-0B all PASS; the ROM 01 text-page-2 rule
+  is modelled); 🔴 test 09 (ADB) needs the user-supplied ADB µC firmware
+  (`roms/iigs-adb-uc-rom0[13].rom`) — SKIP until provided.
 - 🔴 Add **TrueGS** and Apple IIgs Diagnostics as user-supplied acceptance
   workloads; record results without redistributing proprietary disk images.
 - 🔴 Add frame/trace differential runs against MAME, KEGS/GSplus and real IIgs

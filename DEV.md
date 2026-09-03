@@ -274,7 +274,11 @@ to `$C026`, waits for CMDFULL (`$C027` bit 0) to clear, then waits for
 data-ready (`$C027` bit 5) and reads the response; with no ADB it times out and
 raises **fatal error `$0911`** (`PEA $0911 / JSR $A6E4` at `$FF:81B6`). We
 accept commands immediately (CMDFULL always clear) and queue a trivial response
-(data-ready set), so the handshake completes and `$0911` clears.
+(data-ready set), so the handshake completes and `$0911` clears. The "read µC
+memory" command (`$09`, address lo/hi) answers from the ADB microcontroller's
+firmware when one is loaded (`IIgsMemory::loadAdbMicroRom`, 4 KB mapped at µC
+`$1000-$1FFF`; 341-0632 for ROM 03, 341-0345 for ROM 01) and `$00` otherwise —
+the ROM self-test 09 checksums that range, see § ROM self-test.
 
 **Real keyboard/mouse routing** (gate `adb_test`):
 - **Keyboard** stays on the classic `$C000` latch / `$C010` strobe (the Mega II
@@ -344,9 +348,11 @@ boot trace):
 ## Clock / Battery RAM
 
 *(Implemented — the clock/BRAM state machine handles `$C033` data / `$C034`
-control and the 256-byte extended BRAM. POMIIGS passes the host clock through
-for the RTC time-of-day (always shows correct real time); Control-Panel
-time-set writes are dropped by design.)*
+control and the 256-byte extended BRAM. The RTC seconds counter is the host
+clock plus a guest-settable offset: Control-Panel time-set writes and the ROM
+self-test's clock test (07, a walking-bit write through `$E1/0088` read back
+via `$E1/008C`) both persist, while time keeps advancing. The offset is not
+saved to a host file yet.)*
 
 256 bytes of battery-backed **BRAM** (Control Panel settings), reached through
 the clock/BRAM interface shared with the ADB GLU. **Extended-BRAM address
@@ -547,6 +553,37 @@ DRAM cycle), so `INC abs`'s modify cycle pushes its write-back into the refresh
 window while `STA abs,X`'s index cycle lifts its write past it. The reset phase
 of the refresh/PH0 grids still awaits calibration against a real-IIgs trace
 before a whole-machine cycle-accuracy claim.
+
+---
+
+## ROM self-test gate
+
+`selftest_trace` (`tests/selftest_trace.cpp`, CTest `rom0[13]_selftest_*`)
+runs the ROMs' built-in diagnostics — ROM, RAM, soft switches, RAM address
+lines, speed, serial, clock, battery RAM, ADB, FPI/Mega II, interrupts,
+shadowing, sound — at native 2.8 MHz. The ROM samples ⌘+Option through the
+classic push buttons `$C061/$C062` (ROM 03: `$FF:7F92`) as well as `$C025`, so
+the tool holds all of them through `hardReset()`. Two modes:
+
+- **Sequential** (`--through N`): the real self-test; verdict = "System Good"
+  or "System Bad: TTSSSSSS" on the text page. Tests 02/04 (RAM) only work here.
+- **Single** (`--test N` / `--entry BANK:ADDR`): boots the ROM for a few
+  frames (bank `$E1` vectors, toolbox dispatch), then runs a stub at `$00:2000`
+  that sets `$C036=$80`, clears `$0315-$0319`, JSLs the entry from the pointer
+  table (ROM 03 `$FF:6403+`, count at `$FF:6402`; ROM 01 `$FF:7143+`, count×2
+  at `$FF:7142`), forces 8-bit M/X back and takes the carry. ROM 01 tests may
+  `RTS` instead of `RTL`, returning to `$FF:2018`; both landings are accepted.
+  `--break BANK:ADDR` dumps registers/zero page at a PC, `SELFTEST_RING=1`
+  prints the last 256 instructions on a missing verdict, `SELFTEST_JSL=1` logs
+  caller→target pairs (how the ROM 01 table was found).
+
+Three hardware facts fell out of it: the clock chip's seconds are writable
+(§ Clock), unpopulated fast RAM reads as open bus instead of mirroring the
+populated banks (the address-line test 04 loops forever on a mirror), and a
+ROM 01 machine never shadows text page 2 (test 04 writes `$E1` first and the
+shadowed bank `$01` write clobbered it). Test 09 needs the ADB µC firmware
+(§ ADB) and SKIPs without it. `tools/dis65816.py <rom> BANK:ADDR [count]
+[--m16] [--x16]` is the disassembler used for this archaeology.
 
 ---
 
