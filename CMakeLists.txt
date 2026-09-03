@@ -184,10 +184,15 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(speed_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME speed_test COMMAND speed_test)
 
-    # Per-access slow-side penalty (Mega II stretched to 1 MHz in fast mode).
+    # Phase-aware slow-side penalty (Mega II PH0 sync in fast mode).
     add_executable(slowside_test tests/slowside_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(slowside_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME slowside_test COMMAND slowside_test)
+
+    # 14 MHz Mega II/FPI timing: 912-tick line, PH0 sync and DRAM refresh.
+    add_executable(megaii_timing_test tests/megaii_timing_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
+    target_include_directories(megaii_timing_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME megaii_timing_test COMMAND megaii_timing_test)
 
     # Interrupt set: ¼-sec / 1-sec / scan-line / DOC (assert / mask / clear).
     add_executable(irq_test tests/irq_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)

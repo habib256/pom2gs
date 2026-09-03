@@ -70,8 +70,9 @@ cd build && cmake .. && make # → build/POMIIGS
 ./run_emulator.sh            # cwd = repo root so roms/ probes resolve
 ```
 
-Master clock **14.31818 MHz**. Fast CPU **2.8 MHz** (÷5), slow-side **1.02 MHz**
-(÷14, the classic Apple II clock). ROMs are user-provided: **ROM 03** (256 KB,
+Master clock **14.31818 MHz**. Fast CPU **2.8 MHz** (÷5); slow-side **1.02 MHz**
+uses 64 cycles at ÷14 plus one ÷16 cycle per 912-tick scanline. ROMs are
+user-provided: **ROM 03** (256 KB,
 → banks `$FC`-`$FF`) and **ROM 01** (128 KB, → `$FE`-`$FF`); probe order (rom03
 first) in [System profiles](#system-profiles). Char ROM 344s0047 (16 KB; a 4 KB
 or 2 KB //e char ROM also loads) → `roms/iigs-char.rom` for text.

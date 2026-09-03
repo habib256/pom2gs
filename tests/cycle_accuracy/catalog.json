@@ -179,9 +179,9 @@
       "asset_policy": "none",
       "assets": [],
       "references": ["mame-apple2gs"],
-      "oracle": "CTest gates speed_test, slowside_test, irq_test and hdd_test. These are necessary but do not yet prove PH0 side-sync or DRAM-refresh phase.",
+      "oracle": "CTest gates megaii_timing_test, speed_test, slowside_test, irq_test and hdd_test. The timing gate proves the 912-tick line arithmetic, active-access PH0 side-sync and conditional DRAM-refresh classification; inactive CPU-cycle placement and reset-phase calibration remain open.",
       "requires": [{"path": "{build_dir}", "kind": "directory"}],
-      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(speed_test|slowside_test|irq_test|hdd_test)$", "--output-on-failure"]
+      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(megaii_timing_test|speed_test|slowside_test|irq_test|hdd_test)$", "--output-on-failure"]
     },
     {
       "id": "subsystems-local",

@@ -60,8 +60,8 @@ int main() {
     check("1sec cleared",     !line(VGC));
 
     // ── scan-line (VGC, SHR + SCB bit6) — per-line, tick()-driven ────────
-    // One display line = 65 slow CPU cycles (×14 = 910 master ticks), so
-    // tick(65) at reset speed advances the beam exactly one line.
+    // One display line = 64×14 + one 16-tick slow CPU cycle = 912 master
+    // ticks, so tick(65) at reset speed advances the beam exactly one line.
     mem.reset(); cpu.hardReset();
     mem.write8(io(0x29), 0x80);                       // NEWVIDEO: SHR on
     mem.write8((uint32_t(0xE1) << 16) | 0x9D05, 0x40);// SCB line 5 requests scan IRQ

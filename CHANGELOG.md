@@ -4,6 +4,23 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Timing — 912-tick Mega II/FPI scheduler (September 2026)
+
+Replaced the flat 65×14 scanline and +9-per-slow-access approximation with a
+master-clock scheduler: every line is 64 regular 14-tick PH0 cycles plus one
+16-tick cycle (912 ticks; 238944 per frame), fast-to-Mega-II transactions wait
+for the next PH0 boundary, and only fast DRAM is stretched by the periodic
+5-in-50-tick refresh window. ROM, selected fast FPI registers and an already
+slow/Mega-II transaction hide refresh. The CPU speed is captured at the first
+bus access so a `$C036` write cannot retroactively retime its own instruction,
+and `tick()` now returns the complete master-tick cost used directly by the
+host frame loop. `megaii_timing_test` pins line/frame totals, the long slot,
+25-line realignment, side-sync phase and refresh classification.
+
+The remaining whole-machine accuracy gap is explicit: inactive CPU cycles are
+counted but not yet positioned among active bus transactions, and the reset
+phase still needs calibration against a real-IIgs trace.
+
 ### Tests — cycle-accuracy qualification and active 65C816 bus trace (September 2026)
 
 Added a machine-readable qualification catalog and stdlib-only runner that

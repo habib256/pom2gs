@@ -11,6 +11,7 @@
 
 #include "IIgsMemory.h"
 #include "CPU65816.h"
+#include "Mega2Timing.h"
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
@@ -37,20 +38,31 @@ int IIgsMemory::vpos() const {
     return int((videoCycles_ / kMasterPerLine) % kLines);
 }
 
-void IIgsMemory::tick(int cpuCycles) {
+uint32_t IIgsMemory::tick(int cpuCycles) {
     // ONE wall-clock timebase: master ticks (14.318 MHz) = CPU cycles × 5 fast /
     // 14 slow + the slow-side stall penalty (the beam keeps moving while the CPU
     // stalls). The video beam, the DOC, the ADB valves and the paddles all
     // advance on it. videoCycles_ used to count RAW CPU cycles: at 2.8 MHz the
     // beam scanned 2.8× too fast — VBL fired at ~164 Hz instead of 60, so every
     // VBL-clocked game engine ran ~2.8× fast (accelerated music, samples stopped
-    // early — Captain Blood / Transylvania III). One video line = 65 slow cycles
-    // × 14 = 910 master ticks; 262 lines = 238420 = exactly the frame target.
-    // At reset the machine is SLOW (×14), so slow-side timing is unchanged.
-    const uint32_t pen = uint32_t(slowPenMaster_ - slowPenSeen_);
-    slowPenSeen_ = slowPenMaster_;
-    const uint32_t mt = uint32_t(cpuCycles > 0 ? cpuCycles : 1) * (speedFast() ? 5u : 14u) + pen;
+    // early — Captain Blood / Transylvania III). One video line is 64 regular
+    // 14-tick slow cycles plus one stretched 16-tick cycle = 912 master ticks.
+    //
+    // read8/write8 classified this instruction's active transactions before
+    // we get here. Use the speed captured by its first access: a write to
+    // $C036 takes effect for the following CPU cycle, not retroactively for
+    // the opcode and operands which performed the write.
+    const uint32_t cycles = uint32_t(cpuCycles > 0 ? cpuCycles : 1);
+    const bool fast = busAccessActive_ ? busStartedFast_ : speedFast();
+    const uint32_t base = fast
+        ? cycles * Mega2Timing::kFastCycleTicks
+        : uint32_t(Mega2Timing::slowCyclesTicks(videoCycles_, cycles));
+    const uint32_t mt = base + uint32_t(busPenaltyMaster_);
     videoCycles_ += mt;
+    busCursorMaster_ = 0;
+    busPenaltyMaster_ = 0;
+    busAccessActive_ = false;
+    busStartedFast_ = false;
     doc_.tickMaster(mt);
     mirrorDocIrq();
     const int vp = vpos();
@@ -90,6 +102,53 @@ void IIgsMemory::tick(int cpuCycles) {
     if (kbdIntPending_ && (videoCycles_ - kbdSetCycle_) > twoFrames) {
         kbdIntPending_ = false; updateAdbIrq();
     }
+    return mt;
+}
+
+void IIgsMemory::beginBusAccess() {
+    if (busAccessActive_) return;
+    busAccessActive_ = true;
+    busStartedFast_ = speedFast();
+    busCursorMaster_ = 0;
+}
+
+void IIgsMemory::chargeFast(bool dram) {
+    beginBusAccess();
+    if (!busStartedFast_) return;             // tick() clocks the whole slow instruction on PH0
+    const uint64_t start = videoCycles_ + busCursorMaster_;
+    const uint32_t ticks = dram
+        ? Mega2Timing::fastDramCycleTicks(start)
+        : Mega2Timing::kFastCycleTicks;
+    busCursorMaster_ += ticks;
+    busPenaltyMaster_ += long(ticks - Mega2Timing::kFastCycleTicks);
+}
+
+void IIgsMemory::chargeSlow() {
+    beginBusAccess();
+    if (!busStartedFast_) return;             // already running directly from the PH0 grid
+    const uint64_t start = videoCycles_ + busCursorMaster_;
+    const uint32_t ticks = Mega2Timing::slowCycleTicks(start);
+    busCursorMaster_ += ticks;
+    busPenaltyMaster_ += long(ticks - Mega2Timing::kFastCycleTicks);
+}
+
+void IIgsMemory::chargeIo(uint16_t off, bool writing) {
+    // FPI/CYA registers which are explicitly fast and refresh-exempt. The
+    // remaining $C0xx registers live on the Mega II side. Bank $E0/$E1 has
+    // already been classified slow by the caller and never enters here.
+    const bool fastFpi = off == 0xC035 || off == 0xC036 || off == 0xC037 ||
+                         (!writing && (off == 0xC02D || off == 0xC068)) ||
+                         (off >= 0xC071 && off <= 0xC07F);
+    if (fastFpi) chargeFast(false); else chargeSlow();
+}
+
+int IIgsMemory::takeBusPenalty() {
+    const int result = int(busPenaltyMaster_);
+    busCursorMaster_ = 0;
+    busPenaltyMaster_ = 0;
+    busAccessActive_ = false;
+    busStartedFast_ = false;
+    return result;
 }
 
 // Recompute the two shared IRQ lines from the flag/enable registers. Both the
@@ -398,7 +457,9 @@ bool IIgsMemory::loadState(std::istream& is) {
     }
     // Host-side transients reset; re-derive the shared IRQ lines from the
     // restored register state.
-    spkEvents_.clear(); slowPenMaster_ = 0; slowPenSeen_ = 0;
+    spkEvents_.clear();
+    busCursorMaster_ = 0; busPenaltyMaster_ = 0;
+    busAccessActive_ = false; busStartedFast_ = false;
     mouseSetCycle_ = kbdSetCycle_ = videoCycles_;
     disk35Changed_ = false; disk35SwitchIo_ = false;
     docIrqLast_ = false;
@@ -670,14 +731,9 @@ void IIgsMemory::reset() {
     clkState_ = CLK_IDLE;   // BRAM contents survive reset (battery-backed)
     mouseDX_ = mouseDY_ = 0; mouseBtn_ = false; mouseDataFull_ = false;
     mouseReadY_ = false; keyMod_ = 0; kbdIntPending_ = false;
-    // BOTH halves of the slow-side penalty accumulator. tick() computes its
-    // per-instruction delta as `slowPenMaster_ - slowPenSeen_`; zeroing only the
-    // first left the high-water mark behind, so the next tick() computed a
-    // negative delta, cast it to uint32_t and charged the video/DOC clocks ~4
-    // billion master ticks in one step. Latent today (the host loop's
-    // takeSlowPenalty() clears both every step, so a reset always lands on 0/0)
-    // but a trap for any future caller. (bug-hunt finding, August 2026.)
-    slowPenMaster_ = 0; slowPenSeen_ = 0;
+    // Bus phase/penalty state is per instruction and never survives reset.
+    busCursorMaster_ = 0; busPenaltyMaster_ = 0;
+    busAccessActive_ = false; busStartedFast_ = false;
     // $C031 DISKREG clears on reset (real hardware): drop the 35SEL/HDSEL
     // routing latched in the IWM, else a 5.25" boot after a 3.5" session
     // mis-routes the phase lines until the ROM's disk-port probe rewrites
@@ -963,7 +1019,7 @@ uint8_t IIgsMemory::ioRead(uint8_t bank, uint16_t off) {
             // raster-synced code (Battle Chess waits for `$C02F & $1F` to enter a
             // beam window at $00:AB26) spun forever on a frozen beam.
             clearVgcScanline();                             // reading HORIZCNT clears SCB status (MAME :1681)
-            const uint32_t h = uint32_t((videoCycles_ % uint64_t(kMasterPerLine)) / 14);   // 0..64
+            const uint32_t h = Mega2Timing::horizontalCycle(videoCycles_); // 0..64, long slot included
             return uint8_t(uint32_t((vpos() & 1) << 7) | (h == 0 ? 0u : 0x3Fu + h));
         }
         case 0x35: return shadow_;
@@ -1127,8 +1183,10 @@ uint8_t IIgsMemory::read8(uint32_t a) {
     const uint8_t bank = a >> 16;
     const uint16_t off = a & 0xFFFF;
 
-    if (bank >= romBankBase_ && !rom_.empty())
+    if (bank >= romBankBase_ && !rom_.empty()) {
+        chargeFast(false);                            // ROM hides DRAM refresh
         return rom_[a - (uint32_t(romBankBase_) << 16)];
+    }
 
     if (bank == 0xE0 || bank == 0xE1) {
         chargeSlow();                                 // slow side (Mega II)
@@ -1144,15 +1202,17 @@ uint8_t IIgsMemory::read8(uint32_t a) {
 
     if (bank <= 0x01) {
         if (iolcShadow()) {
-            if (off >= 0xC000 && off <= 0xC0FF) { chargeSlow(); return ioRead(bank, off); }
+            if (off >= 0xC000 && off <= 0xC0FF) { chargeIo(off, false); return ioRead(bank, off); }
             if (off >= 0xC100 && off <= 0xCFFF) { chargeSlow(); return slotRomRead(off); }
             if (off >= 0xD000)                  { chargeSlow(); return lcRead(bank, off); }
         }
         int pb = (bank == 0) ? physBank01(off, false) : 1;
+        chargeFast(true);
         return fastCell(pb, off);
     }
 
-    if (bank <= 0x7F) return fastCell(bank, off);
+    if (bank <= 0x7F) { chargeFast(true); return fastCell(bank, off); }
+    chargeFast(false);
     return 0;   // $E2-$FB unmapped → floating bus (approx)
 }
 
@@ -1162,7 +1222,7 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
     const uint8_t bank = a >> 16;
     const uint16_t off = a & 0xFFFF;
 
-    if (bank >= romBankBase_ && !rom_.empty()) return;   // ROM write ignored
+    if (bank >= romBankBase_ && !rom_.empty()) { chargeFast(false); return; } // ROM write ignored
 
     if (bank == 0xE0 || bank == 0xE1) {
         chargeSlow();                                 // slow side (Mega II)
@@ -1176,16 +1236,18 @@ void IIgsMemory::write8(uint32_t a, uint8_t v) {
 
     if (bank <= 0x01) {
         if (iolcShadow()) {
-            if (off >= 0xC000 && off <= 0xC0FF) { chargeSlow(); ioWrite(bank, off, v); return; }
-            if (off >= 0xC100 && off <= 0xCFFF) return;   // slot ROM: read-only
+            if (off >= 0xC000 && off <= 0xC0FF) { chargeIo(off, true); ioWrite(bank, off, v); return; }
+            if (off >= 0xC100 && off <= 0xCFFF) { chargeSlow(); return; } // slot ROM: read-only
             if (off >= 0xD000)                  { chargeSlow(); lcWrite(bank, off, v); return; }
         }
         int pb = (bank == 0) ? physBank01(off, true) : 1;
         fastCell(pb, off) = v;
-        if (maybeShadow(uint8_t(pb), off, v)) chargeSlow();   // shadowed write hits slow side too
+        if (maybeShadow(uint8_t(pb), off, v)) chargeSlow();   // one side-synced transaction
+        else chargeFast(true);
         return;
     }
 
-    if (bank <= 0x7F) { fastCell(bank, off) = v; return; }
+    if (bank <= 0x7F) { chargeFast(true); fastCell(bank, off) = v; return; }
+    chargeFast(false);
     // $E2-$FB unmapped → drop
 }

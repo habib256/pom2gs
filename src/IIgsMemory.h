@@ -61,23 +61,26 @@ public:
                                       // (fastRamKB_), clamped to [256 KB, 8 MB].
     void reset();                     // power-on-ish: clears RAM, resets MMU state
 
-    // Advance the video/timing clock by `cpuCycles` (call after each CPU step).
-    // Drives VBL / VERTCNT and the VBL interrupt flag. Approximate: 65 cycles
-    // per scanline, 262 lines/frame (NTSC), VBL over lines 192-261.
-    void tick(int cpuCycles);
+    // Advance the video/timing clock after one CPU step and return the exact
+    // wall time consumed in 14.318 MHz master ticks.  This includes the
+    // 64*14+16 Mega II scanline cadence, PH0 side-sync waits and conditional
+    // fast-DRAM refresh stalls accumulated by read8/write8.
+    uint32_t tick(int cpuCycles);
     int  vpos() const;                // current scanline 0..261
     bool inVbl() const { return vpos() >= 192; }
 
     // CPU cycles to execute per 60 Hz video frame, selected by the SPEED
     // register ($C036 bit7). The slow side (Mega II, 1.02 MHz) runs exactly one
-    // video frame per host frame = kLines × kLineCycles = 17030 cycles; the
-    // fast side (FPI, 2.8 MHz) is 14/5× faster → 47684. Legacy //e software
-    // that selects slow mode therefore runs at the correct 1 MHz, instead of
+    // video frame per host frame = kLines × kLineCycles = 17030 cycles.  A
+    // ROM-only fast-side budget rounds the 238944-tick frame up to 47789 CPU
+    // cycles; DRAM refresh and side-sync reduce the achieved runtime budget.
+    // Legacy //e software that selects slow mode therefore runs at the correct
+    // 1 MHz, instead of
     // the fixed 2.8 MHz budget that made it ~2.7× too fast.
     // Cited: MAME apple2gs.cpp SPEED ($C036 bit7 = 2.8 MHz).
     int frameCycleBudget() const {
         const int slow = kLineCycles * kLines;                   // 17030 @ 1.02 MHz
-        return speedFast() ? (slow * 14 / 5) : slow;             // 47684 : 17030
+        return speedFast() ? int((masterPerFrame() + 4) / 5) : slow; // 47789 : 17030
     }
     // Fast only if $C036 bit7 is set AND no motor-detect slot with its bit set has a
     // spinning drive: the FPI drops to 1 MHz during 5.25" Disk II access so copy-
@@ -88,11 +91,9 @@ public:
         if ((speed_ & SPEED_DISKIISL6) && iwm_.motorOn()) return false;
         return true;
     }
-    // Master-clock (14.318 MHz) ticks per 60 Hz video frame = one Mega II frame
-    // (kLines × kLineCycles slow cycles × 14 master). The host loop runs CPU
-    // steps — each costing 5 master (fast) or 14 (slow), plus the slow-side
-    // penalty — until this target, so mid-frame speed switches are honoured.
-    long masterPerFrame() const { return long(kLineCycles) * kLines * 14; }   // 238420
+    // Master-clock ticks per NTSC frame.  Each line contains 64 regular
+    // 14-tick Mega II cycles and one stretched 16-tick cycle.
+    long masterPerFrame() const { return kMasterPerFrame; }       // 238944
 
     // Called once per host frame: drives the periodic Mega II / VGC interrupts
     // (VBL edge stays in tick(); this adds ¼-second, 1-second, scan-line).
@@ -105,19 +106,17 @@ public:
     // the CPU registers. Other WDM signatures are ignored (NOP).
     void smartportTrap(uint8_t sig);
 
-    // Per-access slow-side penalty. In FAST mode (2.8 MHz) any access that
+    // Per-access bus penalty. In FAST mode (2.8 MHz) any access that
     // lands on the Mega II slow side — banks $E0/$E1, the $Cxxx I/O + slot ROM
     // + language card of banks $00/$01, and shadowed video writes — is stretched
-    // to the 1.02 MHz clock: 14 master ticks instead of the fast side's 5, i.e.
-    // 9 extra master ticks per slow access. The CPU already charged the access
-    // as 1 fast cycle (5 master); read8/write8 accrue the +9 here. The main loop
-    // drains this each step (in fast-cycle units, 5 master each) and adds it to
-    // the frame budget, so slow-side-heavy code correctly throttles toward
-    // 1 MHz even in fast mode. In slow mode the whole CPU is already 1 MHz, so
-    // nothing is charged. Cited: MAME apple2gs.cpp (fast/slow clock sync).
-    // Drain the accrued slow-side penalty, in master-clock ticks (the host loop
-    // accounts the whole frame in master ticks).
-    int takeSlowPenalty() { int m = int(slowPenMaster_); slowPenMaster_ = 0; slowPenSeen_ = 0; return m; }
+    // to the PH0 grid. Depending on phase, that is a 14..29-tick transaction,
+    // rather than a flat +9 approximation. Fast DRAM also stretches when its
+    // five-tick access overlaps the periodic five-tick refresh window; ROM and
+    // FPI-register accesses hide refresh. tick() consumes these penalties and
+    // returns the complete wall time. This drain remains useful to unit-test a
+    // sequence of raw bus accesses before tick() is called.
+    int takeBusPenalty();
+    int takeSlowPenalty() { return takeBusPenalty(); } // compatibility alias
     // Wire the CPU so the MMU can raise the VBL (and later DOC/scanline) IRQ.
     void setCpu(CPU65816* c) { cpu_ = c; }
 
@@ -244,6 +243,7 @@ public:
     // ── introspection (for the boot-trace harness / video / debugger) ────
     uint8_t shadowReg() const { return shadow_; }
     uint32_t sp5Calls() const { return sp5Calls_; }   // slot-5 SmartPort/ProDOS calls (poll liveness)
+    uint64_t masterTicks() const { return videoCycles_; }
 
     // Snapshot: RAM + MMU/softswitch/LC/video-timing/ADB/clock/BRAM + DOC +
     // the mounted media paths (remounted on load if they differ). Transients
@@ -328,9 +328,13 @@ private:
     uint64_t paddleReset_ = 0;      // videoCycles_ at the last $C070 strobe
     // Speaker ($C030): absolute cycle-stamps of level toggles this frame.
     std::vector<uint64_t> spkEvents_;
-    // Slow-side access penalty accumulator, in master-clock ticks (14.318 MHz).
-    long slowPenMaster_ = 0;
-    long slowPenSeen_ = 0;    // high-water for tick()'s per-instruction penalty delta (DOC timing)
+    // Per-instruction bus scheduler. read8/write8 classify every active bus
+    // transaction; tick() adds the resulting sync/refresh stalls to the base
+    // architectural cycles, then clears these transients.
+    uint64_t busCursorMaster_ = 0;
+    long busPenaltyMaster_ = 0;
+    bool busAccessActive_ = false;
+    bool busStartedFast_ = false;
     bool docIrqLast_ = false; // last DOC IRQ level mirrored to the CPU (edge-only updates)
     uint32_t sp5Calls_ = 0;   // slot-5 device-call counter (diagnostics)
     uint8_t  diskReg_ = 0;    // $C031 DISKREG (b6 = 35SEL, b7 = HDSEL) — mirrored into iwm_
@@ -340,17 +344,10 @@ private:
     // the pend state must go through this (a direct setIrqLine call elsewhere would
     // desync docIrqLast_ and a later re-assert would be skipped).
     void mirrorDocIrq();
-    static constexpr int kSlowExtraMaster = 9;   // 14 (slow cycle) − 5 (fast cycle)
-    // Charge one slow-side access (no-op unless the CPU is actually running at
-    // 2.8 MHz). The gate must be speedFast(), NOT the raw $C036 bit7: while a
-    // motor-detect slot has a spinning Disk II the FPI holds the whole machine
-    // at 1.02 MHz, so the caller already bills every CPU cycle 14 master ticks
-    // and there is no fast/slow differential left to charge. Testing bit7 alone
-    // billed each slow access 14+9 = 23 master — a 64 % surcharge on exactly the
-    // $C0EC/$C6xx-heavy RWTS loops the 1 MHz drop exists to keep bit-accurate,
-    // so the nibble stream ran away from the CPU during 5.25" transfers.
-    // (bug-hunt finding, August 2026 — pinned by slowside_test.)
-    void chargeSlow() { if (speedFast()) slowPenMaster_ += kSlowExtraMaster; }
+    void beginBusAccess();
+    void chargeSlow();
+    void chargeFast(bool dram);
+    void chargeIo(uint16_t off, bool writing);
     // ADB GLU (HLE — $C024-$C027). The ROM's ADB self-test sends command bytes
     // to DATAREG ($C026), waits for CMDFULL ($C027 bit0) to clear, then waits
     // for data-ready ($C027 bit5) and reads the response. We accept commands
@@ -407,9 +404,10 @@ private:
     void     clockStrobe(uint8_t c034);    // advance the $C033/$C034 transaction
     uint8_t  rtcByte(int n) const;         // byte n of the 32-bit RTC seconds count
     // Video / interrupt timing.
-    static constexpr int kLineCycles    = 65;                 // slow (1.02 MHz) cycles per line
+    static constexpr int kLineCycles    = 65;
     static constexpr int kLines         = 262;
-    static constexpr int kMasterPerLine = kLineCycles * 14;   // 910 master ticks per line
+    static constexpr int kMasterPerLine = 912;
+    static constexpr int kMasterPerFrame = kMasterPerLine * kLines;
     uint64_t videoCycles_ = 0;        // MASTER-clock ticks (14.318 MHz — wall time)
     int      lastVpos_ = 0;
     uint8_t  intflag_ = 0;            // $C046 INTFLAG (VBL=0x08, QUARTER=0x10)

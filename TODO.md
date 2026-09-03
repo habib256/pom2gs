@@ -35,11 +35,13 @@ pass.
   harness records them as `reference-only` and never auto-downloads them.
   Implement execution after permission is established, then verify CPU-visible video fetch bytes,
   `$C02E/$C02F`, HBL/VBL position and scanner phase against a hardware trace.
-- 🔴 Replace the approximate 910-master-tick scanline model with the measured
-  Mega II cadence: 64×14 + one stretched 16-tick cycle = **912 ticks/line**,
-  side-sync alignment every 25 lines, and 5-tick DRAM refresh windows every 50
-  master ticks. Gate every timing change against GS/OS, Total Replay and disk
-  regressions.
+- 🟡 Replace the approximate timing model: 🟢 the master-clock scheduler now
+  uses 64×14 + one stretched 16-tick cycle = **912 ticks/line**, phase-aligns
+  fast accesses to the Mega II PH0 grid (which realigns every 25 lines), and
+  conditionally stalls fast DRAM for the 5-tick refresh window every 50 ticks
+  while ROM/FPI accesses hide it (`megaii_timing_test`). 🔴 Feed inactive CPU
+  cycles into that scheduler, calibrate reset phase against a hardware trace,
+  and gate against GS/OS, Total Replay and disk regressions.
 - 🔴 Automate ROM 01/03 built-in selftests at native 2.8 MHz, including the ROM
   01 text-page-2-shadow prerequisite, and archive the exact final status code.
 - 🔴 Add **TrueGS** and Apple IIgs Diagnostics as user-supplied acceptance
@@ -237,7 +239,7 @@ self-test, then the visible/audible subsystems.
 |---|---|---|---|
 | **M0** | Foundation | Repo, CMake (native + WASM), doc suite, subsystem map | 🟢 `cmake && make` builds an ImGui window. No separate headless target: the `tests/` harnesses (screenshot, triage, *_trace) link the emulator without ImGui/GL |
 | **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on 134 opcode families × 2 modes (2.68M vectors, regs+RAM+**cycles**). MVN/MVP excluded (cycle-cap granularity, see DEV). Extending corpus to full 256 = ongoing |
-| **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟢 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → banner → disk boot; shadow write-through, per-access slow-side penalty, STATEREG, VBL + Mega II ¼/1-second timers all in. Gates: `slowside_test`, `speed_test`, `irq_test`; verify with `boot_trace`. Remaining nuance: Mega II fast/slow phase-sync sub-cycle alignment |
+| **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟢 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → banner → disk boot; shadow write-through, 912-tick lines, phase-aware slow-side/refresh stalls, STATEREG, VBL + Mega II ¼/1-second timers all in. Gates: `megaii_timing_test`, `slowside_test`, `speed_test`, `irq_test`; verify with `boot_trace`. Remaining nuance: feed inactive CPU cycles into the bus scheduler and calibrate phase from hardware traces |
 | **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); HGR + DHGR colour (NTSC + RGB, dhgr_test); 80-column text (text80_test); per-line scanline IRQ done (irq_test). Mid-frame render splits (3200-colour) = follow-up |
 | **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing done (`adb_test`: IRQ keyboard + mouse, ⌘-menu shortcuts). BRAM host-file persistence + ROM 01 banner = follow-ups |
 | **M5** | Disk (IWM) + **//e legacy** | POM2-lineage IWM + native `Sony35` 3.5" LLE. **Plus full Apple //e compatibility**: main/aux memory redirection (RAMRD/RAMWRT/80STORE/PAGE2), LORES/HGR/DHGR video (reuse POM2 `Apple2Display`), so 8-bit //e software runs. (SWIM: out of scope — Mark Twain prototype only, never shipped; ROM 01 **and** 03 use the IWM, MAME apple2gs.cpp:15/3891.) | 🟡 IWM 5.25" read path + //e HGR/LORES video done; **real IWM 3.5" Sony LLE done** (`Sony35`, `iwm35 = 1` — GS/OS boots to the Finder via the genuine slot-5 ROM firmware). 5.25" write + WOZ done (`iwm525_test`), NTSC/RGB colour done (`dhgr_test`); 3.5" FORMAT/tach calibration = follow-up |
@@ -408,16 +410,16 @@ needs the following, in rough priority order.
 
 **P4 — Timing + interrupts**
 - 🟢 Real **2.8 / 1.02 MHz** fast/slow clock. The host loop now accounts a
-  frame in **master-clock ticks** (238420 = one Mega II frame): each CPU step
-  costs 5 master (fast) or 14 (slow) by the *live* $C036 bit7, so **mid-frame
-  speed switches** are honoured. //e slow-mode runs at 1.022 MHz (measured in
-  Total Replay). Per-access **slow-side penalty**: Mega II accesses (banks
-  $E0/$E1, $Cxxx I/O + LC, shadowed writes) add +9 master (5→14) in fast mode —
-  and *only* while the CPU is genuinely at 2.8 MHz: with a motor-detect slot's
-  Disk II spinning the FPI already holds the machine at 1.02 MHz, so there is no
-  differential to charge (MAME `update_speed`).
-  Gates: `speed_test`, `slowside_test`. Minor remaining nuance: Mega II
-  fast/slow *phase-sync* sub-cycle alignment (we model the 1 MHz cost only).
+  frame in **master-clock ticks** (238944 = 912×262): slow mode consumes 64
+  14-tick cycles plus one 16-tick cycle per line. Fast Mega II accesses wait
+  for the next PH0 boundary and occupy one complete slow cycle; fast DRAM
+  accesses stretch only when they intersect the 5-in-50-tick refresh window,
+  while ROM and the fast FPI registers hide refresh. A motor-detect slot's
+  spinning Disk II still holds the whole machine at 1.02 MHz without a second
+  differential penalty (MAME `update_speed`). Gates: `megaii_timing_test`,
+  `speed_test`, `slowside_test`. Remaining nuance: inactive CPU cycles are
+  count-correct but not yet positioned in the bus scheduler, and reset phase
+  still needs a real-IIgs trace oracle.
 - 🟡 IRQ set: **VBL** (tick edge), **¼-second + 1-second** timers (frame-driven,
   60 Hz), **scan-line** (VGCINT enable + SCB bit6), and **DOC** oscillator IRQ
   (IRQ-enabled osc completes → CPU line, cleared by the $E0 osc-int reg) are

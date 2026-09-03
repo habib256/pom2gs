@@ -2,12 +2,10 @@
 // VERHILLE Arnaud — Copyright (C) 2026 — GPLv3 (see LICENSE)
 //
 // Slow-side access penalty gate. In FAST mode ($C036 bit7 = 1) any access to
-// the Mega II slow side (banks $E0/$E1, the $Cxxx I/O + language card of banks
-// $00/$01, shadowed video writes) is stretched to 1.02 MHz: +9 master ticks
-// over the fast side's 5. The MMU accrues that; takeSlowPenalty() returns it in
-// master-clock ticks (the host loop accounts the whole frame in master). In
-// SLOW mode nothing is charged (the whole CPU is already 1 MHz). So N slow
-// accesses drain to exactly 9·N master.
+// the Mega II slow side (banks $E0/$E1, most $Cxxx I/O + language card of banks
+// $00/$01, shadowed video writes) waits for PH0 and contains one full 14-tick
+// cycle (16 on each line's last slot). At aligned phase zero, the first 64
+// accesses cost +9 over a fast cycle and the 65th costs +11.
 
 #include "IIgsMemory.h"
 #include <cstdio>
@@ -52,10 +50,10 @@ int main() {
     for (int i = 0; i < 5; ++i) mem.write8(txt1, 0x20);     // no longer shadowed → fast
     expect("5 unshadowed writes", mem.takeSlowPenalty(), 0);
 
-    // Accumulation is exact over a large batch: 100 slow reads = 900 master.
+    // 100 aligned slow reads cross one 16-tick line slot: 99*9 + 11 = 902.
     mem.write8(io035(), 0x00); mem.takeSlowPenalty();
     for (int i = 0; i < 100; ++i) (void)mem.read8(slowRam);
-    expect("100 slow reads", mem.takeSlowPenalty(), 900);
+    expect("100 slow reads incl long slot", mem.takeSlowPenalty(), 902);
 
     // ── SLOW mode: no differential penalty ───────────────────────────────
     mem.write8(io036(), 0x00);
@@ -87,6 +85,6 @@ int main() {
     expect("motor off again, fast", mem.takeSlowPenalty(), 45);
 
     if (fails) { std::printf("slowside_test: %d failure(s)\n", fails); return 1; }
-    std::printf("OK: slow-side penalty (+9 master/access, fast mode only)\n");
+    std::printf("OK: phase-aware slow-side penalty (including 16-tick line slot)\n");
     return 0;
 }

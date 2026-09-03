@@ -510,13 +510,23 @@ Source of truth: MAME `machine/z80scc.cpp`.
 The emulation worker + ImGui UI live in `src/Ui.cpp` / `src/main.cpp` (no
 separate `EmulationController` class was forked). Master clock
 **14.31818 MHz**; fast CPU budget = 2.8 MHz. `IIgsMemory` converts
-architectural cycles → master ticks using the *current* speed register
-(fast = ×5, slow = ×14) and adds the slow-side penalty per access
-(`chargeSlow`). The running total lives in `IIgsMemory::videoCycles_` and is
+architectural cycles → master ticks using the speed captured at the first bus
+access of each instruction. Fast cycles cost 5 ticks; slow cycles follow the
+Mega II grid (64×14 + one 16-tick cycle = 912 ticks/line). Fast-to-slow accesses
+wait for the next PH0 boundary, while fast DRAM alone is stalled by the
+5-tick-in-50 refresh window; ROM and fast FPI registers hide refresh. The
+running total lives in `IIgsMemory::videoCycles_` and is
 **the** timebase: the beam walk, the DOC (`tickMaster`), the ADB valves, the
 paddle RC timers and the speaker's `$C030` toggle stamps all read it, the last
 via `audioCycles()`. (POM2 calls its equivalent `emuCycles` and counts CPU
 cycles; POMIIGS cannot — see `CLAUDE.md § Conventions`.)
+
+`megaii_timing_test` pins the line/frame totals, the 16-tick long slot, the
+25-line FPI/PH0 realignment, phase-dependent side-sync and refresh
+classification. The CPU still reports inactive cycles only in its final
+instruction total, so their exact positions among active bus transactions and
+the reset phase require the hardware-trace gate before a whole-machine
+cycle-accuracy claim.
 
 ---
 

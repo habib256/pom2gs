@@ -447,11 +447,11 @@ int main(int argc, char** argv) {
                     (io.KeyShift                           ? 0x01 : 0)));
 
         if (c.ui.running) {                    // one video frame, in master-clock ticks
-            const long target = c.mem.masterPerFrame();     // 238420 (@ 60 Hz)
+            const long target = c.mem.masterPerFrame();     // 238944 (@ 59.9 Hz)
             long master = 0;                   // per-step cost tracks live $C036 + slow-side stall
             while (master < target) {
-                int cy = c.cpu.run(1); c.mem.tick(cy);
-                master += long(cy > 0 ? cy : 1) * (c.mem.speedFast() ? 5 : 14) + c.mem.takeSlowPenalty();
+                int cy = c.cpu.run(1);
+                master += c.mem.tick(cy);
             }
             c.mem.frameTick();                 // ¼-sec / 1-sec / scan-line / DOC interrupts
         }

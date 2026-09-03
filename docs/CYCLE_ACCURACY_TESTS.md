@@ -30,13 +30,18 @@ CPU, MMU, video primitives, interrupts, ADB, SCC, DOC, IWM/Sony and SmartPort.
 The new catalog groups those tests without overstating them as whole-machine
 cycle proof.
 
-Three architectural gaps prevent a valid TextFunk/FloatBus pass today:
+The first timing-scheduler tranche now uses 912-tick lines, puts the 16-tick
+long cycle in slot 65, phase-aligns fast-to-Mega-II accesses, and applies the
+5-in-50-tick refresh stall only to fast DRAM. `megaii_timing_test` pins those
+contracts, including ROM/FPI/slow-side refresh hiding and 25-line realignment.
 
-1. `IIgsMemory::kMasterPerLine` is currently `65 * 14 = 910`; it does not model
-   the stretched 65th Mega II cycle that makes the hardware line 912 ticks.
-2. Fast/slow accesses use an aggregate penalty but do not model PH0 phase,
-   side-sync alignment or the periodic 5-tick DRAM refresh window.
-3. `VGC::render` reconstructs a frame from final memory. It does not consume
+Two architectural gaps still prevent a valid TextFunk/FloatBus pass today:
+
+1. The CPU reports inactive cycles in its instruction total but does not emit
+   their positions among active transactions. The scheduler therefore orders
+   active bus accesses precisely but cannot yet place an internal cycle between
+   them; reset-phase calibration also awaits a real-IIgs trace.
+2. `VGC::render` reconstructs a frame from final memory. It does not consume
    memory in raster order while the CPU is writing, and unmapped/floating-bus
    reads are still approximate.
 
@@ -90,8 +95,8 @@ test suite was located.[21]
 
 These are fast regression gates and remain mandatory:
 
-- `speed_test`, `slowside_test`, `irq_test`, `hdd_test`: current FPI/Mega II,
-  shadow and interrupt behaviour;
+- `megaii_timing_test`, `speed_test`, `slowside_test`, `irq_test`, `hdd_test`:
+  current FPI/Mega II timing, shadow and interrupt behaviour;
 - `vgc_test`, `shr_test`, `dhgr_test`, `dhgr_page_test`, `text80_test`: render
   primitives and video soft switches;
 - `adb_test`, `scc_test`, `doc_test`: register protocols and audio state;
@@ -349,7 +354,8 @@ runner refuses to attach download URLs to any `user-supplied` catalog entry.
 
 1. Preserve all current local CTests as the fast gate.
 2. Build and boot the open MiSTer diagnostics; establish exact PASS goldens.
-3. Implement the 912-tick scanline, PH0 side-sync and DRAM-refresh scheduler.
+3. Feed inactive CPU cycles into the landed 912-tick/PH0/refresh scheduler and
+   calibrate its reset phase from a real-IIgs trace.
 4. Implement raster-time VGC fetches and live floating-bus values.
 5. Capture real-IIgs TextFunk and FloatBus traces; make them hard gates.
 6. Automate ROM selftests and user-supplied TrueGS/service diagnostics.
