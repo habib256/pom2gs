@@ -182,9 +182,9 @@ POMIIGS to broad KEGS/MAME/GSSquared parity:
   HGR/DHGR (NTSC + RGB). Ensoniq DOC 🟢 (synthLAB music validated).
 - ADB 🟢 (IRQ kbd/mouse, ⌘-menu shortcuts), BRAM/RTC 🟢, SCC 🟢.
 - **MiSTer custom diagnostics 🟡** (`tools/mister_diags.py`, 21 disks built
-  with rehosted Merlin32/CiderPress2): 14 pass (MMU 26/26), 7 named xfails
-  (GSQMMU 02, SCC cross-channel/selftest, ADB µC firmware, RAM launchers,
-  one corpus dispute).
+  with rehosted Merlin32/CiderPress2): 15 pass (MMU 26/26, GSQMMU), 6
+  xfails all with non-emulator causes (three corpus disputes, the ADB µC
+  firmware, the two RAM tests that overwrite a RAM launcher).
 - **ROM 01/03 built-in self-test 🟢** (`selftest_trace`): every diagnostic
   passes on both ROMs except 09 (ADB), which needs the user-supplied ADB µC
   firmware (`roms/iigs-adb-uc-rom0[13].rom`) and SKIPs without it.

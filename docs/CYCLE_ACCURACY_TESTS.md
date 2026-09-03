@@ -123,13 +123,14 @@ CiderPress2.[3] The set includes:
   (POMIIGS status, September 2026 — see `tests/cycle_accuracy/mister_goldens.json`:
   the 21 disks are built with the rehosted Merlin32 v1.2 + CiderPress2 1.1.1
   (`tools/cycle_suite.py build`, archives pinned by SHA-256 in the catalog
-  sources) and booted by `tools/mister_diags.py`; 14 pass (`mmu_test` 26/26),
-  7 are xfails that each name the emulator gap: GSQMMU test 02, SCC
-  serializer cross-channel and register selftest, ADB µC firmware checksum,
-  the two RAM tests that overwrite a RAM launcher, and one corpus dispute —
-  `adb_device_enum` polls `$C027` bit 7, mouse-data-only per Apple's docs and
-  the current MiSTer RTL. ROM test 0A under ProDOS needed the ≈200 µs ADB
-  response latency.)
+  sources) and booted by `tools/mister_diags.py`; 15 pass (`mmu_test` 26/26,
+  `gsqmmu_test`), 6 xfails with documented non-emulator causes: three corpus
+  disputes (`adb_device_enum` polls `$C027` bit 7, mouse-data-only per Apple's
+  docs and the current MiSTer RTL; `scc_selftest` assumes the 8530 register
+  pointer survives a read, unlike the Z8530 and the ROM's own test 06;
+  `scc_crosschan` needs the MiSTer core's A↔B serial wiring), the ADB µC
+  firmware checksum, and the two RAM tests that overwrite a RAM launcher. ROM
+  test 0A under ProDOS needed the ≈200 µs ADB response latency.)
 - `scc_selftest`, `scc_crosschan`, `scc_both`: SCC register, serializer,
   cross-channel and FIFO behaviour;
 - `adb_device_enum`, `adb_rom_checksum`: ADB GLU protocol and ROM-3-specific

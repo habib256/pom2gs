@@ -31,12 +31,14 @@ pass.
   🟢 Merlin32 v1.2 + CiderPress2 1.1.1 rehosted (archives SHA-256-pinned in the
   catalog, unpacked under `tests/cycle_accuracy/cache/tools/`), all 21 disks
   build and boot; `tools/mister_diags.py` + `mister_goldens.json` gate them
-  (CTest `mister_diagnostics`): 14 pass, 7 xfail. 🟢 `mmu_test` 26/26
-  (shadow-all banks, bank latch, floating bus, LC layout); 🟢 ROM 0A under
-  ProDOS (ADB response latency). 🔴 Close the remaining xfails:
-  `gsqmmu_test` 02 (RAMWRT/aux), SCC serializer cross-channel + register
-  selftest. (`adb_device_enum` is a corpus dispute on `$C027` bit 7 — kept
-  as a documented xfail; `adb_rom_checksum` needs the µC firmware.)
+  (CTest `mister_diagnostics`): 15 pass, 6 xfail. 🟢 `mmu_test` 26/26 and
+  `gsqmmu_test` (shadow-all banks, bank latch, floating bus, LC layout);
+  🟢 ROM 0A under ProDOS (ADB response latency). The 6 xfails are all
+  documented non-emulator causes: three corpus disputes (`adb_device_enum`
+  polls `$C027` bit 7; `scc_selftest` assumes the 8530 pointer survives a
+  read; `scc_crosschan` needs the MiSTer core's A↔B wiring), the ADB µC
+  firmware (`adb_rom_checksum`), and the two RAM tests that overwrite a RAM
+  launcher (`selftest02/04`, covered by the sequential `selftest_trace`).
 - 🟡 Make **TextFunk Viewer** a first-class beam-race gate: deterministic boot,
   scripted screen selection, consecutive-frame captures and comparison against
   a real-IIgs golden. Passing requires a live scanout model; rendering only the

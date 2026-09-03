@@ -4,6 +4,17 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Tests — MiSTer gate at 15 pass / 6 documented xfails (September 2026)
+
+`gsqmmu_test` passes (its exit register dump, Y = failure count, is the
+oracle). The six remaining xfails all have non-emulator causes and say so:
+`scc_selftest` assumes the 8530 register pointer survives a read (the Z8530
+resets it, and the ROM's own test 06 at `$FF:6934` re-selects before every
+read — that real sequence passes); `scc_crosschan` depends on the MiSTer
+core's A↔B serial wiring; `adb_device_enum` polls `$C027` bit 7;
+`adb_rom_checksum` needs the ADB µC firmware; `selftest02/04` overwrite a RAM
+launcher.
+
 ### MMU — shadow-all banks, bank latch, floating bus, LC layout (September 2026)
 
 The seven `mmu_test` sub-tests the MiSTer diagnostics gate flagged are
