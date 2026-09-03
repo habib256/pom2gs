@@ -4,6 +4,15 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### CPU — MVN/MVP under the Tom Harte gate, no opcode excluded (September 2026)
+
+The corpus caps block moves at 100 cycles — 14 complete iterations plus the
+opcode and destination-bank fetches of the 15th. The harness now runs whole
+iterations up to that cap and compares against the vector with the two
+trailing partial fetches removed, so `$44`/`$54` join the gate: 512 files,
+5,120,000 vectors, every bus cycle compared, and `--skip` is gone from the
+CTest and catalog commands.
+
 ### Video — Mega II floating bus (September 2026)
 
 Display soft-switch reads (`$C050-$C05F`), the `$C030` speaker toggle and

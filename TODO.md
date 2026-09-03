@@ -18,9 +18,10 @@ pass.
   transactions, address plus pins for internal cycles — while retaining the
   independent total-cycle check; 🟢 the core is microsequenced (internal
   cycles positioned per WDC Table 5-7, RMW dummy write/MLB/high-first write-
-  back, uncarried index address, JSL/WDM/RTI ordering); 🔴 replace the
-  MVN/MVP exclusion with issue-linked `xfail` cases, and rehost the MIT gilyon
-  generator plus Klaus/Bruce-Clark functional cross-checks.
+  back, uncarried index address, JSL/WDM/RTI ordering); 🟢 MVN/MVP covered
+  (the harness runs whole iterations to the corpus's 100-cycle cap) — 5.12 M
+  vectors, no exclusion; 🔴 rehost the MIT gilyon generator plus
+  Klaus/Bruce-Clark functional cross-checks.
 - 🟡 Turn Crazy Cycles, Fancy Lores and a legally usable 3200-colour fixture
   into deterministic raster checkpoints; keep FTA/Ninjaforce media
   user-supplied until redistribution terms are explicit.
@@ -258,7 +259,7 @@ self-test, then the visible/audible subsystems.
 | # | Milestone | Deliverable | Gate |
 |---|---|---|---|
 | **M0** | Foundation | Repo, CMake (native + WASM), doc suite, subsystem map | 🟢 `cmake && make` builds an ImGui window. No separate headless target: the `tests/` harnesses (screenshot, triage, *_trace) link the emulator without ImGui/GL |
-| **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on 134 opcode families × 2 modes (2.68M vectors, regs+RAM+**cycles**). MVN/MVP excluded (cycle-cap granularity, see DEV). Extending corpus to full 256 = ongoing |
+| **M1** | 65C816 core | `CPU65816` — emulation + native mode, 24-bit, all 256 opcodes | 🟢 Tom Harte `SingleStepTests/65816` 100% on all 256 opcodes × 2 modes (5.12M vectors, regs+RAM+every bus cycle incl. internal ones; MVN/MVP via the capped-iteration rule, see DEV) |
 | **M2** | MMU / FPI + Mega II | `IIgsMemory` — 16 MB banks, shadow, speed reg, slow/fast split | 🟢 ROM 01 **and** 03 boot from ROM vector → native → self-diagnostic → banner → disk boot; shadow write-through, 912-tick lines, phase-aware slow-side/refresh stalls, STATEREG, VBL + Mega II ¼/1-second timers all in. Gates: `megaii_timing_test`, `slowside_test`, `speed_test`, `irq_test`; verify with `boot_trace`. Remaining nuance: feed inactive CPU cycles into the bus scheduler and calibrate phase from hardware traces |
 | **M3** | Legacy video + VGC | `VGC` Super Hi-Res (320/640) + 40-col text from the authentic char ROM → GL display | 🟡 SHR renders (vgc_test green, PNG verified); text renders with authentic char ROM (344s0047); HGR + DHGR colour (NTSC + RGB, dhgr_test); 80-column text (text80_test); per-line scanline IRQ done (irq_test). Mid-frame render splits (3200-colour) = follow-up |
 | **M4** | ADB + BRAM/RTC | ADB GLU HLE + STATEREG-read fix + //e main/aux redirect | 🟡 ROM 03 boots through all self-tests to the **"Apple IIgs / ROM Version 3" banner**, then reaches disk-boot ($C0Ex, needs M5 IWM). Real kbd/mouse routing done (`adb_test`: IRQ keyboard + mouse, ⌘-menu shortcuts). BRAM host-file persistence + ROM 01 banner = follow-ups |
@@ -271,7 +272,7 @@ self-test, then the visible/audible subsystems.
 
 | Hardware | MAME reference | POMIIGS | State |
 |---|---|---|---|
-| 65C816 CPU | `cpu/g65816/` | `CPU65816` | 🟢 2.68M Tom Harte vectors green (134 families ×2 modes; MVN/MVP excluded) |
+| 65C816 CPU | `cpu/g65816/` | `CPU65816` | 🟢 5.12M Tom Harte vectors green (all 256 opcodes ×2 modes, every cycle) |
 | FPI speed/shadow regs ($C035-$C037) | `apple2gs.cpp` | `IIgsMemory` | 🟢 SHADOW write-through for every region + SPEED motor-detect coupling (`speed_test`, `slowside_test`). $C037 DMAREG is latched only — DMA / ROM 03 shadow-all not modelled |
 | Mega II slow-side + I/O shadow | `apple2gs.cpp` | `IIgsMemory` | 🟢 $E0/$E1 RAM + I/O; text/HGR/**SHR** shadow ($01→$E1, SuperHiRes over Hi-Res ranges) and the aux-HGR inhibit ($C035 bit4, MAME `b1ram2000_w`) |
 | STATEREG ($C068) | `apple2gs.cpp` | `IIgsMemory` | 🟢 compose/decompose |

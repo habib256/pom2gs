@@ -165,12 +165,12 @@
       "asset_policy": "reference-only",
       "assets": [],
       "references": ["tom-harte-65816", "wdc-w65c816s"],
-      "oracle": "Exact final registers, touched RAM and instruction cycle count, plus ordered comparison of every bus cycle: address/data/VDA/VPA/VPB/RWB/E/M/X/MLB for active transactions, address and pins for internal cycles. MVN/MVP remain excluded and disputed corpus cases must become exact issue-linked xfails.",
+      "oracle": "Exact final registers, touched RAM and instruction cycle count, plus ordered comparison of every bus cycle: address/data/VDA/VPA/VPB/RWB/E/M/X/MLB for active transactions, address and pins for internal cycles. MVN/MVP run whole iterations to the corpus's 100-cycle cap; no opcode is excluded, and any future corpus dispute must become an exact issue-linked xfail.",
       "requires": [
         {"path": "{build_dir}/tomharte_65816", "kind": "file"},
         {"path": "{tomharte_dir}", "kind": "directory"}
       ],
-      "command": ["{build_dir}/tomharte_65816", "{tomharte_dir}", "--skip", "44,54"]
+      "command": ["{build_dir}/tomharte_65816", "{tomharte_dir}"]
     },
     {
       "id": "fpi-mega2-local",

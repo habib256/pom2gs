@@ -196,13 +196,43 @@ bool activeBusCycle(const ExpectedCycle& cycle) {
            (cycle.outputs[0] != '-' || cycle.outputs[1] != '-' || cycle.outputs[2] != '-');
 }
 
-bool runVector(CPU65816& cpu, IIgsMemory& mem, const Vector& v, bool checkCycles, bool checkBus, std::string& why,
+bool runVector(CPU65816& cpu, IIgsMemory& mem, const Vector& vIn, bool checkCycles, bool checkBus, std::string& why,
                bool activeOnly = false) {
-    loadState(cpu, v.initial);
-    for (const RamCell& c : v.initial.ram) mem.write8(c.addr, c.val);
+    loadState(cpu, vIn.initial);
+    for (const RamCell& c : vIn.initial.ram) mem.write8(c.addr, c.val);
 
     cpu.setBusTraceEnabled(checkBus);
-    const int cyc = cpu.run(1);
+    // MVN/MVP ($54/$44): the corpus captures at most 100 cycles of a block
+    // move — 14 complete 7-cycle iterations plus the opcode and destination-
+    // bank fetches of the 15th, leaving PC advanced by two and the registers
+    // untouched. POMIIGS steps one byte per run(1) and re-points PC at the
+    // opcode until the count wraps, so run whole iterations up to the cap and
+    // compare against the vector with those two trailing fetch cycles removed
+    // (their addresses and pins are fully determined: PBR:PC opcode, PBR:PC+1
+    // operand). Vectors whose move finishes below the cap compare unchanged.
+    const bool blockMove = !vIn.cycles.empty() && vIn.cycles[0].hasValue &&
+                           (vIn.cycles[0].val == 0x54 || vIn.cycles[0].val == 0x44);
+    Vector vAdj;
+    const Vector* vp = &vIn;
+    int cyc = 0;
+    if (blockMove && vIn.cycleCount > 0) {
+        while (true) {
+            cyc += cpu.run(1);
+            if (cpu.getA() == 0xFFFF) break;                       // count wrapped: instruction complete
+            if (cyc + 7 > vIn.cycleCount) break;                   // next iteration would exceed the capture
+        }
+        const int partial = vIn.cycleCount - cyc;
+        if (partial > 0) {
+            vAdj = vIn;
+            vAdj.fin.pc = uint16_t(vIn.fin.pc - partial);
+            vAdj.cycleCount = cyc;
+            vAdj.cycles.resize(size_t(cyc));
+            vp = &vAdj;
+        }
+    } else {
+        cyc = cpu.run(1);
+    }
+    const Vector& v = *vp;
 
     bool ok = true; char buf[256];
     auto fail = [&](const char* what, unsigned got, unsigned want) {

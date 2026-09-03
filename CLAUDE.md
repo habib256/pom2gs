@@ -85,7 +85,7 @@ its hardware logic into these files. 🟢 = working + pinned test.
 
 | Subsystem | Files | Status | Source |
 |---|---|---|---|
-| **65C816 CPU** (emul + native, 24-bit, all opcodes, microsequenced) | `CPU65816.h/.cpp` | 🟢 5.08M Tom Harte vectors (254 opcodes ×2 modes, every bus cycle incl. internal ones; MVN/MVP excluded) | MAME `g65816/`, WDC datasheet |
+| **65C816 CPU** (emul + native, 24-bit, all opcodes, microsequenced) | `CPU65816.h/.cpp` | 🟢 5.12M Tom Harte vectors (all 256 opcodes ×2 modes, every bus cycle incl. internal ones) | MAME `g65816/`, WDC datasheet |
 | **MMU** — FPI + Mega II (16 MB banks, shadow, speed, //e main/aux redirect on `$00`+`$E0`, STATEREG, VBL/Mega II IRQ timing) | `IIgsMemory.h/.cpp` | 🟢 | MAME `apple2gs.cpp`, KEGS |
 | **ADB GLU** (keyboard/mouse/modifiers, HLE) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 IRQ kbd/mouse, ⌘-menu shortcuts (`adb_test`) | MAME `apple2gs.cpp` ADB GLU |
 | **Battery RAM + RTC** ($C033/$C034 serial) — in the MMU file | `IIgsMemory.h/.cpp` | 🟢 host local time + guest-settable offset; BRAM r/w (ROM self-test 07/08) | KEGS clock.c, MAME |
@@ -176,7 +176,7 @@ Splitting out true soft/hard resets (RAM-preserving) is a follow-up.
 **Broadly working — GS/OS boots.** Twelve differential bug-sweep passes brought
 POMIIGS to broad KEGS/MAME/GSSquared parity:
 
-- 65C816 🟢 (5.08M Tom Harte vectors, every bus cycle), FPI/Mega II MMU 🟢 (shadow, speed,
+- 65C816 🟢 (5.12M Tom Harte vectors, all 256 opcodes, every bus cycle), FPI/Mega II MMU 🟢 (shadow, speed,
   //e main/aux redirect, STATEREG, VBL + Mega II quarter-second IRQ).
 - VGC 🟢 Super Hi-Res + SCB/palettes, legacy text (authentic char ROM),
   HGR/DHGR (NTSC + RGB). Ensoniq DOC 🟢 (synthLAB music validated).

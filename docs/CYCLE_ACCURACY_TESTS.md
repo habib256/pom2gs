@@ -87,9 +87,11 @@ placement defect. Turning corpus disputes into exact issue-linked `xfail`
 entries remains open.
 
 Known corpus disputes must not be normalized into silent exceptions: MVN/MVP
-can exceed the generator's 100-cycle capture and are currently excluded,[16]
-while SBC direct-X page wrapping and JSR absolute-X stack wrapping have tracked
-corrections/disputes.[17][18] Any `xfail` must name the upstream issue and the
+can exceed the generator's 100-cycle capture,[16] which the harness honours by
+running whole iterations to the cap and dropping the two trailing partial
+fetches from the expectation (no exclusion since September 2026: 512 files,
+5.12 M vectors), while SBC direct-X page wrapping and JSR absolute-X stack
+wrapping have tracked corrections/disputes.[17][18] Any `xfail` must name the upstream issue and the
 exact case; an unexplained opcode-wide skip is not acceptable.
 
 Independent functional cross-checks are also catalogued. The MIT `gilyon`

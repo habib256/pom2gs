@@ -128,11 +128,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(tomharte_65816 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME tomharte_65816_selftest COMMAND tomharte_65816 --self-test)
     set(POMIIGS_TOMHARTE_DIR "" CACHE PATH "Directory of SingleStepTests/65816 .json vectors")
-    # MVN/MVP ($54/$44) are excluded: Tom Harte caps block moves at 100 cycles
-    # (partial execution), which an instruction-stepped core can't match — see
-    # DEV.md § CPU. Their per-byte semantics are covered by the emulator loop.
+    # MVN/MVP ($54/$44): the corpus caps block moves at 100 cycles; the harness
+    # runs whole iterations to the cap and drops the two trailing partial
+    # fetches from the expectation (see tests/tomharte_65816.cpp runVector).
     add_test(NAME tomharte_65816
-             COMMAND tomharte_65816 "${POMIIGS_TOMHARTE_DIR}" --skip 44,54)
+             COMMAND tomharte_65816 "${POMIIGS_TOMHARTE_DIR}")
     set_tests_properties(tomharte_65816 PROPERTIES SKIP_RETURN_CODE 77)
 
     # Dev tool (not a gate): load a real ROM and trace how far it boots.

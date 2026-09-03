@@ -33,13 +33,14 @@ static review missed: the WAI/STP cycle count (+3) and the (dp,X) emulation-mode
 pointer wrap fixed below (validated 160000/160000 across all 8 (dp,X) opcodes,
 both modes).)*
 
-**Known gate exclusion — MVN/MVP (`$54`/`$44`).** Tom Harte caps block-move
-vectors at 100 cycles, i.e. it captures a *partial* execution (14 iterations)
-of what is a multi-iteration instruction. POMIIGS is instruction-stepped —
-`step()` moves one byte and re-points PC at the opcode until the count wraps,
-which is functionally correct when driven by the CPU loop but does not match
-Tom Harte's cycle-capped snapshot. The two are excluded from the gate
-(`--skip 44,54`); their per-byte semantics are otherwise correct.
+**MVN/MVP (`$54`/`$44`) under the gate.** Tom Harte caps block-move vectors
+at 100 cycles: 14 complete 7-cycle iterations plus the opcode and
+destination-bank fetches of the 15th, leaving PC advanced by two and the
+registers untouched. POMIIGS is instruction-stepped — `step()` moves one byte
+and re-points PC at the opcode until the count wraps — so the harness runs
+whole iterations up to the cap and compares against the vector with those two
+trailing fetch cycles removed (`runVector`, `blockMove`). No opcode is
+excluded any more: 512 files, 5.12 M vectors, every cycle compared.
 
 **Emulation-mode stack quirk.** The *new* 65816 push/pull instructions
 (PEA/PEI/PER/PHD/PLD/JSL/RTL) use a full 16-bit stack pointer even in emulation
