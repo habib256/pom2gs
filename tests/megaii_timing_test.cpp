@@ -6,9 +6,11 @@
 // bus accesses too, so failures identify the MMU timing classifier separately
 // from the instruction-level CPU core.
 
+#include "CPU65816.h"
 #include "IIgsMemory.h"
 #include "Mega2Timing.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <vector>
@@ -93,7 +95,50 @@ int main() {
     expect("$C036 write completes at old speed", mem.tick(1), 14);
     expect("next cycle observes fast speed", mem.tick(1), 5);
 
+    // ── Instruction-level placement of inactive CPU cycles ──────────────
+    // The CPU feeds every internal cycle to the scheduler at its position in
+    // the microsequence, so a DRAM access that follows one lands on the right
+    // refresh phase. Code runs from ROM (refresh hidden), data lives in bank
+    // $00 fast DRAM. Two shapes discriminate placement from the old
+    // "count them at the opcode" model:
+    //   NOP NOP INC $0000 : fetches 20-35, read 35-40, modify 40-45, write at
+    //                       phase 45 collides with refresh → 35 ticks (not 30)
+    //   NOP×3 STA $0000,X : fetches 30-45, index IO 45-50, write at phase 0 →
+    //                       25 ticks (a write placed at 45 would cost 30)
+    {
+        std::vector<uint8_t> code(256 * 1024, 0xEA);                 // NOP everywhere
+        const uint8_t inc[]  = {0xEA, 0xEA, 0xEE, 0x00, 0x00};       // @ $FC/0000
+        const uint8_t sta[]  = {0xEA, 0xEA, 0xEA, 0x9D, 0x00, 0x00}; // @ $FC/0010
+        std::copy(std::begin(inc), std::end(inc), code.begin());
+        std::copy(std::begin(sta), std::end(sta), code.begin() + 0x10);
+        IIgsMemory m2;
+        m2.loadRom(code);
+        CPU65816 cpu(&m2);
+        auto start = [&](uint16_t pc, bool fastMode) {
+            m2.reset();
+            if (fastMode) { m2.write8(speed, 0x80); m2.takeBusPenalty(); }
+            cpu.setEmulationMode(true); cpu.setPBR(0xFC); cpu.setPC(pc);
+            cpu.setDBR(0); cpu.setSP(0x01FF); cpu.setX(0); cpu.setP(0x34);
+        };
+        auto stepTicks = [&]() { return uint64_t(m2.tick(cpu.run(1))); };
+
+        start(0x0000, true);
+        expect("fast NOP = fetch + internal", stepTicks(), 10);
+        expect("second fast NOP", stepTicks(), 10);
+        expect("INC abs: modify cycle pushes write into refresh", stepTicks(), 35);
+
+        start(0x0010, true);
+        stepTicks(); stepTicks(); stepTicks();
+        expect("STA abs,X: index cycle lifts write past refresh", stepTicks(), 25);
+
+        // Slow mode rides the Mega II grid regardless of placement.
+        start(0x0000, false);
+        expect("slow NOP = two PH0 cycles", stepTicks(), 28);
+        stepTicks();
+        expect("slow INC abs = six PH0 cycles", stepTicks(), 84);
+    }
+
     if (fails) { std::printf("megaii_timing_test: %d failure(s)\n", fails); return 1; }
-    std::printf("OK: 912-tick scanline + PH0 side-sync + conditional DRAM refresh\n");
+    std::printf("OK: 912-tick scanline + PH0 side-sync + conditional DRAM refresh + internal-cycle placement\n");
     return 0;
 }

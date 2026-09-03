@@ -163,7 +163,7 @@
       "asset_policy": "reference-only",
       "assets": [],
       "references": ["tom-harte-65816", "wdc-w65c816s"],
-      "oracle": "Exact final registers, touched RAM and instruction cycle count, plus ordered address/data/VDA/VPA/VPB/RWB/E/M/X/MLB comparison for every active bus transaction. Inactive bus cycles are currently covered only by total count; MVN/MVP remain excluded and disputed corpus cases must become exact issue-linked xfails.",
+      "oracle": "Exact final registers, touched RAM and instruction cycle count, plus ordered comparison of every bus cycle: address/data/VDA/VPA/VPB/RWB/E/M/X/MLB for active transactions, address and pins for internal cycles. MVN/MVP remain excluded and disputed corpus cases must become exact issue-linked xfails.",
       "requires": [
         {"path": "{build_dir}/tomharte_65816", "kind": "file"},
         {"path": "{tomharte_dir}", "kind": "directory"}
@@ -179,7 +179,7 @@
       "asset_policy": "none",
       "assets": [],
       "references": ["mame-apple2gs"],
-      "oracle": "CTest gates megaii_timing_test, speed_test, slowside_test, irq_test and hdd_test. The timing gate proves the 912-tick line arithmetic, active-access PH0 side-sync and conditional DRAM-refresh classification; inactive CPU-cycle placement and reset-phase calibration remain open.",
+      "oracle": "CTest gates megaii_timing_test, speed_test, slowside_test, irq_test and hdd_test. The timing gate proves the 912-tick line arithmetic, active-access PH0 side-sync and conditional DRAM-refresh classification; internal CPU cycles are placed at instruction level; reset-phase calibration remains open.",
       "requires": [{"path": "{build_dir}", "kind": "directory"}],
       "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(megaii_timing_test|speed_test|slowside_test|irq_test|hdd_test)$", "--output-on-failure"]
     },

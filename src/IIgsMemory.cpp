@@ -123,6 +123,12 @@ void IIgsMemory::chargeFast(bool dram) {
     busPenaltyMaster_ += long(ticks - Mega2Timing::kFastCycleTicks);
 }
 
+void IIgsMemory::internalCycles(uint32_t n) {
+    beginBusAccess();
+    if (!busStartedFast_) return;             // slow instructions ride the PH0 grid in tick()
+    busCursorMaster_ += uint64_t(n) * Mega2Timing::kFastCycleTicks;
+}
+
 void IIgsMemory::chargeSlow() {
     beginBusAccess();
     if (!busStartedFast_) return;             // already running directly from the PH0 grid
@@ -1214,6 +1220,18 @@ uint8_t IIgsMemory::read8(uint32_t a) {
     if (bank <= 0x7F) { chargeFast(true); return fastCell(bank, off); }
     chargeFast(false);
     return 0;   // $E2-$FB unmapped → floating bus (approx)
+}
+
+uint8_t IIgsMemory::peek8(uint32_t a) {
+    const uint64_t cursor = busCursorMaster_;
+    const long penalty = busPenaltyMaster_;
+    const bool active = busAccessActive_, fast = busStartedFast_;
+    const uint8_t v = read8(a);
+    busCursorMaster_ = cursor;
+    busPenaltyMaster_ = penalty;
+    busAccessActive_ = active;
+    busStartedFast_ = fast;
+    return v;
 }
 
 void IIgsMemory::write8(uint32_t a, uint8_t v) {

@@ -117,6 +117,14 @@ public:
     // sequence of raw bus accesses before tick() is called.
     int takeBusPenalty();
     int takeSlowPenalty() { return takeBusPenalty(); } // compatibility alias
+    // Inactive (internal-operation) CPU cycles: VDA=VPA=VPB low, no memory
+    // transaction. At 2.8 MHz each is exactly five master ticks and advances
+    // the per-instruction bus cursor, so the *next* transaction is phased
+    // correctly against the PH0 grid and the DRAM-refresh window. They never
+    // stall: with VDA low the FPI runs no DRAM cycle, so refresh cannot
+    // collide with them. In slow mode tick() already clocks the whole
+    // instruction on the Mega II grid, so the cursor is left alone.
+    void internalCycles(uint32_t n);
     // Wire the CPU so the MMU can raise the VBL (and later DOC/scanline) IRQ.
     void setCpu(CPU65816* c) { cpu_ = c; }
 
@@ -238,6 +246,9 @@ public:
 
     // ── the CPU's bus hooks (non-virtual, stable since M1) ───────────────
     uint8_t read8(uint32_t addr24);
+    // Side-effect-free program-memory read for HLE traps (the WDM signature
+    // byte): no bus-scheduler charge, no cycle. Not meant for I/O space.
+    uint8_t peek8(uint32_t addr24);
     void    write8(uint32_t addr24, uint8_t v);
 
     // ── introspection (for the boot-trace harness / video / debugger) ────

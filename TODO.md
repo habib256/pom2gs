@@ -13,11 +13,14 @@ pass.
 
 - 🟢 Build a versioned test catalog covering CPU, FPI/CYA, Mega II, VGC,
   interrupts, shadowing, ADB, SCC, DOC, IWM/Sony, SmartPort and RTC.
-- 🟡 Extend 65816 qualification: 🟢 the harness now compares every active bus
-  transaction (address/data plus VDA/VPA/VPB/RWB/E/M/X/MLB) by default, while
-  retaining the independent total-cycle check; 🔴 microsequence the inactive
-  cycles, replace broad exclusions with issue-linked `xfail` cases, and rehost
-  the MIT gilyon generator plus Klaus/Bruce-Clark functional cross-checks.
+- 🟡 Extend 65816 qualification: 🟢 the harness compares **every** bus cycle
+  in order — address/data plus VDA/VPA/VPB/RWB/E/M/X/MLB for active
+  transactions, address plus pins for internal cycles — while retaining the
+  independent total-cycle check; 🟢 the core is microsequenced (internal
+  cycles positioned per WDC Table 5-7, RMW dummy write/MLB/high-first write-
+  back, uncarried index address, JSL/WDM/RTI ordering); 🔴 replace the
+  MVN/MVP exclusion with issue-linked `xfail` cases, and rehost the MIT gilyon
+  generator plus Klaus/Bruce-Clark functional cross-checks.
 - 🟡 Turn Crazy Cycles, Fancy Lores and a legally usable 3200-colour fixture
   into deterministic raster checkpoints; keep FTA/Ninjaforce media
   user-supplied until redistribution terms are explicit.
@@ -39,9 +42,12 @@ pass.
   uses 64×14 + one stretched 16-tick cycle = **912 ticks/line**, phase-aligns
   fast accesses to the Mega II PH0 grid (which realigns every 25 lines), and
   conditionally stalls fast DRAM for the 5-tick refresh window every 50 ticks
-  while ROM/FPI accesses hide it (`megaii_timing_test`). 🔴 Feed inactive CPU
-  cycles into that scheduler, calibrate reset phase against a hardware trace,
-  and gate against GS/OS, Total Replay and disk regressions.
+  while ROM/FPI accesses hide it (`megaii_timing_test`). 🟢 Inactive CPU
+  cycles are fed to that scheduler at their microsequence position
+  (`IIgsMemory::internalCycles`, pinned at instruction level by
+  `megaii_timing_test`; GS/OS HDD boot unchanged under `hdd_trace`). 🔴
+  Calibrate reset phase against a hardware trace and add Total Replay and
+  disk-timing regression gates.
 - 🔴 Automate ROM 01/03 built-in selftests at native 2.8 MHz, including the ROM
   01 text-page-2-shadow prerequisite, and archive the exact final status code.
 - 🔴 Add **TrueGS** and Apple IIgs Diagnostics as user-supplied acceptance

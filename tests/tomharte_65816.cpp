@@ -10,15 +10,17 @@
 //
 // CPU65816 is instruction-stepped (run(1) = one opcode) and IIgsMemory is a
 // flat 16 MB array, so — exactly as in POM2 — we validate final register file,
-// touched RAM, cycle count, and every active bus transaction.  The bus check
-// covers address/data plus VDA/VPA/VPB/RWB/E/M/X/MLB; inactive cycles remain
-// represented by the independent total-cycle check until the core is fully
-// microsequenced. Each vector's `e` field selects emulation/native mode. P is
-// compared with the phantom bits (0x30) masked only in emulation mode; in
-// native mode M/X are real flags.
+// touched RAM, cycle count, and EVERY bus cycle in order: address/data plus
+// VDA/VPA/VPB/RWB/E/M/X/MLB for the active transactions, and address plus the
+// same pin state for the inactive (internal-operation) cycles, so a
+// misplaced internal cycle is diagnosed even when the total count is right.
+// `--active-only` restores the transaction-only comparison for triage. Each
+// vector's `e` field selects emulation/native mode. P is compared with the
+// phantom bits (0x30) masked only in emulation mode; in native mode M/X are
+// real flags.
 //
 // Usage: tomharte_65816 <dir> [--max N] [--only hh,..] [--skip hh,..]
-//                        [--no-cycles] [--no-bus] [--verbose] [--examples K]
+//                        [--no-cycles] [--no-bus] [--active-only] [--verbose] [--examples K]
 // Exit 0 = all matched; 1 = mismatch; 2 = usage; 77 = missing data (CTest SKIP).
 
 #include "CPU65816.h"
@@ -43,6 +45,7 @@ struct RamCell { uint32_t addr; uint8_t val; };
 struct ExpectedCycle {
     uint32_t addr = 0;
     uint8_t val = 0;
+    bool hasAddr = true;     // WAI/STP halt cycle: address null
     bool hasValue = false;
     std::string outputs;
 };
@@ -133,7 +136,10 @@ void parseCycles(const char*& p, std::vector<ExpectedCycle>& out) {
     while (*p) {
         ExpectedCycle cycle;
         if (!eat(p, '[')) break;
-        cycle.addr = parseUint(p); eat(p, ','); skipWs(p);
+        skipWs(p);
+        if (!std::strncmp(p, "null", 4)) { p += 4; cycle.hasAddr = false; }
+        else cycle.addr = parseUint(p);
+        eat(p, ','); skipWs(p);
         if (!std::strncmp(p, "null", 4)) p += 4;
         else { cycle.val = uint8_t(parseUint(p)); cycle.hasValue = true; }
         eat(p, ','); cycle.outputs = parseString(p); eat(p, ']');
@@ -177,7 +183,7 @@ std::string busOutputs(const CPU65816::BusCycle& cycle) {
     if (cycle.vda) out[0] = 'd';
     if (cycle.vpa) out[1] = 'p';
     if (cycle.vpb) out[2] = 'v';
-    out[3] = cycle.write ? 'w' : 'r';
+    out[3] = cycle.halt ? '-' : cycle.write ? 'w' : 'r';
     if (cycle.e) out[4] = 'e';
     if (cycle.m) out[5] = 'm';
     if (cycle.x) out[6] = 'x';
@@ -190,7 +196,8 @@ bool activeBusCycle(const ExpectedCycle& cycle) {
            (cycle.outputs[0] != '-' || cycle.outputs[1] != '-' || cycle.outputs[2] != '-');
 }
 
-bool runVector(CPU65816& cpu, IIgsMemory& mem, const Vector& v, bool checkCycles, bool checkBus, std::string& why) {
+bool runVector(CPU65816& cpu, IIgsMemory& mem, const Vector& v, bool checkCycles, bool checkBus, std::string& why,
+               bool activeOnly = false) {
     loadState(cpu, v.initial);
     for (const RamCell& c : v.initial.ram) mem.write8(c.addr, c.val);
 
@@ -218,11 +225,14 @@ bool runVector(CPU65816& cpu, IIgsMemory& mem, const Vector& v, bool checkCycles
     if (checkBus) {
         std::vector<const ExpectedCycle*> expected;
         for (const ExpectedCycle& cycle : v.cycles)
-            if (activeBusCycle(cycle)) expected.push_back(&cycle);
-        const auto& actual = cpu.busTrace();
+            if (!activeOnly || activeBusCycle(cycle)) expected.push_back(&cycle);
+        std::vector<CPU65816::BusCycle> actual;
+        for (const CPU65816::BusCycle& cycle : cpu.busTrace())
+            if (!activeOnly || cycle.vda || cycle.vpa || cycle.vpb) actual.push_back(cycle);
         if (actual.size() != expected.size()) {
             if (ok) {
-                std::snprintf(buf, sizeof buf, "active bus cycles got %zu want %zu", actual.size(), expected.size());
+                std::snprintf(buf, sizeof buf, "%sbus cycles got %zu want %zu", activeOnly ? "active " : "",
+                              actual.size(), expected.size());
                 why = buf;
             }
             ok = false;
@@ -232,7 +242,7 @@ bool runVector(CPU65816& cpu, IIgsMemory& mem, const Vector& v, bool checkCycles
             const ExpectedCycle& want = *expected[i];
             const CPU65816::BusCycle& got = actual[i];
             const std::string gotOutputs = busOutputs(got);
-            if (got.address != want.addr || (want.hasValue && got.value != want.val) || gotOutputs != want.outputs) {
+            if ((want.hasAddr && got.address != want.addr) || (want.hasValue && got.value != want.val) || gotOutputs != want.outputs) {
                 if (ok) {
                     char wantValue[8] = "null";
                     if (want.hasValue) std::snprintf(wantValue, sizeof wantValue, "$%02X", want.val);
@@ -269,8 +279,8 @@ int runSelfTest() {
     lda.fin = lda.initial;
     lda.fin.pc = 0x1236; lda.fin.p = 0xB4; lda.fin.a = 0xAB80;
     lda.cycles = {
-        {0x561234, 0xA9, true, "dp-remx-"},
-        {0x561235, 0x80, true, "-p-remx-"},
+        {0x561234, 0xA9, true, true, "dp-remx-"},
+        {0x561235, 0x80, true, true, "-p-remx-"},
     };
     lda.cycleCount = int(lda.cycles.size());
 
@@ -285,18 +295,68 @@ int runSelfTest() {
         {0x0001FF, 0x12}, {0x0001FE, 0x20}, {0x0001FD, 0x02}, {0x0001FC, 0x30},
     });
     brk.cycles = {
-        {0x122000, 0x00, true, "dp-r-mx-"},
-        {0x122001, 0x42, true, "-p-r-mx-"},
-        {0x0001FF, 0x12, true, "d--w-mx-"},
-        {0x0001FE, 0x20, true, "d--w-mx-"},
-        {0x0001FD, 0x02, true, "d--w-mx-"},
-        {0x0001FC, 0x30, true, "d--w-mx-"},
-        {0x00FFE6, 0x34, true, "d-vr-mx-"},
-        {0x00FFE7, 0x12, true, "d-vr-mx-"},
+        {0x122000, 0x00, true, true, "dp-r-mx-"},
+        {0x122001, 0x42, true, true, "-p-r-mx-"},
+        {0x0001FF, 0x12, true, true, "d--w-mx-"},
+        {0x0001FE, 0x20, true, true, "d--w-mx-"},
+        {0x0001FD, 0x02, true, true, "d--w-mx-"},
+        {0x0001FC, 0x30, true, true, "d--w-mx-"},
+        {0x00FFE6, 0x34, true, true, "d-vr-mx-"},
+        {0x00FFE7, 0x12, true, true, "d-vr-mx-"},
     };
     brk.cycleCount = int(brk.cycles.size());
 
-    for (const Vector* vector : {&lda, &brk}) {
+    // Emulation-mode INC dp: opcode, DO, read (MLB), the 6502-style dummy
+    // write of the unmodified byte with VDA low (MLB), then the real write.
+    Vector inc;
+    inc.name = "selftest emulation INC dp dummy write";
+    inc.initial.pc = 0x3000; inc.initial.s = 0x01FF; inc.initial.p = 0x34;
+    inc.initial.d = 0; inc.initial.pbr = 0x02; inc.initial.e = 1;
+    inc.initial.ram = {{0x023000, 0xE6}, {0x023001, 0x40}, {0x000040, 0x7F}};
+    inc.fin = inc.initial;
+    inc.fin.pc = 0x3002; inc.fin.p = 0xB4; inc.fin.ram[2] = {0x000040, 0x80};
+    inc.cycles = {
+        {0x023000, 0xE6, true, true, "dp-remx-"},
+        {0x023001, 0x40, true, true, "-p-remx-"},
+        {0x000040, 0x7F, true, true, "d--remxl"},
+        {0x000040, 0x7F, true, true, "---wemxl"},
+        {0x000040, 0x80, true, true, "d--wemxl"},
+    };
+    inc.cycleCount = int(inc.cycles.size());
+
+    // Native INX: opcode then one internal cycle with PC+1 on the bus.
+    Vector inx;
+    inx.name = "selftest native INX internal cycle";
+    inx.initial.pc = 0x4000; inx.initial.s = 0x01FF; inx.initial.p = 0x10; // m=0 x=1
+    inx.initial.x = 0x00FF; inx.initial.pbr = 0x03; inx.initial.e = 0;
+    inx.initial.ram = {{0x034000, 0xE8}};
+    inx.fin = inx.initial;
+    inx.fin.pc = 0x4001; inx.fin.x = 0x0000; inx.fin.p = 0x12;
+    inx.cycles = {
+        {0x034000, 0xE8, true, true, "dp-r--x-"},
+        {0x034001, 0x00, true, false, "---r--x-"},
+    };
+    inx.cycleCount = int(inx.cycles.size());
+
+    // Emulation WAI: opcode, two internal cycles at PC+1, then the halt cycle
+    // with the address bus and E/M/X outputs released (null address, all
+    // pins low) — the shape that used to spin the scanner.
+    Vector wai;
+    wai.name = "selftest emulation WAI halt cycle";
+    wai.initial.pc = 0x5000; wai.initial.s = 0x01FF; wai.initial.p = 0x34;
+    wai.initial.pbr = 0x04; wai.initial.e = 1;
+    wai.initial.ram = {{0x045000, 0xCB}};
+    wai.fin = wai.initial;
+    wai.fin.pc = 0x5001;
+    wai.cycles = {
+        {0x045000, 0xCB, true, true, "dp-remx-"},
+        {0x045001, 0x00, true, false, "---remx-"},
+        {0x045001, 0x00, true, false, "---remx-"},
+        {0x000000, 0x00, false, false, "--------"},
+    };
+    wai.cycleCount = int(wai.cycles.size());
+
+    for (const Vector* vector : {&lda, &brk, &inc, &inx, &wai}) {
         std::string why;
         if (!runVector(cpu, mem, *vector, true, true, why)) {
             std::fprintf(stderr, "[tomharte65816] SELFTEST FAIL: %s: %s\n", vector->name.c_str(), why.c_str());
@@ -314,7 +374,20 @@ int runSelfTest() {
         return 1;
     }
 
-    std::puts("[tomharte65816] SELFTEST OK: active bus roles, data and pins");
+    // A misplaced internal cycle must be diagnosed even though the total cycle
+    // count and the active transactions are unchanged.
+    Vector swapped = inc;
+    std::swap(swapped.cycles[2], swapped.cycles[3]);
+    if (runVector(cpu, mem, swapped, true, true, why) || why.find("bus[2]") == std::string::npos) {
+        std::fprintf(stderr, "[tomharte65816] SELFTEST FAIL: misplaced internal cycle was not diagnosed (%s)\n", why.c_str());
+        return 1;
+    }
+    if (!runVector(cpu, mem, swapped, true, true, why, true)) {
+        std::fprintf(stderr, "[tomharte65816] SELFTEST FAIL: --active-only should ignore internal order (%s)\n", why.c_str());
+        return 1;
+    }
+
+    std::puts("[tomharte65816] SELFTEST OK: every bus cycle — active roles, internal placement, data and pins");
     return 0;
 }
 
@@ -332,10 +405,10 @@ int opcodeFromStem(const std::string& stem) {
 }  // namespace
 
 int main(int argc, char** argv) {
-    if (argc < 2) { std::fprintf(stderr,"usage: %s <dir> [--max N] [--only hh,..] [--skip hh,..] [--no-cycles] [--no-bus] [--verbose] [--examples K]\n",argv[0]); return 2; }
+    if (argc < 2) { std::fprintf(stderr,"usage: %s <dir> [--max N] [--only hh,..] [--skip hh,..] [--no-cycles] [--no-bus] [--active-only] [--verbose] [--examples K]\n",argv[0]); return 2; }
     if (!std::strcmp(argv[1], "--self-test")) return runSelfTest();
     const std::string dir = argv[1];
-    long maxPerFile=-1; int examples=3; bool verbose=false, checkCycles=true, checkBus=true;
+    long maxPerFile=-1; int examples=3; bool verbose=false, checkCycles=true, checkBus=true, activeOnly=false;
     std::set<int> only, skip;
     for (int i=2;i<argc;++i){ std::string a=argv[i];
         if      (a=="--max"&&i+1<argc) maxPerFile=std::strtol(argv[++i],nullptr,10);
@@ -344,6 +417,7 @@ int main(int argc, char** argv) {
         else if (a=="--skip"&&i+1<argc) skip=parseHexList(argv[++i]);
         else if (a=="--no-cycles") checkCycles=false;
         else if (a=="--no-bus") checkBus=false;
+        else if (a=="--active-only") activeOnly=true;
         else if (a=="--verbose") verbose=true;
         else { std::fprintf(stderr,"unknown arg '%s'\n",a.c_str()); return 2; }
     }
@@ -358,7 +432,7 @@ int main(int argc, char** argv) {
     IIgsMemory mem;
     mem.setTestMode(true);   // flat 16 MB bus (Tom Harte models no MMU)
     CPU65816 cpu(&mem);
-    std::printf("[tomharte65816] dir=%s files=%zu cycles=%s active-bus=%s\n", dir.c_str(), files.size(), checkCycles?"on":"off", checkBus?"on":"off");
+    std::printf("[tomharte65816] dir=%s files=%zu cycles=%s bus=%s\n", dir.c_str(), files.size(), checkCycles?"on":"off", !checkBus?"off":activeOnly?"active-only":"all-cycles");
 
     long grandTotal=0, grandPass=0, filesRun=0; bool anyFail=false;
     for (const fs::path& f : files) {
@@ -373,7 +447,7 @@ int main(int argc, char** argv) {
         while (true) {
             skipWs(p); if (*p==']'||*p=='\0') break;
             if (!parseVector(p,v)) break;
-            std::string why; const bool ok=runVector(cpu,mem,v,checkCycles,checkBus,why);
+            std::string why; const bool ok=runVector(cpu,mem,v,checkCycles,checkBus,why,activeOnly);
             ++total; if (ok)++passed; else if (int(firstFew.size())<examples) firstFew.push_back({v.name,why});
             if (maxPerFile>0&&total>=maxPerFile) break;
             skipWs(p); if (*p==','){++p;continue;} if (*p==']'){++p;break;}

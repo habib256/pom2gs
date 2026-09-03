@@ -57,6 +57,9 @@ disks54/
 *.zip
 docs/System*/
 docs/Arkanoid*/
+# Exception: conformance-test media the maintainer chose to track (provenance
+# and checksum recorded in tests/cycle_accuracy/disks/README.md).
+!tests/cycle_accuracy/disks/*.po
 
 # ImGui saved window layout (generated)
 imgui.ini

@@ -4,6 +4,35 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### CPU — internal cycles positioned and fed to the bus scheduler (September 2026)
+
+The 65C816 core no longer sums its internal (VDA=VPA=VPB low) cycles from a
+per-opcode table after the opcode fetch; each one is emitted at its position
+in the WDC Table 5-7 microsequence through a single `io()` helper that counts
+it, traces it and hands it to `IIgsMemory::internalCycles()`. The master-clock
+scheduler therefore sees every cycle in order, so a DRAM access that follows
+an internal cycle lands on the right refresh phase and a slow-side access on
+the right PH0 slot — previously the bus cursor ignored internal cycles and
+any transaction after one was phased five ticks per cycle too early
+(`megaii_timing_test`: `INC abs` = 35 ticks, `STA abs,X` = 25 ticks after the
+right NOP prefix; the old model gave 30 for both).
+
+`tomharte_65816` now compares **every** cycle — address, data and pins for the
+active transactions, address and pins for the internal ones — instead of the
+active subset plus a total. Running that against the corpus surfaced and fixed
+seven microsequence defects the count-only gate could not see: the indexed
+page-cross cycle shows the *uncarried* address; read-modify-write writes back
+high byte first, asserts MLB, and in emulation mode performs a dummy write of
+the unmodified byte; JSL pushes PBR between AAH and AAB; JSR (abs,X) pushes
+the return address between AAL and AAH; WDM's signature byte is an internal
+cycle, not an operand fetch (the SmartPort trap now peeks it without a bus
+transaction); RTI applies the pulled P only after its last pull; WAI/STP end
+in a park cycle with the address bus, RWB and E/M/X all released (the corpus
+encodes it as a null address, which also used to spin the harness's scanner).
+It also caught a 1-in-65536 addressing bug: 16-bit direct-page and
+stack-relative data at `$00FFFF` wrapped into bank `$01` instead of `$000000`.
+GS/OS boots to the Finder unchanged (`hdd_trace`: SHR on at the same step).
+
 ### Timing — 912-tick Mega II/FPI scheduler (September 2026)
 
 Replaced the flat 65×14 scanline and +9-per-slow-access approximation with a
@@ -17,9 +46,10 @@ and `tick()` now returns the complete master-tick cost used directly by the
 host frame loop. `megaii_timing_test` pins line/frame totals, the long slot,
 25-line realignment, side-sync phase and refresh classification.
 
-The remaining whole-machine accuracy gap is explicit: inactive CPU cycles are
-counted but not yet positioned among active bus transactions, and the reset
-phase still needs calibration against a real-IIgs trace.
+The remaining whole-machine accuracy gap at the time was explicit: inactive
+CPU cycles were counted but not yet positioned among active bus transactions
+(closed by the entry above), and the reset phase still needs calibration
+against a real-IIgs trace.
 
 ### Tests — cycle-accuracy qualification and active 65C816 bus trace (September 2026)
 

@@ -35,12 +35,14 @@ long cycle in slot 65, phase-aligns fast-to-Mega-II accesses, and applies the
 5-in-50-tick refresh stall only to fast DRAM. `megaii_timing_test` pins those
 contracts, including ROM/FPI/slow-side refresh hiding and 25-line realignment.
 
-Two architectural gaps still prevent a valid TextFunk/FloatBus pass today:
+The CPU now emits every cycle in microsequence order — active transactions
+and internal cycles alike — and the scheduler places each one, so an
+instruction's bus accesses land on the correct PH0 slot and refresh phase
+(`megaii_timing_test` pins `INC abs` / `STA abs,X` shapes at instruction
+level). Two gaps still prevent a valid TextFunk/FloatBus pass today:
 
-1. The CPU reports inactive cycles in its instruction total but does not emit
-   their positions among active transactions. The scheduler therefore orders
-   active bus accesses precisely but cannot yet place an internal cycle between
-   them; reset-phase calibration also awaits a real-IIgs trace.
+1. The reset phase of the PH0 and refresh grids is assumed, not measured; it
+   awaits calibration against a real-IIgs trace.
 2. `VGC::render` reconstructs a frame from final memory. It does not consume
    memory in raster order while the CPU is writing, and unmapped/floating-bus
    reads are still approximate.
@@ -70,12 +72,13 @@ cycle array to compare every transaction on which VDA, VPA or VPB is asserted:
 address, data, VDA/VPA/VPB, RWB, E, M, X and MLB are compared in order. Program
 fetches and vector pulls therefore cannot masquerade as generic RAM reads.
 
-The CPU is not fully microsequenced yet. Cycles with VDA=VPA=VPB=0 are covered
-only by the total-cycle assertion; their otherwise-visible RWB/E/M/X/MLB state
-and address-bus value are not emitted. `--no-bus` exists only to separate a
-state/timing defect from a transaction-trace defect during triage. Completing
-inactive-cycle sequencing and turning corpus disputes into exact issue-linked
-`xfail` entries remain open.
+Cycles with VDA=VPA=VPB=0 are compared too: their address-bus value and
+RWB/E/M/X/MLB state, in sequence with the active transactions, so a misplaced
+internal cycle fails even when the total count is right (the harness self-test
+proves that). `--no-bus` separates a state/timing defect from a trace defect
+during triage, and `--active-only` separates a transaction defect from a
+placement defect. Turning corpus disputes into exact issue-linked `xfail`
+entries remains open.
 
 Known corpus disputes must not be normalized into silent exceptions: MVN/MVP
 can exceed the generator's 100-cycle capture and are currently excluded,[16]
@@ -354,8 +357,8 @@ runner refuses to attach download URLs to any `user-supplied` catalog entry.
 
 1. Preserve all current local CTests as the fast gate.
 2. Build and boot the open MiSTer diagnostics; establish exact PASS goldens.
-3. Feed inactive CPU cycles into the landed 912-tick/PH0/refresh scheduler and
-   calibrate its reset phase from a real-IIgs trace.
+3. ~~Feed inactive CPU cycles into the landed 912-tick/PH0/refresh
+   scheduler~~ (done) and calibrate its reset phase from a real-IIgs trace.
 4. Implement raster-time VGC fetches and live floating-bus values.
 5. Capture real-IIgs TextFunk and FloatBus traces; make them hard gates.
 6. Automate ROM selftests and user-supplied TrueGS/service diagnostics.

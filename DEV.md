@@ -24,9 +24,10 @@ far that subsystem actually is and which gate pins it.
 ## CPU — 65C816
 
 *(Core complete. All 256 opcodes in `CPU65816.cpp`, gated by the Tom Harte
-SingleStepTests/65816 corpus (registers + RAM + cycle count, with active bus
-transactions now checked pin-by-pin) — see the pinned
-`tomharte_65816` test — minus the two deliberate exclusions below. The suite is
+SingleStepTests/65816 corpus (registers + RAM + cycle count, with **every**
+bus cycle — active transactions and internal cycles alike — checked in order,
+pin-by-pin) — see the pinned `tomharte_65816` test — minus the two deliberate
+exclusions below. The suite is
 re-run as a differential oracle each bug-sweep pass; it caught real defects
 static review missed: the WAI/STP cycle count (+3) and the (dp,X) emulation-mode
 pointer wrap fixed below (validated 160000/160000 across all 8 (dp,X) opcodes,
@@ -62,21 +63,36 @@ is hardwired to `$01`, and while the index width is 8-bit the index high bytes
 read as 0 (this is what the Tom Harte `*.e` vectors check even for
 non-stack/non-index opcodes).
 
-**Cycle model.** `rd`/`wr` each count one bus cycle; a static table adds the
-*internal* (non-bus) cycles the datasheet spends — implied/accumulator ops +1,
-pushes +1, pulls +2, XBA +2, REP/SEP/BRL/PER/PEI +1. Control-flow internal cycles
-(JSR/RTS/RTL/JSL/RTI/BRK/COP) match the datasheet; WAI/STP consume 4
-(3 internal + fetch), not 1. With tracing enabled, each VDA/VPA/VPB-active
-transaction retains its address, data, RWB, E/M/X and MLB state. Inactive
-cycles still exist only as count-table entries, so their pin/address state is
-the remaining microsequencing gap.
+**Cycle model.** Every cycle of an instruction goes through exactly one
+helper: `rd`/`wr`/`fetch`/`rdVector` for the active bus transactions and
+`io`/`ioAt`/`RMW` for the *internal* (VDA=VPA=VPB low) cycles, each placed at
+its position in the WDC Table 5-7 microsequence rather than summed from a
+table. The opcode-adjacent ones come from a small `leadIo[]` table (implied/
+accumulator ops, XCE, NOP, pushes = 1; pulls, XBA, RTS/RTL/RTI = 2; WAI/STP =
+3, address bus = PC+1); the rest sit inside the addressing-mode helpers or the
+opcode body — the DL≠0 and index-add cycles of direct page, the indexed
+page-cross cycle (address bus = the *uncarried* sum, "AAH,AAL+XL"), the
+stack-relative cycles, the read-modify-write modify cycle (in emulation mode
+the 6502-style dummy write of the unmodified byte, VDA low; MLB asserted from
+first read to last write, write-back **high byte first**), and the control-flow
+cycles of JSR/JSL (PBR is pushed between AAH and AAB)/JSR (abs,X) (the return
+address is pushed between AAL and AAH)/JMP(abs,X)/RTS/REP/SEP/BRL/PER/MVN/MVP.
+WDM's signature byte is an internal cycle (peeked for the SmartPort trap via
+`IIgsMemory::peek8`); RTI applies the pulled P only after its last pull, so the
+PC/PBR pulls still show the old M/X on the pins; WAI/STP end in a park cycle
+with the address bus, RWB and E/M/X released (`BUS_HALT`). Each
+`io` also calls `IIgsMemory::internalCycles()`, which is what lets the master-
+clock scheduler phase the *following* transaction correctly (see § Timing).
+Direct-page and stack-relative 16-bit data wrap inside bank 0 (`$00FFFF+1 =
+$000000`); absolute/long/indexed data spill into the next bank.
 
 **Test.** `tomharte_65816 <dir>` (harness in `tests/`, fetch via
 `tests/fetch_tomharte_65816.sh`). Each vector's `e` field selects the mode; P
 is compared with the phantom bits (`0x30`) masked only in emulation mode
 (native M/X are real flags). `--no-cycles` isolates state from timing;
-`--no-bus` isolates state/timing from active-bus tracing; `--only hh` /
-`--max N` scope a run.
+`--no-bus` isolates state/timing from bus tracing, `--active-only` drops the
+internal cycles from the comparison (triage: is it a transaction or a
+placement defect?); `--only hh` / `--max N` scope a run.
 
 The **WDC 65C816** is a 16-bit superset of the 65C02. Design notes for
 `CPU65816.h/.cpp`:
@@ -98,9 +114,10 @@ The **WDC 65C816** is a 16-bit superset of the 65C02. Design notes for
   mask, `setNMI()`, `softReset()/hardReset()`. Add `getEmulationMode()` and the
   wide register file to the snapshot.
 - **Timing**: base cycle counts follow the WDC datasheet; the *effective* clock
-  (2.8 vs 1.02 MHz) and the extra cycle for crossing into slow-side memory are
-  applied by `IIgsMemory`, not baked into the opcode table — keep the opcode
-  table clock-agnostic (returns architectural cycles), exactly like POM2.
+  (2.8 vs 1.02 MHz), the PH0 side-sync wait and the DRAM-refresh stall are
+  applied by `IIgsMemory` per bus cycle as the CPU emits them, not baked into
+  the opcode bodies — keep the CPU clock-agnostic (it reports architectural
+  cycles and their order), exactly like POM2.
 
 **Gate**: `tomharte_65816` — Tom Harte
 [SingleStepTests/65816](https://github.com/SingleStepTests/65816) (both `v1`
@@ -523,10 +540,13 @@ cycles; POMIIGS cannot — see `CLAUDE.md § Conventions`.)
 
 `megaii_timing_test` pins the line/frame totals, the 16-tick long slot, the
 25-line FPI/PH0 realignment, phase-dependent side-sync and refresh
-classification. The CPU still reports inactive cycles only in its final
-instruction total, so their exact positions among active bus transactions and
-the reset phase require the hardware-trace gate before a whole-machine
-cycle-accuracy claim.
+classification, and — at instruction level — the placement of internal CPU
+cycles: the CPU feeds each one to `IIgsMemory::internalCycles()` at its
+microsequence position (five ticks, never stalled: with VDA low the FPI runs no
+DRAM cycle), so `INC abs`'s modify cycle pushes its write-back into the refresh
+window while `STA abs,X`'s index cycle lifts its write past it. The reset phase
+of the refresh/PH0 grids still awaits calibration against a real-IIgs trace
+before a whole-machine cycle-accuracy claim.
 
 ---
 

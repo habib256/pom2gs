@@ -119,6 +119,7 @@ public:
         bool write = false;
         bool vda = false, vpa = false, vpb = false;
         bool e = false, m = false, x = false, mlb = false;
+        bool halt = false;   // WAI/STP park cycle: address, RWB and E/M/X all released
     };
     void setBusTraceEnabled(bool enabled) { busTraceEnabled_ = enabled; busTrace_.clear(); }
     void clearBusTrace() { busTrace_.clear(); }
@@ -153,6 +154,7 @@ private:
         BUS_PROGRAM = 1u << 1,
         BUS_VECTOR = 1u << 2,
         BUS_LOCK = 1u << 3,
+        BUS_HALT = 1u << 4,   // WAI/STP final cycle: address bus and status outputs all low
     };
     bool busTraceEnabled_ = false;
     std::vector<BusCycle> busTrace_;
