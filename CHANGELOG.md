@@ -4,6 +4,17 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### CPU — Klaus interrupt test (September 2026)
+
+Klaus Dormann's IRQ/NMI/BRK test joins the functional gates: the as65
+source is translated to ca65 by `tools/as65_to_ca65.py` (labels, macros,
+conditionals, `org` blocks into a generated linker config) and the harness
+drives its `$BFFC` feedback register after every instruction — bit 0 as the
+IRQ level, bit 1 as an NMI edge. Interrupt entry flags (D cleared on the
+65C816), stack contents, register preservation, nested and concurrent
+NMI/IRQ/BRK ordering all pass to the success trap. The WAI/STP sections are
+manual single-step tests and stay out of scope.
+
 ### CPU — Bruce Clark decimal test (September 2026)
 
 The public-domain decimal-mode test is ported from as65 to ca65

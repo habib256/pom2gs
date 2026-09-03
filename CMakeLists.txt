@@ -233,6 +233,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_test(NAME bruce_decimal COMMAND klaus_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/klaus/bruce_decimal.bin 0
              --start 200 --labels ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/klaus/bruce_decimal.lbl --success DONE --error ERROR)
     set_tests_properties(bruce_decimal PROPERTIES SKIP_RETURN_CODE 77)
+    # Klaus's IRQ/NMI/BRK test (GPL-3.0-or-later source, translated to ca65 by
+    # tools/build_interrupt.sh); the harness models its feedback register.
+    add_test(NAME klaus_interrupt COMMAND klaus_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/klaus/interrupt_test.bin 0
+             --start 400 --labels ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/klaus/interrupt_test.lbl --success-prefix success_ --port BFFC)
+    set_tests_properties(klaus_interrupt PROPERTIES SKIP_RETURN_CODE 77)
 
     # gilyon 65C816 functional tests, rehosted on the flat bus (tools/build_gilyon.sh).
     add_executable(gilyon_test tests/gilyon_test.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)

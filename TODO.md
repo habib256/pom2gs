@@ -23,7 +23,8 @@ pass.
   vectors, no exclusion, 308 issue-linked xfails where hardware contradicts
   the corpus ((dp,X) high-byte page wrap, JSR (abs,X) raw stack); 🟢 gilyon
   generator rehosted (1610/1610) and Klaus 6502 functional test green;
-  🟢 Bruce Clark decimal test ported to ca65 (all flags checked, green).
+  🟢 Bruce Clark decimal test ported to ca65 (all flags checked, green);
+  🟢 Klaus interrupt test (IRQ/NMI/BRK via the $BFFC feedback register) green.
 - 🟡 Turn Crazy Cycles, Fancy Lores and a legally usable 3200-colour fixture
   into deterministic raster checkpoints; keep FTA/Ninjaforce media
   user-supplied until redistribution terms are explicit.

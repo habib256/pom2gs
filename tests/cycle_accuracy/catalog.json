@@ -437,13 +437,16 @@
         {"name": "Klaus Dormann 6502 functional test (assembled, GPL-3.0-or-later)", "path": "klaus/6502_functional_test.bin",
          "url": "https://raw.githubusercontent.com/Klaus2m5/6502_65C02_functional_tests/7954e2dbb49c469ea286070bf46cdd71aeb29e4b/bin_files/6502_functional_test.bin",
          "sha256": "fa12bfc761e6f9057e4cc01a665a7b800ff01ae91f598af1e39a1201d01953fd", "license": "GPL-3.0-or-later"},
+        {"name": "Klaus Dormann 6502 interrupt test (as65 source, GPL-3.0-or-later; translated by tools/build_interrupt.sh)", "path": "klaus/6502_interrupt_test.a65",
+         "url": "https://raw.githubusercontent.com/Klaus2m5/6502_65C02_functional_tests/7954e2dbb49c469ea286070bf46cdd71aeb29e4b/6502_interrupt_test.a65",
+         "sha256": "3d794b23a1740e650483990a12f9aa8563b915b48668ae86f51076bee450ecf6", "license": "GPL-3.0-or-later"},
         {"name": "gilyon snes-tests pinned source archive (cputest generator, MIT)", "path": "gilyon/snes-tests.tar.gz",
          "url": "https://github.com/gilyon/snes-tests/archive/5ecdf555da920f0bd7b157542141965a8120186d.tar.gz",
          "sha256": "a94e86e8221faf534b07c9dea10b7db2887af8c86d7b513fe29ff37dbd50f526", "license": "MIT",
          "extract": {"format": "tar.gz", "prefix": "snes-tests-5ecdf555da920f0bd7b157542141965a8120186d/cputest", "destination": "gilyon/cputest", "required": ["make_cpu_tests.py", "main.asm", "lorom.cfg"]}}
       ],
       "references": ["gilyon-snes-tests", "klaus-6502-tests", "wdc-w65c816s"],
-      "oracle": "Functional cross-checks, not cycle-level oracles. klaus_test runs the assembled Klaus 6502 functional test on the flat bus in emulation mode until it parks in a jmp * trap: only the success trap ($3469 in the pinned listing) passes. gilyon_test runs the generator output (tools/build_gilyon.sh, cc65) with a status-byte driver: all 1610 tests must pass. bruce_decimal runs Bruce Clark's decimal-mode test (ported to ca65 in tests/cycle_accuracy/bruce_decimal.s, cputype 65C816, every flag checked, built by tools/build_decimal.sh) until its STP with ERROR = 0.",
+      "oracle": "Functional cross-checks, not cycle-level oracles. klaus_test runs the assembled Klaus 6502 functional test on the flat bus in emulation mode until it parks in a jmp * trap: only the success trap ($3469 in the pinned listing) passes. gilyon_test runs the generator output (tools/build_gilyon.sh, cc65) with a status-byte driver: all 1610 tests must pass. bruce_decimal runs Bruce Clark's decimal-mode test (ported to ca65 in tests/cycle_accuracy/bruce_decimal.s, cputype 65C816, every flag checked, built by tools/build_decimal.sh) until its STP with ERROR = 0. klaus_interrupt runs the IRQ/NMI/BRK test (as65 source translated by tools/as65_to_ca65.py, D cleared on interrupt) with the harness driving the $BFFC feedback register — bit 0 IRQ level, bit 1 NMI edge — until its success trap; the WAI/STP sections are manual single-step tests and are out of scope.",
       "members": [
         {"id": "gilyon_native", "source": "gilyon cputest generator", "covers": "Native 65C816 opcodes and addressing"},
         {"id": "klaus_emulation", "source": "Klaus functional and interrupt tests", "covers": "6502/65C02-compatible emulation mode"},

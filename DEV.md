@@ -112,8 +112,13 @@ the pinned generator output, LoROM layout kept); `bruce_decimal` runs Bruce
 Clark's decimal-mode test — 2 × 256 × 256 ADC/SBC pairs predicted with binary
 arithmetic — ported from as65 to ca65 (`tests/cycle_accuracy/bruce_decimal.s`,
 cputype 65C816, A and N/V/Z/C all checked, `tools/build_decimal.sh`) until
-its `STP` with `ERROR = 0`. All three SKIP when their inputs are not
-fetched/built.
+its `STP` with `ERROR = 0`; `klaus_interrupt` runs Klaus's IRQ/NMI/BRK test
+— the as65 source translated to ca65 by `tools/as65_to_ca65.py`
+(`tools/build_interrupt.sh`, D cleared on interrupt for the 65C816) with the
+harness driving its `$BFFC` feedback register after every instruction (bit 0
+= IRQ level, bit 1 = NMI on the rising edge) until the success trap; its
+WAI/STP sections are manual single-step tests and stay out of scope. All four
+SKIP when their inputs are not fetched/built.
 
 **Test.** `tomharte_65816 <dir>` (harness in `tests/`, fetch via
 `tests/fetch_tomharte_65816.sh`). Each vector's `e` field selects the mode; P

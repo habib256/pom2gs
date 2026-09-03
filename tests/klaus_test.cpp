@@ -8,7 +8,14 @@
 // listing) passes, any other trap is the failing test's error trap.
 //
 //   klaus_test <binary> <success-addr-hex> [--start HEX] [--max-steps N]
-//              [--labels FILE --success NAME --error NAME]
+//              [--labels FILE --success NAME --error NAME] [--success-prefix NAME]
+//              [--port HEX]
+//
+// --port models Klaus's interrupt-test feedback register (open collector, no
+// DDR): after every instruction the byte at that address drives the CPU —
+// bit 0 = IRQ level, bit 1 = NMI on its rising edge, bit 7 filtered (diag
+// stop). --success-prefix accepts any label starting with NAME (the test
+// expands several `success` traps).
 //
 // With --labels (VICE "al ADDR .name" file from ld65 -Ln) the success and
 // error labels replace the hex address: the program must park at `success`
@@ -36,13 +43,16 @@ int main(int argc, char** argv) {
     const char* path = argv[1];
     uint32_t success = uint32_t(std::strtoul(argv[2], nullptr, 16));
     uint32_t start = 0x0400; long maxSteps = 200000000;
-    const char* labelsPath = nullptr; std::string successLabel, errorLabel;
+    const char* labelsPath = nullptr; std::string successLabel, errorLabel, successPrefix;
+    long port = -1;
     for (int i = 3; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--start") && i + 1 < argc) start = uint32_t(std::strtoul(argv[++i], nullptr, 16));
         else if (!std::strcmp(argv[i], "--max-steps") && i + 1 < argc) maxSteps = std::strtol(argv[++i], nullptr, 10);
         else if (!std::strcmp(argv[i], "--labels") && i + 1 < argc) labelsPath = argv[++i];
         else if (!std::strcmp(argv[i], "--success") && i + 1 < argc) successLabel = argv[++i];
         else if (!std::strcmp(argv[i], "--error") && i + 1 < argc) errorLabel = argv[++i];
+        else if (!std::strcmp(argv[i], "--success-prefix") && i + 1 < argc) successPrefix = argv[++i];
+        else if (!std::strcmp(argv[i], "--port") && i + 1 < argc) port = std::strtol(argv[++i], nullptr, 16);
         else { std::fprintf(stderr, "unknown arg '%s'\n", argv[i]); return 2; }
     }
     std::ifstream in(path, std::ios::binary);
@@ -50,6 +60,7 @@ int main(int argc, char** argv) {
     std::vector<uint8_t> bin((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
     if (bin.empty() || bin.size() > 65536) { std::fprintf(stderr, "[klaus] unexpected size %zu (want <= 65536)\n", bin.size()); return 2; }
     long errorAddr = -1;
+    std::vector<uint32_t> successAddrs;
     if (labelsPath) {
         std::ifstream lbl(labelsPath);
         if (!lbl) { std::fprintf(stderr, "[klaus] no label file at '%s' — SKIP\n", labelsPath); return 77; }
@@ -61,7 +72,11 @@ int main(int argc, char** argv) {
         }
         if (!successLabel.empty()) { if (!labels.count(successLabel)) { std::fprintf(stderr, "[klaus] label %s missing\n", successLabel.c_str()); return 2; } success = labels[successLabel]; }
         if (!errorLabel.empty())   { if (!labels.count(errorLabel))   { std::fprintf(stderr, "[klaus] label %s missing\n", errorLabel.c_str());   return 2; } errorAddr = labels[errorLabel]; }
+        if (!successPrefix.empty())
+            for (const auto& kv : labels) if (kv.first.compare(0, successPrefix.size(), successPrefix) == 0) successAddrs.push_back(kv.second);
+        if (!successPrefix.empty() && successAddrs.empty()) { std::fprintf(stderr, "[klaus] no label starts with %s\n", successPrefix.c_str()); return 2; }
     }
+    if (successAddrs.empty()) successAddrs.push_back(success);
 
     IIgsMemory mem;
     mem.setTestMode(true);                                  // flat 16 MB, no I/O
@@ -70,18 +85,27 @@ int main(int argc, char** argv) {
     cpu.setEmulationMode(true); cpu.setPC(uint16_t(start)); cpu.setPBR(0); cpu.setDBR(0);
     cpu.setSP(0x01FF); cpu.setP(0x34); cpu.setD(0);
 
-    uint32_t lastPc = 0xFFFFFFFF; int same = 0; long steps = 0;
+    uint32_t lastPc = 0xFFFFFFFF; int same = 0; long steps = 0; bool nmiLevel = false;
     for (; steps < maxSteps; ++steps) {
         const uint32_t pc = (uint32_t(cpu.getPBR()) << 16) | cpu.getPC();
         if (pc == lastPc) { if (++same >= 3) break; } else { same = 0; lastPc = pc; }
         cpu.run(1);
+        if (port >= 0) {                                        // feedback register → interrupt lines
+            const uint8_t v = uint8_t(mem.read8(uint32_t(port)) & 0x7F);
+            cpu.setIrqLine(CPU65816::IRQ_SRC_SLOT1, (v & 0x01) != 0);
+            const bool nmi = (v & 0x02) != 0;
+            if (nmi && !nmiLevel) cpu.setNMI();
+            nmiLevel = nmi;
+        }
         if (!cpu.isRunning()) { lastPc = ((uint32_t(cpu.getPBR()) << 16) | cpu.getPC()) - 1; break; }   // STP: park at its opcode
     }
     const uint32_t pc = cpu.isRunning() ? ((uint32_t(cpu.getPBR()) << 16) | cpu.getPC()) : lastPc;
     std::printf("[klaus] %s: stopped at $%06X after %ld steps (A=%04X X=%04X Y=%04X SP=%04X P=%02X)\n",
                 path, pc, steps, cpu.getA(), cpu.getX(), cpu.getY(), cpu.getSP(), cpu.getP());
     const bool parked = same >= 3 || !cpu.isRunning();          // jmp * loop, or STP
-    if (pc == success && parked) {
+    bool atSuccess = false;
+    for (uint32_t a : successAddrs) if (pc == a) atSuccess = true;
+    if (atSuccess && parked) {
         if (errorAddr >= 0 && mem.read8(uint32_t(errorAddr)) != 0) {
             std::printf("[klaus] FAIL: parked at the end but %s = %u\n", errorLabel.c_str(), mem.read8(uint32_t(errorAddr)));
             return 1;
