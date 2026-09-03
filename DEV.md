@@ -477,6 +477,16 @@ uses the SWIM" — a common misconception, now corrected; SWIM is out of scope.
 
 ### Real IWM 3.5" — Sony drive LLE (`src/Sony35`, `iwm35 = 1`)
 
+**Write path gated (September 2026).** `floppy_rw35_test` — the MiSTer
+`FLOPPY_RW_TEST` with its slot-6 short-circuit removed
+(`tools/build_floppy35_variant.sh`; upstream only ever probes unit $60 because
+the IIgs always has the $C600 PROM) — runs ProDOS block WRITE/READ/verify
+with several patterns on a cp2-generated 800K WOZ in slot 5, i.e. through the
+genuine slot-5 ROM firmware nibbling into `Sony35` and back: 6/6, 12/12 with
+the 5.25" unit mounted too. FORMAT (whole-track sessions, tach calibration)
+remains unexercised — it needs GS/OS's Advanced Disk Utility or a direct
+SmartPort FORMAT call.
+
 The SmartPort HLE above stays the default, but `iwm35 = 1` in `pomiigs.cfg`
 (or `--iwm35`) mounts 800K media on a **low-level Sony 3.5" drive model**
 instead: slot 5 then serves the **genuine internal ROM firmware** at `$C500`

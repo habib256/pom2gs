@@ -192,7 +192,8 @@ POMIIGS to broad KEGS/MAME/GSSquared parity:
   HGR/DHGR (NTSC + RGB). Ensoniq DOC 🟢 (synthLAB music validated).
 - ADB 🟢 (IRQ kbd/mouse, ⌘-menu shortcuts), BRAM/RTC 🟢, SCC 🟢.
 - **MiSTer custom diagnostics 🟡** (`tools/mister_diags.py`, 21 disks built
-  with rehosted Merlin32/CiderPress2): 15 pass (MMU 26/26, GSQMMU), 6
+  with rehosted Merlin32/CiderPress2, plus a derived slot-5 floppy variant
+  proving 3.5" write/read/verify on the Sony LLE): 16 pass (MMU 26/26, GSQMMU), 6
   xfails all with non-emulator causes (three corpus disputes, the ADB µC
   firmware, the two RAM tests that overwrite a RAM launcher).
 - **ROM 01/03 built-in self-test 🟢** (`selftest_trace`): every diagnostic
@@ -206,7 +207,7 @@ POMIIGS to broad KEGS/MAME/GSSquared parity:
 - **Real IWM 3.5" Sony LLE 🟢** (`Sony35`, `iwm35 = 1`): the genuine slot-5 ROM
   firmware drives the drive nibble-by-nibble — **GS/OS boots to the Finder**.
 
-Open: 3.5" FORMAT/tach calibration, reset-phase calibration of the PH0/
+Open: 3.5" FORMAT (block I/O through the ROM firmware is gated), reset-phase calibration of the PH0/
 refresh grids against a hardware trace, rewind ring, WASM audio, full ADB µC
 command model. (SWIM is out of scope: it only existed on the
 unreleased "Mark Twain" prototype — every production IIgs uses the IWM.)

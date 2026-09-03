@@ -88,6 +88,9 @@ def main() -> int:
     if not rom.is_file():
         print(f"[mister] ROM {rom} missing — SKIP"); return 77
     entries = [e for e in goldens["tests"] if not args.id or e["id"] in args.id]
+    optional_missing = [e["id"] for e in entries if e.get("optional") and not (disks / e["disk"]).is_file()]
+    for i in optional_missing: print(f"  {i:18s} SKIP     (optional disk not built)")
+    entries = [e for e in entries if e["id"] not in optional_missing]
     missing = [e["disk"] for e in entries if not (disks / e["disk"]).is_file()]
     if missing:
         print(f"[mister] disks not built ({', '.join(missing[:3])}…) — run tools/cycle_suite.py build — SKIP"); return 77

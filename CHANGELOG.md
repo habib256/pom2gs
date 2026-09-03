@@ -4,6 +4,16 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Disk — 3.5" write/read/verify through the ROM firmware gated (September 2026)
+
+The MiSTer floppy diagnostic never reached the 3.5" drive on a IIgs (it
+probes unit $60 whenever slot 6 holds a Disk II ROM). A one-instruction
+variant built by `tools/build_floppy35_variant.sh` runs its ProDOS block
+write/read/verify patterns on unit $50 too: the genuine slot-5 ROM firmware
+nibbling through the Sony LLE onto a cp2-generated WOZ passes 6/6 (12/12
+with both media). `mister_diags.py` reports optional, unbuilt disks as SKIP.
+FORMAT/tach calibration stays open.
+
 ### CPU — Klaus interrupt test (September 2026)
 
 Klaus Dormann's IRQ/NMI/BRK test joins the functional gates: the as65

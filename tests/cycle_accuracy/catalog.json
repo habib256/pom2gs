@@ -221,7 +221,7 @@
         }
       ],
       "references": ["mister-iigs-tests", "mister-iigs-regression", "merlin32", "ciderpress2"],
-      "oracle": "Each guest test prints its verdict on the text page; tools/mister_diags.py boots every disk with diag_trace and compares against tests/cycle_accuracy/mister_goldens.json (expect pass | xfail with the emulator gap named). Any expected pass that fails is a regression; an xfail that passes is flagged for promotion. Baseline September 2026: 15 pass, 6 xfail (documented non-emulator causes).",
+      "oracle": "Each guest test prints its verdict on the text page; tools/mister_diags.py boots every disk with diag_trace and compares against tests/cycle_accuracy/mister_goldens.json (expect pass | xfail with the emulator gap named). Any expected pass that fails is a regression; an xfail that passes is flagged for promotion. Baseline September 2026: 16 pass (incl. the POMIIGS-derived floppy_rw35_test, built by tools/build_floppy35_variant.sh), 6 xfail (documented non-emulator causes).",
       "requires": [
         {"path": "{build_dir}/diag_trace", "kind": "file"},
         {"path": "{out_dir}/mister-custom-diagnostics/customtests/mmu_test.2mg", "kind": "file"}
