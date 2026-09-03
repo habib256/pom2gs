@@ -4,6 +4,15 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### CPU — Bruce Clark decimal test (September 2026)
+
+The public-domain decimal-mode test is ported from as65 to ca65
+(`tests/cycle_accuracy/bruce_decimal.s`, cputype 65C816, accumulator and
+N/V/Z/C all checked, built by `tools/build_decimal.sh`) and gated as
+`bruce_decimal`: 2 × 256 × 256 ADC/SBC pairs, predicted in binary and
+compared in decimal mode, end in `STP` with `ERROR = 0`. `klaus_test` grew
+label-driven success/error checks and stops at `STP`.
+
 ### CPU — functional cross-checks and two hardware rulings (September 2026)
 
 Two independent suites now gate the core beside Tom Harte: Klaus Dormann's

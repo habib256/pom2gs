@@ -228,6 +228,11 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     target_include_directories(klaus_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME klaus_6502_functional COMMAND klaus_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/klaus/6502_functional_test.bin 3469)
     set_tests_properties(klaus_6502_functional PROPERTIES SKIP_RETURN_CODE 77)
+    # Bruce Clark's decimal-mode test (public domain), ported to ca65 in
+    # tests/cycle_accuracy/bruce_decimal.s and built by tools/build_decimal.sh.
+    add_test(NAME bruce_decimal COMMAND klaus_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/klaus/bruce_decimal.bin 0
+             --start 200 --labels ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/klaus/bruce_decimal.lbl --success DONE --error ERROR)
+    set_tests_properties(bruce_decimal PROPERTIES SKIP_RETURN_CODE 77)
 
     # gilyon 65C816 functional tests, rehosted on the flat bus (tools/build_gilyon.sh).
     add_executable(gilyon_test tests/gilyon_test.cpp src/CPU65816.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/ProDosHdd.cpp)

@@ -102,7 +102,9 @@ S=`$xx00` (raw 16-bit push; issue #6) — 308 vectors, reported by name with
 Independent functional cross-checks are also catalogued and automated:
 `klaus_test` (Klaus Dormann's 6502 functional test, success trap `$3469`) and
 `gilyon_test` (the MIT `gilyon` generator rehosted on the flat bus, 1610 tests
-passing — including the wrapping quirks above). The MIT `gilyon`
+passing — including the wrapping quirks above) and `bruce_decimal` (Bruce
+Clark's public-domain decimal-mode test, ported to ca65 with every flag
+checked for the 65C816). The MIT `gilyon`
 65C816 generator covers native opcodes but must be rehosted from SNES mapping
 and explicitly does not test cycle timing.[19] Klaus Dormann's GPL suite and
 Bruce Clark's public-domain decimal program strengthen 6502/65C02 emulation

@@ -108,8 +108,12 @@ the pinned listing; 30.6 M instructions); `gilyon_test` runs the gilyon
 and addressing mode with wrapping edge cases — rehosted on the flat bus by
 `tests/cycle_accuracy/gilyon_flatbus.asm` (the SNES PPU driver replaced by a
 status byte + `STP`; `tools/build_gilyon.sh` assembles it with cc65 against
-the pinned generator output, LoROM layout kept). Both SKIP when their inputs
-are not fetched/built.
+the pinned generator output, LoROM layout kept); `bruce_decimal` runs Bruce
+Clark's decimal-mode test — 2 × 256 × 256 ADC/SBC pairs predicted with binary
+arithmetic — ported from as65 to ca65 (`tests/cycle_accuracy/bruce_decimal.s`,
+cputype 65C816, A and N/V/Z/C all checked, `tools/build_decimal.sh`) until
+its `STP` with `ERROR = 0`. All three SKIP when their inputs are not
+fetched/built.
 
 **Test.** `tomharte_65816 <dir>` (harness in `tests/`, fetch via
 `tests/fetch_tomharte_65816.sh`). Each vector's `e` field selects the mode; P

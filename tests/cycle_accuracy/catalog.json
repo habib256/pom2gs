@@ -443,13 +443,13 @@
          "extract": {"format": "tar.gz", "prefix": "snes-tests-5ecdf555da920f0bd7b157542141965a8120186d/cputest", "destination": "gilyon/cputest", "required": ["make_cpu_tests.py", "main.asm", "lorom.cfg"]}}
       ],
       "references": ["gilyon-snes-tests", "klaus-6502-tests", "wdc-w65c816s"],
-      "oracle": "Functional cross-checks, not cycle-level oracles. klaus_test runs the assembled Klaus 6502 functional test on the flat bus in emulation mode until it parks in a jmp * trap: only the success trap ($3469 in the pinned listing) passes. gilyon_test runs the generator output (tools/build_gilyon.sh, cc65) with a status-byte driver: all 1610 tests must pass. The Bruce Clark decimal test is still to be rehosted.",
+      "oracle": "Functional cross-checks, not cycle-level oracles. klaus_test runs the assembled Klaus 6502 functional test on the flat bus in emulation mode until it parks in a jmp * trap: only the success trap ($3469 in the pinned listing) passes. gilyon_test runs the generator output (tools/build_gilyon.sh, cc65) with a status-byte driver: all 1610 tests must pass. bruce_decimal runs Bruce Clark's decimal-mode test (ported to ca65 in tests/cycle_accuracy/bruce_decimal.s, cputype 65C816, every flag checked, built by tools/build_decimal.sh) until its STP with ERROR = 0.",
       "members": [
         {"id": "gilyon_native", "source": "gilyon cputest generator", "covers": "Native 65C816 opcodes and addressing"},
         {"id": "klaus_emulation", "source": "Klaus functional and interrupt tests", "covers": "6502/65C02-compatible emulation mode"},
         {"id": "bruce_decimal", "source": "Bruce Clark decimal test", "covers": "8-bit ADC/SBC decimal combinations"}
       ],
-      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(klaus_|gilyon_)", "--output-on-failure"]
+      "command": ["ctest", "--test-dir", "{build_dir}", "-R", "^(klaus_|gilyon_|bruce_)", "--output-on-failure"]
     },
     {
       "id": "video-raster-regressions",
