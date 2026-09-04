@@ -4,6 +4,23 @@ Resolved items + the **why** behind non-obvious decisions.
 
 ## [Unreleased] — Milestone 0: foundation
 
+### Disk — WOZ2 3.5" media on the Sony LLE (September 2026)
+
+`Sony35` now loads WOZ2 3.5" images: each track's GCR bit stream is
+assembled into nibbles the way the IWM does (trailing sync zero bits
+absorbed) and decoded by the existing denibbliser; tracks that don't decode
+still serve their raw nibbles. Untouched tracks keep their original bits,
+written tracks are re-encoded with 10-bit syncs, and a fresh WOZ2 is written
+on flush. `sony_woz_test` pins the export/decode round trip and the
+refusals; `sony_format_woz` and `floppy_rw35_woz` run the ROM's FORMAT and
+the block read/write patterns on cp2-made WOZ files, and CiderPress2 — an
+independent decoder — must read every block of the result. `mister_diags.py`
+grew `post_cmd` checks for that. Codec split worth noting: the ROM firmware
+reads any well-formed 3.5" WOZ at the nibble level, while the C++ 6-and-2
+denibbliser (used only for `.2mg`/`.po` write-back) does not accept every
+third-party layout — a track it cannot decode keeps its raw nibbles, so
+emulation is unaffected. MiSTer gate 19 pass / 6 xfail.
+
 ### Disk — 3.5" SmartPort FORMAT gated (September 2026)
 
 `sony_format`, the first POMIIGS-authored guest diagnostic

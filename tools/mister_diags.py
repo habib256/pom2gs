@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -42,6 +43,22 @@ def run_one(diag: Path, rom: Path, disks: Path, entry: dict, defaults: dict, ver
     if entry.get("iwm35"): argv.append("--iwm35")
     if entry.get("writeback"): argv.append("--writeback")
     proc = subprocess.run(argv, capture_output=True, text=True)
+    # Optional independent post-check (e.g. cp2 reading what the guest wrote):
+    # {media:<flag>} → the per-run media copy, {cp2} → CiderPress2.
+    post_ok = True; post_out = ""
+    if entry.get("post_cmd") and proc.returncode == 0:
+        cp2 = os.environ.get("POMIIGS_CP2") or str(ROOT / "tests" / "cycle_accuracy" / "cache" / "tools" / "cp2_1.1.1_osx-x64_sc" / "cp2")
+        media_paths = {flag: str(disks / (Path(name).stem + ".run" + Path(name).suffix)) for flag, name in entry.get("media", {}).items()}
+        cmd = [a.replace("{cp2}", cp2) for a in entry["post_cmd"]]
+        cmd = [re.sub(r"\{media:(\w+)\}", lambda m: media_paths[m.group(1)], a) for a in cmd]
+        if Path(cmd[0]).is_file() or shutil.which(cmd[0]):
+            post = subprocess.run(cmd, capture_output=True, text=True)
+            post_out = (post.stdout + post.stderr).strip()
+            # A post_regex is the whole verdict (cp2 exits non-zero when a disk holds no filesystem).
+            post_ok = re.search(entry["post_regex"], post_out) is not None if entry.get("post_regex") else post.returncode == 0
+            if verbose: print("   post:", " ".join(cmd), "→", post_out.splitlines()[-1] if post_out else "")
+        else:
+            post_out = f"post_cmd tool missing: {cmd[0]}"; post_ok = False
     rows = [m.group(1) for m in re.finditer(r"^\[text \d\d\] \|(.*)\|$", proc.stdout, re.M)]
     text = "\n".join(r.rstrip() for r in rows)
     if verbose:
@@ -66,6 +83,7 @@ def run_one(diag: Path, rom: Path, disks: Path, entry: dict, defaults: dict, ver
             expected = set(entry.get("xfail_subtests", []))
             result["subtest_regressions"] = sorted(set(failing) - expected)
             result["subtest_promotions"] = sorted(expected - set(failing))
+    if passed and not post_ok: passed = False; result["post_check"] = post_out
     result["verdict"] = "PASS" if passed else "FAIL"
     return result
 

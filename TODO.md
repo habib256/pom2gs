@@ -137,10 +137,11 @@ device scan terminates; extended-STATUS **4-byte block count**; extended SmartPo
 - 🔴 **SmartPort FORMAT (`$03`)** for initialising a raw HDD from the Installer /
   Advanced Disk Utility (currently the target must be a pre-formatted ProDOS volume via
   `tools/make_prodos_hdd.py`).
-- 🔴 **3.5" WOZ media on the Sony LLE** — `Sony35` is sector-backed and now refuses
-  `.woz` (it used to nibblise the container as sectors and overwrite the file on
-  flush). Decode the WOZ 3.5" GCR bit stream into the IWM nibble stream (GSSquared
-  `Floppy35_woz`, MAME `floppy.cpp` mac_floppy) so protected/flux 800K originals run.
+- 🟢 **3.5" WOZ media on the Sony LLE** — WOZ2 bit streams decoded to nibbles
+  (IWM-style), untouched tracks kept verbatim, dirty tracks re-encoded, fresh
+  WOZ2 on flush; cp2 reads back what the ROM formats (`sony_format_woz`).
+  🔴 Timing-level fidelity for protected 800K originals (weak bits, bit-cell
+  timing) is not modelled — nibbles are served at the drive's nominal pace.
 - 🔴 **In-emulator "make bootable"** — model whatever GS/OS call would write the boot block
   during a real install, so `--boot-from` isn't needed. (BRAM startup-slot
   persistence: done — `states/bram.bin`.)

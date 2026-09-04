@@ -491,15 +491,26 @@ entry directly — STATUS, FORMAT, WRITE, READ, verify — on a cp2-generated
 `Sony35`'s whole-track write sessions and its tach/speed check accepts the
 modelled drive, then a block written and read back matches.
 
-**Media format caveat.** `Sony35` is sector-backed (`.po`/`.2mg` nibblised
-on load, de-nibblised on flush); it does not decode WOZ bit streams. A first
-cut of these gates fed it cp2-made `.woz` files: the container bytes were
-nibblised as if they were sectors, the tests still passed (self-consistent
-writes and reads), and `flush()` overwrote the `.woz` with raw sectors —
-caught when cp2 no longer recognised the file. `loadImage` now refuses
-`WOZ1`/`WOZ2` magic outright on this path. Real 3.5" WOZ support (GCR bit
-stream → the IWM's nibble stream, GSSquared `Floppy35_woz` as reference) is a
-follow-up in `TODO.md`.
+**WOZ2 3.5" media** (`loadWoz`/`saveAsWoz`, gates `sony_woz_test`,
+`sony_format_woz`, `floppy_rw35_woz`). `Sony35` stays sector-backed, but a
+WOZ2 3.5" image is now first-class: each TRKS bit stream is assembled into
+nibbles the way the IWM does it (shift bits in until bit 7 is set — the two
+trailing zero bits of a 10-bit self-sync $FF are absorbed) and handed to the
+KEGS-ported denibbliser; a track that does not decode (unformatted,
+protected) still serves its raw nibbles to the ROM. Untouched tracks keep
+their original bit stream verbatim; a track the guest wrote is re-encoded
+from its nibbles with $FF as a 10-bit sync, and `flush()` writes a fresh WOZ2
+(INFO refreshed, identity TMAP, block-aligned TRKS, META copied, CRC 0).
+Independent cross-check: the ROM's FORMAT/WRITE on a cp2-made unformatted
+WOZ yields a file CiderPress2 scans without a bad block, and the guest
+read/write/verify runs on a cp2-made ProDOS WOZ (`floppy_rw35_woz`). WOZ1 and
+non-3.5" WOZ files are refused. Note the codec split: the ROM firmware
+(nibble level) reads any well-formed 3.5" WOZ, but the *C++* `denibbliseTrack`
+(the KEGS 6-and-2 port used only for `.2mg`/`.po` write-back and `image()`)
+does not accept every third-party nibble layout — a track it cannot decode
+keeps its raw nibbles, so emulation is unaffected while sector export of a
+foreign WOZ may be incomplete. (A first cut had nibblised the container as sectors and overwritten
+the `.woz` on flush; the sector-image gates use `.2mg`.)
 
 The SmartPort HLE above stays the default, but `iwm35 = 1` in `pomiigs.cfg`
 (or `--iwm35`) mounts 800K media on a **low-level Sony 3.5" drive model**

@@ -60,10 +60,11 @@ bool Sony35::loadImage(const std::string& path) {
     // treating the container as raw sectors produced garbage tracks AND
     // flush() then overwrote the user's .woz with raw sectors (found by the
     // sony_format gate, September 2026). Use .2mg/.po media on this path.
-    if (img.size() >= 8 && img[0] == 'W' && img[1] == 'O' && img[2] == 'Z' && (img[3] == '1' || img[3] == '2')) {
-        std::fprintf(stderr, "Sony35: '%s' is a WOZ image — the 3.5\" Sony LLE takes .2mg/.po sector images only\n", path.c_str());
-        return false;
+    if (img.size() >= 8 && img[0] == 'W' && img[1] == 'O' && img[2] == 'Z') {
+        if (img[3] != '2') { std::fprintf(stderr, "Sony35: '%s': only WOZ2 3.5\" images are supported\n", path.c_str()); return false; }
+        return loadWoz(img, path, wp);
     }
+    wozBacked_ = false;
     const pom2::TwoImgPayload tw = pom2::twoImgProbe(img.data(), img.size());
     if (tw.is2img) {
         wp  = tw.writeProtected;
@@ -115,10 +116,137 @@ void Sony35::flush() {
         trkDirty_[t] = false;
     }
     if (!any || path_.empty() || writeProt_ || !writeBack_) return;
+    if (wozBacked_) { if (!saveWoz()) std::fprintf(stderr, "Sony35: cannot write back WOZ %s\n", path_.c_str()); return; }
     std::fstream f(path_, std::ios::in | std::ios::out | std::ios::binary);
     if (!f) { std::fprintf(stderr, "Sony35: cannot write back to %s\n", path_.c_str()); return; }
     f.seekp(std::streamoff(headerBytes_), std::ios::beg);
     f.write(reinterpret_cast<const char*>(image_.data()), std::streamsize(image_.size()));
+}
+
+// ── WOZ2 3.5" images ─────────────────────────────────────────────────────
+// Applesauce WOZ 2.x (https://applesaucefdc.com/woz/reference2/): INFO (disk
+// type 2 = 3.5"), TMAP (160 entries, cyl*2+side → TRKS index), TRKS (8-byte
+// entries: starting 512-byte block, block count, bit count; data at block*512).
+// Reading: the IWM assembles a nibble by shifting bits in until bit 7 is set,
+// so the two trailing zero bits of a 10-bit self-sync $FF are simply absorbed
+// — exactly what bitsToNibbles does, which lets the KEGS-ported denibbliser
+// decode the track. Untouched tracks keep their original bits (weak bits,
+// timing quirks and all); a track the guest wrote is re-encoded from its
+// nibbles with $FF as a 10-bit sync (GSSquared Floppy35_woz, Applesauce).
+namespace {
+inline uint32_t rd32(const uint8_t* p) { return uint32_t(p[0]) | (uint32_t(p[1]) << 8) | (uint32_t(p[2]) << 16) | (uint32_t(p[3]) << 24); }
+inline uint16_t rd16(const uint8_t* p) { return uint16_t(p[0] | (p[1] << 8)); }
+inline void wr32(std::vector<uint8_t>& v, uint32_t x) { for (int i = 0; i < 4; ++i) v.push_back(uint8_t(x >> (8 * i))); }
+inline void wr16(std::vector<uint8_t>& v, uint16_t x) { v.push_back(uint8_t(x)); v.push_back(uint8_t(x >> 8)); }
+}
+
+void Sony35::bitsToNibbles(const uint8_t* bits, uint32_t bitCount, std::vector<uint8_t>& nibbles) {
+    nibbles.clear();
+    nibbles.reserve(bitCount / 8);
+    uint32_t v = 0;
+    for (uint32_t i = 0; i < bitCount; ++i) {
+        const uint32_t bit = (bits[i >> 3] >> (7 - (i & 7))) & 1;
+        v = ((v << 1) | bit) & 0xFF;
+        if (v & 0x80) { nibbles.push_back(uint8_t(v)); v = 0; }
+    }
+}
+
+void Sony35::nibblesToBits(const std::vector<uint8_t>& nibbles, std::vector<uint8_t>& bits, uint32_t& bitCount) {
+    bits.clear(); bitCount = 0;
+    auto put = [&](uint32_t bit) { if ((bitCount & 7) == 0) bits.push_back(0); if (bit) bits[bitCount >> 3] |= uint8_t(0x80 >> (bitCount & 7)); ++bitCount; };
+    for (uint8_t n : nibbles) {
+        for (int b = 7; b >= 0; --b) put((n >> b) & 1);
+        if (n == 0xFF) { put(0); put(0); }             // self-sync: 10-bit $FF
+    }
+}
+
+bool Sony35::loadWoz(const std::vector<uint8_t>& file, const std::string& path, bool& wp) {
+    if (file.size() < 12 + 8) return false;
+    const uint8_t* info = nullptr; const uint8_t* tmap = nullptr; const uint8_t* trks = nullptr;
+    size_t trksLen = 0; std::vector<uint8_t> meta;
+    size_t p = 12;
+    while (p + 8 <= file.size()) {
+        const uint32_t id = rd32(&file[p]), len = rd32(&file[p + 4]);
+        const uint8_t* body = &file[p + 8];
+        if (size_t(len) > file.size() - (p + 8)) return false;
+        if      (id == 0x4F464E49) info = body;                       // "INFO"
+        else if (id == 0x50414D54) tmap = body;                       // "TMAP"
+        else if (id == 0x534B5254) { trks = body; trksLen = len; }    // "TRKS"
+        else if (id == 0x4154454D) meta.assign(body, body + len);     // "META"
+        p += 8 + len;
+    }
+    if (!info || !tmap || !trks) return false;
+    if (info[1] != 2) { std::fprintf(stderr, "Sony35: '%s' is not a 3.5\" WOZ (disk type %u)\n", path.c_str(), info[1]); return false; }
+    flush();                                          // don't lose a previous disk's writes
+    image_.assign(kImageBytes, 0);
+    wozInfo_.assign(info, info + 60);
+    wozMeta_ = std::move(meta);
+    for (int t = 0; t < kTracks; ++t) {
+        wozBits_[t].clear(); wozBitCount_[t] = 0; trk_[t].clear(); trkDirty_[t] = false;
+        const uint8_t slot = tmap[t];
+        if (slot == 0xFF || size_t(slot) * 8 + 8 > trksLen) continue;
+        const uint8_t* e = trks + size_t(slot) * 8;
+        const uint32_t startBlock = rd16(e), blocks = rd16(e + 2), bitCount = rd32(e + 4);
+        const size_t off = size_t(startBlock) * 512;
+        if (bitCount == 0 || off + size_t(blocks) * 512 > file.size() || (bitCount + 7) / 8 > size_t(blocks) * 512) continue;
+        wozBits_[t].assign(file.begin() + std::ptrdiff_t(off), file.begin() + std::ptrdiff_t(off + (bitCount + 7) / 8));
+        wozBitCount_[t] = bitCount;
+        bitsToNibbles(wozBits_[t].data(), bitCount, trk_[t]);
+        if (!trk_[t].empty()) denibbliseTrack(t);     // unformatted / protected tracks keep their raw nibbles
+    }
+    path_ = path; headerBytes_ = 0; writeProt_ = wp = (info[2] != 0);
+    wozBacked_ = true;
+    present_ = true;
+    switched_ = true;
+    pos_ = 0; latchValid_ = false; nibbleClock_ = 0;
+    return true;
+}
+
+// Write a complete WOZ2 image: INFO (largest-track field refreshed), an
+// identity TMAP over the tracks that exist, TRKS entries + block-aligned bit
+// streams, META copied through. CRC32 left at 0 (allowed by the spec).
+bool Sony35::saveAsWoz(const std::string& outPath) const {
+    if (!present_) return false;
+    std::vector<uint8_t> bits[kTracks]; uint32_t counts[kTracks];
+    uint16_t largest = 0; std::vector<uint8_t> tmap(160, 0xFF);
+    uint32_t next = 3;                                  // first data block after the 1536-byte header area
+    std::vector<uint8_t> trks;
+    for (int t = 0; t < kTracks; ++t) {
+        if (trkDirty_[t] || (wozBitCount_[t] == 0 && !trk_[t].empty())) nibblesToBits(trk_[t], bits[t], counts[t]);
+        else { bits[t] = wozBits_[t]; counts[t] = wozBitCount_[t]; }
+        if (counts[t] == 0) { wr16(trks, 0); wr16(trks, 0); wr32(trks, 0); continue; }
+        const uint16_t blocks = uint16_t((bits[t].size() + 511) / 512);
+        tmap[size_t(t)] = uint8_t(t);
+        wr16(trks, uint16_t(next)); wr16(trks, blocks); wr32(trks, counts[t]);
+        if (blocks > largest) largest = blocks;
+        next += blocks;
+    }
+    std::vector<uint8_t> out;
+    const char magic[12] = {'W', 'O', 'Z', '2', char(0xFF), 0x0A, 0x0D, 0x0A, 0, 0, 0, 0};
+    out.insert(out.end(), magic, magic + 12);
+    std::vector<uint8_t> info = wozInfo_;
+    if (info.empty()) { info.assign(60, 0); info[0] = 2; info[1] = 2; info[3] = 1; info[37] = 2; info[39] = 16; }   // v2, 3.5", synchronised, 2 sides, 2 µs bit cells
+    info.resize(60, 0);
+    info[44] = uint8_t(largest); info[45] = uint8_t(largest >> 8);
+    info[2] = writeProt_ ? 1 : 0;
+    out.push_back('I'); out.push_back('N'); out.push_back('F'); out.push_back('O'); wr32(out, 60); out.insert(out.end(), info.begin(), info.end());
+    out.push_back('T'); out.push_back('M'); out.push_back('A'); out.push_back('P'); wr32(out, 160); out.insert(out.end(), tmap.begin(), tmap.end());
+    out.push_back('T'); out.push_back('R'); out.push_back('K'); out.push_back('S');
+    const uint32_t trksLen = 1280 + (next - 3) * 512;
+    wr32(out, trksLen);
+    out.insert(out.end(), trks.begin(), trks.end());
+    out.resize(1536, 0);                                 // header + INFO + TMAP + 160 TRKS entries end at block 3
+    for (int t = 0; t < kTracks; ++t) {
+        if (counts[t] == 0) continue;
+        const size_t blocks = (bits[t].size() + 511) / 512;
+        out.insert(out.end(), bits[t].begin(), bits[t].end());
+        out.resize(out.size() + (blocks * 512 - bits[t].size()), 0);
+    }
+    if (!wozMeta_.empty()) { out.push_back('M'); out.push_back('E'); out.push_back('T'); out.push_back('A'); wr32(out, uint32_t(wozMeta_.size())); out.insert(out.end(), wozMeta_.begin(), wozMeta_.end()); }
+    std::ofstream f(outPath, std::ios::binary | std::ios::trunc);
+    if (!f) return false;
+    f.write(reinterpret_cast<const char*>(out.data()), std::streamsize(out.size()));
+    return bool(f);
 }
 
 // ── Sony register protocol ────────────────────────────────────────────────

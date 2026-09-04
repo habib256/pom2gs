@@ -245,6 +245,10 @@ if(POMIIGS_TESTS AND NOT EMSCRIPTEN)
     add_test(NAME gilyon_native COMMAND gilyon_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/gilyon/cputest/cputest_pom.sfc ${CMAKE_CURRENT_SOURCE_DIR}/tests/cycle_accuracy/cache/gilyon/cputest/cputest_pom.lbl)
     set_tests_properties(gilyon_native PROPERTIES SKIP_RETURN_CODE 77)
 
+    add_executable(sony_woz_test tests/sony_woz_test.cpp src/Sony35.cpp)
+    target_include_directories(sony_woz_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    add_test(NAME sony_woz_test COMMAND sony_woz_test ${CMAKE_BINARY_DIR})
+
     add_executable(reset_test tests/reset_test.cpp src/IIgsMemory.cpp src/Iwm.cpp src/DiskImage.cpp src/Sony35.cpp src/Es5503.cpp src/Scc8530.cpp src/CPU65816.cpp src/ProDosHdd.cpp)
     target_include_directories(reset_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
     add_test(NAME reset_test COMMAND reset_test)

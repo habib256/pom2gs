@@ -15,6 +15,8 @@ CP2="${POMIIGS_CP2:-$T/cp2_1.1.1_osx-x64_sc/cp2}"
 # Unformatted 800K .2mg for the FORMAT diagnostic (the runner copies it per run;
 # the Sony LLE takes sector images, not WOZ bit streams).
 [ -f "$OUT/blank35_unfmt.2mg" ] || ( cd "$OUT" && "$CP2" cdi blank35_unfmt.2mg 800k >/dev/null )
+[ -f "$OUT/blank35_unfmt.woz" ] || ( cd "$OUT" && "$CP2" cdi blank35_unfmt.woz 800k >/dev/null )
+[ -f "$OUT/prodos35.woz" ]      || ( cd "$OUT" && "$CP2" cdi prodos35.woz 800k prodos >/dev/null )
 for src in "$HERE"/tests/cycle_accuracy/diags/*.S; do
     name="$(basename "$src" .S)"; sysname="$(grep -m1 '^ *DSK ' "$src" | awk '{print $2}')"
     cp "$src" "$OUT/$name.S"

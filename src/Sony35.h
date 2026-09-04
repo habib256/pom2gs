@@ -37,12 +37,20 @@ public:
     static constexpr int kTracks = 160;  // cyl*2+side
     static constexpr size_t kImageBytes = 819200;   // 800 KB
 
-    // Load an 800K image (.po raw / .2mg with 64-byte header). Marks the
+    // Load an 800K image: .po raw, .2mg (header from TwoImg), or a WOZ2 3.5"
+    // bit-stream image (`loadWoz`: every track's GCR bit stream is assembled
+    // into nibbles the IWM way and fed to the denibbliser; untouched tracks
+    // keep their original bits, dirty ones are re-encoded with 10-bit syncs,
+    // and flush() writes a fresh WOZ2). Marks the
     // disk-switched flag so firmware re-reads media state.
     bool loadImage(const std::string& path);
     void eject();                        // flush, drop media, set switched
     void flush();                        // de-nibblise dirty tracks → file
     bool loaded() const { return present_; }
+    const std::vector<uint8_t>& image() const { return image_; }   // decoded 800K sector image
+    // Export the current media as a fresh WOZ2 (every track encoded from its
+    // nibbles, $FF as 10-bit syncs). Also used by flush() for WOZ-backed media.
+    bool saveAsWoz(const std::string& path) const;
     // KEGS g_check_nibblization discipline: de-nibblise every track and
     // compare against the loaded image — pins the codec as self-inverse.
     bool checkNibblization();
@@ -109,6 +117,18 @@ private:
     bool   wrActive_ = false;
 
     int curTrk(int side) const { return cyl_ * 2 + side; }
+
+    // WOZ2 backing (see loadWoz / saveWoz). Original per-track bit streams
+    // are kept so an untouched track is written back verbatim.
+    bool wozBacked_ = false;
+    std::vector<uint8_t> wozInfo_;       // the 60-byte INFO chunk body
+    std::vector<uint8_t> wozMeta_;       // META chunk body (copied through)
+    std::vector<uint8_t> wozBits_[kTracks];
+    uint32_t wozBitCount_[kTracks] = {0};
+    bool loadWoz(const std::vector<uint8_t>& file, const std::string& path, bool& wp);
+    bool saveWoz() const { return saveAsWoz(path_); }
+    static void bitsToNibbles(const uint8_t* bits, uint32_t bitCount, std::vector<uint8_t>& nibbles);
+    static void nibblesToBits(const std::vector<uint8_t>& nibbles, std::vector<uint8_t>& bits, uint32_t& bitCount);
 
     // GCR codec (KEGS iwm.c ports — see header comment).
     void nibbliseTrack(int trkIdx);
