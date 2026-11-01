@@ -17,29 +17,74 @@ verbatim, and the legacy //e video + NTSC composite decode came across into
 
 ## Source of truth
 
-The IIgs is documented by several emulators; POMIIGS pins its behaviour to a
-ranked reference set (recorded here so every port cites the same source):
+**The silicon is the reference.** The IIgs is documented by several emulators,
+but none of them is the oracle: each is one reading of the hardware, and each
+is wrong often enough to matter. Evidence ranks, and the rank is written in the
+code.
 
-1. **MAME `apple2gs.cpp`** (R. Belmont) — *primary*. C++, cycle-accurate,
-   models the 14.31818 MHz master clock and Mega II fast/slow-side sync,
-   cites the Apple II Documentation Project. When porting hardware, **cite
-   the MAME file + line range in a comment** and pin with a smoke test under
-   `tests/` — identical discipline to POM2.
-   <https://github.com/mamedev/mame/blob/master/src/mame/apple/apple2gs.cpp>
-2. **GSSquared** (Jawaid Bazyar, GPLv3) — modern C++/SDL3 from-scratch peer;
-   mirror its subsystem decomposition (`cpus/`, `mmus/`, `devices/es5503`,
-   `devices/adb`, `devices/iwm`, `devices/rtc`, …).
-   <https://github.com/jawaidbazyar2/gssquared>
-3. **KEGS** (Kent Dickey) — readable canonical C implementation; good for
-   overall architecture + IWM/disk logic. <https://github.com/a2kegs/kegs>
-4. **Clemens IIGS** (MIT) — permissively-licensed structural reference +
-   self-diagnostic parity target. <https://github.com/samkusin/clemens_iigs>
-5. **Crossrunner** (closed source) — behavioural *oracle* only: compare
-   observable behaviour, never code. <https://www.crossrunner.gs/>
+### Evidence grades — written into the code
 
-Primary hardware docs to cite directly: *Apple IIgs Hardware Reference* &
-*Firmware Reference* (Addison-Wesley), *Apple IIgs Technical Notes*, the WDC
-**W65C816S** datasheet, and the **Ensoniq 5503 DOC** datasheet.
+**The silicon is the reference.** Every claim about hardware carries **its
+grade and its source**, in one bracket at the head of the comment, so a reader
+and a `grep` agree on what backs the code:
+
+| Grade | Evidence |
+|---|---|
+| **A** | Measured on **real hardware** — scope, capture, run on the iron. |
+| **B** | **Primary document** — chip datasheet, the machine's hardware/firmware reference, a technical note, a specification, a patent. |
+| **C** | **ROM disassembly** — proof of what the software *expects*: the contract, not the silicon. |
+| **D** | **Another emulator**, whichever it is. A reading of the hardware by someone else: useful, fallible. |
+| **E** | **Asserted with no source.** |
+| **F** | **Admitted unknown** — guessed, tuned, approximate, unverified. |
+
+Three rules follow. **A grade-D citation names its revision** (tag or commit):
+upstream line numbers move on every commit, so a bare `file.cpp:248-253`
+designates nothing and cannot be re-verified. **A lower grade never overrules a
+higher one** — where this emulator diverges from another because a datasheet, a
+ROM or a measurement says otherwise, that is correct, and the comment says so;
+it protects the code from a future "alignment" that would be a regression.
+**An F is kept, not hidden**: state what would settle it.
+
+```
+// [B] W65C816S datasheet (WDC) § 3.1 — the bank register holds across the op.
+// [D] MAME foo.cpp:237-252 @ mame0287 — same, as MAME reads it.
+// [C] ROM 03 $FE1A40 — the firmware expects the opposite order.
+// [A] Measured on a real unit: 1.0153 MHz.
+// [F] Unknown: tuned until the demo passed. Settled by: a scope capture.
+```
+
+This hierarchy is shared by every emulator from the same author (POM2, POM1,
+POMIIGS, POM68K, POMPPC, NeoST, RasterSystemGG).
+
+### The IIgs sources, by grade
+
+**Grade B — primary documents, cited directly and preferred over any emulator:**
+*Apple IIgs Hardware Reference* and *Firmware Reference* (Addison-Wesley), the
+*Apple IIgs Technical Notes*, the WDC **W65C816S** datasheet, the **Ensoniq
+5503 DOC** datasheet, and the Apple II Documentation Project.
+
+**Grade C — ROM disassembly:** IIgs ROM 00/01/03 firmware. Proof of the
+contract the software expects.
+
+**Grade D — the emulators, all equal.** Cite them `file:lines @ revision`, and
+pin the port with a smoke test under `tests/`:
+
+- **MAME `apple2gs.cpp`** (R. Belmont) — C++, cycle-accurate, models the
+  14.31818 MHz master clock and Mega II fast/slow-side sync.
+  <https://github.com/mamedev/mame/blob/master/src/mame/apple/apple2gs.cpp>
+- **GSSquared** (Jawaid Bazyar, GPLv3) — modern C++/SDL3 from-scratch peer;
+  its subsystem decomposition (`cpus/`, `mmus/`, `devices/es5503`,
+  `devices/adb`, `devices/iwm`, `devices/rtc`, …) is worth mirroring.
+  <https://github.com/jawaidbazyar2/gssquared>
+- **KEGS** (Kent Dickey) — readable canonical C implementation; good for
+  overall architecture + IWM/disk logic. <https://github.com/a2kegs/kegs>
+- **Clemens IIGS** (MIT) — permissively-licensed structural reference +
+  self-diagnostic parity target. <https://github.com/samkusin/clemens_iigs>
+- **Crossrunner** (closed source) — behavioural comparison only, never code.
+  <https://www.crossrunner.gs/>
+
+Matching MAME is not the goal, and "MAME-true" is not a correctness claim:
+behaving like a IIgs is.
 
 ## Conventions (inherited from POM2)
 
